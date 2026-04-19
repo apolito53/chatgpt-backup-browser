@@ -198,6 +198,45 @@ function deserializeMessageAssetMap(entries) {
   return new Map(entries);
 }
 
+function normalizeStats(index) {
+  const conversations = Array.isArray(index?.conversations) ? index.conversations : [];
+  const images = Array.isArray(index?.images) ? index.images : [];
+  const messageCount = conversations.reduce(
+    (sum, conversation) => sum + (Number.isFinite(conversation.messageCount) ? conversation.messageCount : 0),
+    0,
+  );
+
+  return {
+    conversations: conversations.length,
+    messages: messageCount,
+    images: images.length,
+  };
+}
+
+function normalizeIndex(index) {
+  if (!index || typeof index !== "object") {
+    return null;
+  }
+
+  const conversations = Array.isArray(index.conversations) ? index.conversations : [];
+  const images = Array.isArray(index.images) ? index.images : [];
+
+  return {
+    ...index,
+    conversations,
+    images,
+    stats: index.stats && typeof index.stats === "object"
+      ? {
+        conversations: Number.isFinite(index.stats.conversations) ? index.stats.conversations : conversations.length,
+        messages: Number.isFinite(index.stats.messages) ? index.stats.messages : normalizeStats({ conversations, images }).messages,
+        images: Number.isFinite(index.stats.images) ? index.stats.images : images.length,
+      }
+      : normalizeStats({ conversations, images }),
+    rawConversationMap: index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map(),
+    messageAssetMap: index.messageAssetMap instanceof Map ? index.messageAssetMap : new Map(),
+  };
+}
+
 function serializeIndexForStorage(index) {
   return {
     ...index,
@@ -215,7 +254,7 @@ function deserializeStoredIndex(record) {
     return null;
   }
 
-  return {
+  return normalizeIndex({
     ...record.index,
     images: (record.index.images || []).map((image) => ({
       ...image,
@@ -223,7 +262,7 @@ function deserializeStoredIndex(record) {
     })),
     rawConversationMap: new Map(record.rawConversationEntries || []),
     messageAssetMap: deserializeMessageAssetMap(record.index.messageAssetMap),
-  };
+  });
 }
 
 async function saveSessionRecord({ sessionKey, sourceMode, sourceLabel, index }) {
@@ -1419,7 +1458,7 @@ function loadSavedIndex() {
     if (!raw) {
       return null;
     }
-    return JSON.parse(raw);
+    return normalizeIndex(JSON.parse(raw));
   } catch (error) {
     console.warn("Failed to restore session cache:", error);
     return null;
@@ -1434,25 +1473,32 @@ function revokeObjectUrls() {
 }
 
 function applyIndex(index, sourceLabel) {
+  const safeIndex = normalizeIndex(index);
+  if (!safeIndex) {
+    setStatus("That saved session is unreadable. Reload the backup file or folder.");
+    setProgress(0, true);
+    return;
+  }
+
   const preferredConversationId = state.selectedConversationId;
   const preferredImageId = state.selectedImageId;
-  state.index = index;
-  state.rawConversationMap = index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map();
-  state.messageAssetMap = index.messageAssetMap instanceof Map ? index.messageAssetMap : new Map();
-  state.selectedConversationId = index.conversations.some((conversation) => conversation.id === preferredConversationId)
+  state.index = safeIndex;
+  state.rawConversationMap = safeIndex.rawConversationMap;
+  state.messageAssetMap = safeIndex.messageAssetMap;
+  state.selectedConversationId = safeIndex.conversations.some((conversation) => conversation.id === preferredConversationId)
     ? preferredConversationId
-    : index.conversations[0]?.id || null;
-  state.selectedImageId = index.images.some((image) => image.id === preferredImageId)
+    : safeIndex.conversations[0]?.id || null;
+  state.selectedImageId = safeIndex.images.some((image) => image.id === preferredImageId)
     ? preferredImageId
-    : index.images[0]?.id || null;
+    : safeIndex.images[0]?.id || null;
 
-  if (state.activeView === "images" && !index.images.length) {
+  if (state.activeView === "images" && !safeIndex.images.length) {
     state.activeView = "conversations";
   }
 
   for (const button of elements.tabButtons) {
     const view = button.dataset.view;
-    const enabled = view !== "images" || index.images.length > 0;
+    const enabled = view !== "images" || safeIndex.images.length > 0;
     button.disabled = !enabled;
   }
 
@@ -1822,29 +1868,35 @@ elements.folderInput.addEventListener("change", (event) => {
 });
 
 elements.loadSample.addEventListener("click", async () => {
-  const storedSession = await loadLatestSessionRecord();
-  if (storedSession) {
-    state.cacheMode = storedSession.sourceMode === "folder" ? "folder" : "single-file";
-    state.currentSessionKey = storedSession.sessionKey;
-    revokeObjectUrls();
-    applyIndex(
-      storedSession.index,
-      storedSession.sourceMode === "folder"
-        ? `Restored cached folder index for ${storedSession.sourceLabel}. Re-select the backup folder to reattach live image previews.`
-        : `Restored cached session for ${storedSession.sourceLabel}.`,
-    );
-    return;
-  }
+  try {
+    const storedSession = await loadLatestSessionRecord();
+    if (storedSession) {
+      state.cacheMode = storedSession.sourceMode === "folder" ? "folder" : "single-file";
+      state.currentSessionKey = storedSession.sessionKey;
+      revokeObjectUrls();
+      applyIndex(
+        storedSession.index,
+        storedSession.sourceMode === "folder"
+          ? `Restored cached folder index for ${storedSession.sourceLabel}. Re-select the backup folder to reattach live image previews.`
+          : `Restored cached session for ${storedSession.sourceLabel}.`,
+      );
+      return;
+    }
 
-  const cached = loadSavedIndex();
-  if (cached) {
-    state.cacheMode = "single-file";
-    revokeObjectUrls();
-    applyIndex(cached, "Restored last single-file session from browser storage.");
-    return;
-  }
+    const cached = loadSavedIndex();
+    if (cached) {
+      state.cacheMode = "single-file";
+      revokeObjectUrls();
+      applyIndex(cached, "Restored last single-file session from browser storage.");
+      return;
+    }
 
-  setStatus("No cached session found yet. Load chat.html, conversations.json, or the whole backup folder first.");
+    setStatus("No cached session found yet. Load chat.html, conversations.json, or the whole backup folder first.");
+  } catch (error) {
+    console.error(error);
+    setStatus("Couldn't restore the saved session. Reload the source file or folder and I'll cache it again.");
+    setProgress(0, true);
+  }
 });
 
 elements.searchInput.addEventListener("input", () => {
@@ -1971,25 +2023,31 @@ async function restoreFromPickerOrCache() {
     return;
   }
 
-  const storedSession = await loadLatestSessionRecord();
-  if (storedSession) {
-    state.cacheMode = storedSession.sourceMode === "folder" ? "folder" : "single-file";
-    state.currentSessionKey = storedSession.sessionKey;
-    applyIndex(
-      storedSession.index,
-      storedSession.sourceMode === "folder"
-        ? `Restored cached folder index for ${storedSession.sourceLabel}. Re-select the backup folder to reattach live image previews.`
-        : `Restored cached session for ${storedSession.sourceLabel}.`,
-    );
-    return;
-  }
+  try {
+    const storedSession = await loadLatestSessionRecord();
+    if (storedSession) {
+      state.cacheMode = storedSession.sourceMode === "folder" ? "folder" : "single-file";
+      state.currentSessionKey = storedSession.sessionKey;
+      applyIndex(
+        storedSession.index,
+        storedSession.sourceMode === "folder"
+          ? `Restored cached folder index for ${storedSession.sourceLabel}. Re-select the backup folder to reattach live image previews.`
+          : `Restored cached session for ${storedSession.sourceLabel}.`,
+      );
+      return;
+    }
 
-  const cached = loadSavedIndex();
-  if (cached) {
-    applyIndex(cached, "Restored last single-file session from browser storage.");
-  } else {
-    updateStats();
-    elements.tabButtons.find((button) => button.dataset.view === "images").disabled = true;
+    const cached = loadSavedIndex();
+    if (cached) {
+      applyIndex(cached, "Restored last single-file session from browser storage.");
+    } else {
+      updateStats();
+      elements.tabButtons.find((button) => button.dataset.view === "images").disabled = true;
+    }
+  } catch (error) {
+    console.error(error);
+    setStatus("Saved session restore failed. Reload the original backup source to refresh the cache.");
+    setProgress(0, true);
   }
 }
 
