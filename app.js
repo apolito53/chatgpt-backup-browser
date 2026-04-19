@@ -1,5 +1,8 @@
 const STORAGE_KEY = "chatgpt-backup-browser:index";
 const UI_STATE_KEY = "chatgpt-backup-browser:ui-state";
+const ARCHIVE_DB_NAME = "chatgpt-backup-browser";
+const ARCHIVE_DB_VERSION = 1;
+const ARCHIVE_SESSION_STORE = "sessions";
 const HIDDEN_MESSAGE_FLAGS = [
   "is_visually_hidden_from_conversation",
   "is_user_system_message",
@@ -28,10 +31,12 @@ const state = {
   sourceMode: "folder",
   conversationListPage: 0,
   conversationListPageSize: DEFAULT_CONVERSATION_LIST_PAGE_SIZE,
+  rawConversationMap: new Map(),
+  messageAssetMap: new Map(),
+  currentSessionKey: null,
 };
 
 const elements = {
-  rawConversationMap: new Map(),
   fileInput: document.querySelector("#file-input"),
   folderInput: document.querySelector("#folder-input"),
   sourceTabButtons: Array.from(document.querySelectorAll("[data-source]")),
@@ -72,13 +77,13 @@ const elements = {
   conversationDates: document.querySelector("#conversation-dates"),
   conversationCount: document.querySelector("#conversation-count"),
   conversationMessages: document.querySelector("#conversation-messages"),
+  conversationRawDetails: document.querySelector("#conversation-raw-details"),
+  conversationRawOutput: document.querySelector("#conversation-raw-output"),
   prevConversationTop: document.querySelector("#prev-conversation-top"),
   nextConversationTop: document.querySelector("#next-conversation-top"),
   prevConversationBottom: document.querySelector("#prev-conversation-bottom"),
   nextConversationBottom: document.querySelector("#next-conversation-bottom"),
   conversationPositionTop: document.querySelector("#conversation-position-top"),
-  conversationRawDetails: document.querySelector("#conversation-raw-details"),
-  conversationRawOutput: document.querySelector("#conversation-raw-output"),
   conversationPositionBottom: document.querySelector("#conversation-position-bottom"),
   imageView: document.querySelector("#image-view"),
   imageCount: document.querySelector("#image-count"),
@@ -88,6 +93,150 @@ const elements = {
   imagePreviewMeta: document.querySelector("#image-preview-meta"),
   imagePreviewPath: document.querySelector("#image-preview-path"),
 };
+
+let archiveDbPromise = null;
+
+function requestToPromise(request) {
+  return new Promise((resolve, reject) => {
+    request.addEventListener("success", () => resolve(request.result));
+    request.addEventListener("error", () => reject(request.error));
+  });
+}
+
+function transactionToPromise(transaction) {
+  return new Promise((resolve, reject) => {
+    transaction.addEventListener("complete", () => resolve());
+    transaction.addEventListener("abort", () => reject(transaction.error));
+    transaction.addEventListener("error", () => reject(transaction.error));
+  });
+}
+
+function openArchiveDatabase() {
+  if (!("indexedDB" in window)) {
+    return Promise.resolve(null);
+  }
+
+  if (!archiveDbPromise) {
+    archiveDbPromise = new Promise((resolve, reject) => {
+      const request = window.indexedDB.open(ARCHIVE_DB_NAME, ARCHIVE_DB_VERSION);
+
+      request.addEventListener("upgradeneeded", () => {
+        const database = request.result;
+        if (!database.objectStoreNames.contains(ARCHIVE_SESSION_STORE)) {
+          database.createObjectStore(ARCHIVE_SESSION_STORE, { keyPath: "key" });
+        }
+      });
+
+      request.addEventListener("success", () => resolve(request.result));
+      request.addEventListener("error", () => reject(request.error));
+    }).catch((error) => {
+      console.warn("Failed to open archive database:", error);
+      archiveDbPromise = null;
+      return null;
+    });
+  }
+
+  return archiveDbPromise;
+}
+
+function buildFileFingerprint(file) {
+  return [file.name || "unknown", file.size || 0, file.lastModified || 0].join(":");
+}
+
+function buildSessionKey({ sourceMode, sourceName, fingerprint }) {
+  return [sourceMode, sourceName || "unknown", fingerprint || "none"].join("::");
+}
+
+function serializeMessageAssetMap(map) {
+  return Array.from(map.entries());
+}
+
+function deserializeMessageAssetMap(entries) {
+  if (!Array.isArray(entries)) {
+    return new Map();
+  }
+  return new Map(entries);
+}
+
+function serializeIndexForStorage(index) {
+  return {
+    ...index,
+    images: (index.images || []).map(({ objectUrl, ...image }) => ({
+      ...image,
+      objectUrl: null,
+    })),
+    rawConversationMap: undefined,
+    messageAssetMap: serializeMessageAssetMap(index.messageAssetMap instanceof Map ? index.messageAssetMap : new Map()),
+  };
+}
+
+function deserializeStoredIndex(record) {
+  if (!record?.index) {
+    return null;
+  }
+
+  return {
+    ...record.index,
+    images: (record.index.images || []).map((image) => ({
+      ...image,
+      objectUrl: image.objectUrl || null,
+    })),
+    rawConversationMap: new Map(record.rawConversationEntries || []),
+    messageAssetMap: deserializeMessageAssetMap(record.index.messageAssetMap),
+  };
+}
+
+async function saveSessionRecord({ sessionKey, sourceMode, sourceLabel, index }) {
+  const database = await openArchiveDatabase();
+  if (!database) {
+    return;
+  }
+
+  const transaction = database.transaction(ARCHIVE_SESSION_STORE, "readwrite");
+  const store = transaction.objectStore(ARCHIVE_SESSION_STORE);
+  store.put({
+    key: sessionKey,
+    sourceMode,
+    sourceLabel,
+    savedAt: Date.now(),
+    index: serializeIndexForStorage(index),
+    rawConversationEntries: Array.from(
+      (index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map()).entries(),
+    ),
+  });
+  await transactionToPromise(transaction);
+}
+
+async function loadLatestSessionRecord() {
+  const database = await openArchiveDatabase();
+  if (!database) {
+    return null;
+  }
+
+  const transaction = database.transaction(ARCHIVE_SESSION_STORE, "readonly");
+  const store = transaction.objectStore(ARCHIVE_SESSION_STORE);
+  const records = await requestToPromise(store.getAll());
+  await transactionToPromise(transaction);
+
+  if (!records.length) {
+    return null;
+  }
+
+  const latest = records
+    .slice()
+    .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))[0];
+  const index = deserializeStoredIndex(latest);
+  if (!index) {
+    return null;
+  }
+
+  return {
+    sessionKey: latest.key,
+    sourceMode: latest.sourceMode || "file",
+    index,
+    sourceLabel: latest.sourceLabel || index.source || "cached session",
+  };
+}
 
 function saveUiState() {
   const payload = {
@@ -219,6 +368,10 @@ function formatFileSize(bytes) {
 
   const rounded = value >= 10 || unitIndex === 0 ? Math.round(value) : value.toFixed(1);
   return `${rounded} ${units[unitIndex]}`;
+}
+
+function getMessageAttachmentKey(message) {
+  return `${message.conversationId || "conversation"}::${message.id || "message"}`;
 }
 
 function getRoleLabel(message) {
@@ -450,6 +603,8 @@ function updateStats() {
 function renderConversation(conversation) {
   if (!conversation) {
     elements.conversationView.hidden = true;
+    elements.conversationRawDetails.open = false;
+    elements.conversationRawOutput.textContent = "No conversation selected.";
     updateConversationPager();
     updateConversationListPager();
     return;
@@ -536,6 +691,10 @@ function renderConversation(conversation) {
   });
 
   elements.conversationMessages.replaceChildren(...cards);
+  const rawConversation = state.rawConversationMap.get(conversation.id);
+  elements.conversationRawOutput.textContent = rawConversation
+    ? JSON.stringify(rawConversation, null, 2)
+    : "Raw conversation JSON is unavailable for this session.";
   updateConversationPager();
   updateConversationListPager();
   saveUiState();
@@ -609,8 +768,6 @@ function extractPointerKey(candidate) {
     return serviceMatch[1];
   }
 
-    elements.conversationRawDetails.open = false;
-    elements.conversationRawOutput.textContent = "No conversation selected.";
   return normalized;
 }
 
@@ -641,17 +798,25 @@ function resolveMessageImages(message) {
     return [];
   }
 
+  const storedAttachments = state.messageAssetMap.get(getMessageAttachmentKey(message));
+  if (storedAttachments?.length) {
+    const imagesById = new Map(state.index.images.map((image) => [image.id, image]));
+    return storedAttachments
+      .map((attachment) => ({
+        image: imagesById.get(attachment.imageId),
+        reference: attachment.reference,
+      }))
+      .filter((attachment) => attachment.image);
+  }
+
   const references = [];
-  const rawCandidates = new Set();
 
   if (message.rawContent) {
     references.push({ source: "content", value: message.rawContent });
-    collectImageReferenceCandidates(message.rawContent, []).forEach((candidate) => rawCandidates.add(candidate));
   }
 
   if (message.rawMetadata) {
     references.push({ source: "metadata", value: message.rawMetadata });
-    collectImageReferenceCandidates(message.rawMetadata, []).forEach((candidate) => rawCandidates.add(candidate));
   }
 
   const resolved = [];
@@ -697,10 +862,6 @@ function resolveMessageImages(message) {
       }
 
       usedImageIds.add(image.id);
-  const rawConversation = state.rawConversationMap.get(conversation.id);
-  elements.conversationRawOutput.textContent = rawConversation
-    ? JSON.stringify(rawConversation, null, 2)
-    : "Raw conversation JSON is unavailable for this session.";
       resolved.push({
         image,
         reference: reference.value,
@@ -709,6 +870,106 @@ function resolveMessageImages(message) {
   }
 
   return resolved;
+}
+
+function addLookupEntry(map, key, imageId) {
+  if (!key) {
+    return;
+  }
+
+  const existing = map.get(key) || [];
+  if (!existing.includes(imageId)) {
+    existing.push(imageId);
+    map.set(key, existing);
+  }
+}
+
+function buildImageLookup(images) {
+  const lookup = new Map();
+
+  for (const image of images) {
+    const keys = new Set();
+    keys.add(image.name.toLowerCase());
+    keys.add(image.relativePath.toLowerCase());
+
+    const fileServiceMatch = image.name.toLowerCase().match(/(file-[a-z0-9]+)/);
+    if (fileServiceMatch) {
+      keys.add(fileServiceMatch[1]);
+    }
+
+    const sedimentMatch = image.name.toLowerCase().match(/(file_[a-z0-9]+)/);
+    if (sedimentMatch) {
+      keys.add(sedimentMatch[1]);
+    }
+
+    for (const key of keys) {
+      addLookupEntry(lookup, key, image.id);
+    }
+  }
+
+  return lookup;
+}
+
+function buildMessageAssetMap(conversations, images) {
+  if (!images.length) {
+    return new Map();
+  }
+
+  const imageLookup = buildImageLookup(images);
+  const imageById = new Map(images.map((image) => [image.id, image]));
+  const map = new Map();
+
+  for (const conversation of conversations) {
+    for (const message of conversation.messages) {
+      const references = [];
+      if (message.rawContent) {
+        references.push({ source: "content", value: message.rawContent });
+      }
+      if (message.rawMetadata) {
+        references.push({ source: "metadata", value: message.rawMetadata });
+      }
+
+      if (!references.length) {
+        continue;
+      }
+
+      const resolved = [];
+      const usedImageIds = new Set();
+
+      for (const reference of references) {
+        const candidates = collectImageReferenceCandidates(reference.value, []);
+        for (const candidate of candidates) {
+          const pointerKey = extractPointerKey(candidate);
+          const matchingIds = imageLookup.get(pointerKey) || [];
+          let image = matchingIds
+            .map((imageId) => imageById.get(imageId))
+            .find((item) => item && !usedImageIds.has(item.id));
+
+          if (!image) {
+            image = images.find((item) => !usedImageIds.has(item.id) && matchesImageCandidate(item, candidate));
+          }
+
+          if (!image) {
+            continue;
+          }
+
+          usedImageIds.add(image.id);
+          resolved.push({
+            imageId: image.id,
+            candidate,
+            referenceSource: reference.source,
+            reference: reference.value,
+          });
+        }
+      }
+
+      if (resolved.length) {
+        map.set(getMessageAttachmentKey(message), resolved);
+      }
+    }
+  }
+
+  return map;
 }
 
 function moveConversationSelection(direction) {
@@ -795,7 +1056,7 @@ function renderConversationPagerPicker(container, total, currentIndex) {
     if (token.type === "ellipsis") {
       const ellipsis = document.createElement("span");
       ellipsis.className = "pager-ellipsis";
-      ellipsis.textContent = "…";
+      ellipsis.textContent = "...";
       pages.appendChild(ellipsis);
       continue;
     }
@@ -1071,7 +1332,12 @@ function saveIndex(index) {
   }
 
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(index));
+    const cacheableIndex = {
+      ...index,
+      rawConversationMap: undefined,
+      messageAssetMap: undefined,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheableIndex));
   } catch (error) {
     console.warn("Failed to save session cache:", error);
   }
@@ -1098,9 +1364,17 @@ function revokeObjectUrls() {
 }
 
 function applyIndex(index, sourceLabel) {
+  const preferredConversationId = state.selectedConversationId;
+  const preferredImageId = state.selectedImageId;
   state.index = index;
-  state.selectedConversationId = index.conversations[0]?.id || null;
-  state.selectedImageId = index.images[0]?.id || null;
+  state.rawConversationMap = index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map();
+  state.messageAssetMap = index.messageAssetMap instanceof Map ? index.messageAssetMap : new Map();
+  state.selectedConversationId = index.conversations.some((conversation) => conversation.id === preferredConversationId)
+    ? preferredConversationId
+    : index.conversations[0]?.id || null;
+  state.selectedImageId = index.images.some((image) => image.id === preferredImageId)
+    ? preferredImageId
+    : index.images[0]?.id || null;
 
   if (state.activeView === "images" && !index.images.length) {
     state.activeView = "conversations";
@@ -1236,6 +1510,7 @@ function lineageForConversation(conversation) {
 
 function summarizeConversation(conversation, index) {
   const orderedIds = lineageForConversation(conversation);
+  const conversationId = conversation.conversation_id || conversation.id || `conversation-${index}`;
   const messages = [];
 
   for (const id of orderedIds) {
@@ -1252,6 +1527,7 @@ function summarizeConversation(conversation, index) {
 
     messages.push({
       id: message.id || id,
+      conversationId,
       role: message.author?.role || "unknown",
       authorName: message.author?.name || null,
       createTime: message.create_time || null,
@@ -1272,7 +1548,7 @@ function summarizeConversation(conversation, index) {
   const searchBlob = `${title}\n${messages.map((message) => `${message.role}\n${message.text}`).join("\n")}`.toLowerCase();
 
   return {
-    id: conversation.conversation_id || conversation.id || `conversation-${index}`,
+    id: conversationId,
     title,
     createdAt: conversation.create_time || null,
     updatedAt: conversation.update_time || null,
@@ -1288,10 +1564,17 @@ function buildConversationIndex(rawText) {
   const rawData = JSON.parse(payload);
   const conversations = rawData.map(summarizeConversation);
   const totalMessages = conversations.reduce((sum, conversation) => sum + conversation.messageCount, 0);
+  const rawConversationMap = new Map();
+
+  rawData.forEach((conversation, index) => {
+    const id = conversation.conversation_id || conversation.id || `conversation-${index}`;
+    rawConversationMap.set(id, conversation);
+  });
 
   return {
     conversations,
     totalMessages,
+    rawConversationMap,
   };
 }
 
@@ -1343,12 +1626,18 @@ function buildBackupIndex({ conversations, images, source }) {
       messages: totalMessages,
       images: images.length,
     },
+    messageAssetMap: buildMessageAssetMap(conversations, images),
   };
 }
 
 async function parseSingleFile(file) {
   setSourceMode("file");
   state.cacheMode = "single-file";
+  state.currentSessionKey = buildSessionKey({
+    sourceMode: "file",
+    sourceName: file.name,
+    fingerprint: buildFileFingerprint(file),
+  });
   revokeObjectUrls();
   setStatus(`Loading ${file.name}...`);
   setProgress(5, false);
@@ -1365,9 +1654,18 @@ async function parseSingleFile(file) {
       images: [],
       source: file.name,
     });
+    index.rawConversationMap = conversationData.rawConversationMap;
 
     saveIndex(index);
     applyIndex(index, `Loaded ${file.name}.`);
+    saveSessionRecord({
+      sessionKey: state.currentSessionKey,
+      sourceMode: "file",
+      sourceLabel: file.name,
+      index,
+    }).catch((error) => {
+      console.warn("Failed to persist single-file session:", error);
+    });
   } catch (error) {
     console.error(error);
     setStatus(error instanceof Error ? error.message : "Failed to parse export.");
@@ -1384,7 +1682,6 @@ async function parseFolder(fileList) {
   setSourceMode("folder");
   state.cacheMode = "folder";
   revokeObjectUrls();
-  state.rawConversationMap = index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map();
   setStatus("Scanning backup folder...");
   setProgress(10, false);
 
@@ -1409,14 +1706,28 @@ async function parseFolder(fileList) {
 
     const images = buildImagesIndex(files);
     const rootSegment = (conversationFile.webkitRelativePath || "").split("/")[0] || "backup folder";
+    state.currentSessionKey = buildSessionKey({
+      sourceMode: "folder",
+      sourceName: rootSegment,
+      fingerprint: [buildFileFingerprint(conversationFile), files.length].join(":"),
+    });
 
     const index = buildBackupIndex({
       conversations: conversationData.conversations,
       images,
       source: rootSegment,
     });
+    index.rawConversationMap = conversationData.rawConversationMap;
 
     applyIndex(index, `Loaded folder ${rootSegment}. Folder sessions are kept in this tab only.`);
+    saveSessionRecord({
+      sessionKey: state.currentSessionKey,
+      sourceMode: "folder",
+      sourceLabel: rootSegment,
+      index,
+    }).catch((error) => {
+      console.warn("Failed to persist folder session:", error);
+    });
   } catch (error) {
     console.error(error);
     setStatus(error instanceof Error ? error.message : "Failed to parse backup folder.");
@@ -1440,16 +1751,30 @@ elements.folderInput.addEventListener("change", (event) => {
   parseFolder(files);
 });
 
-elements.loadSample.addEventListener("click", () => {
-  const cached = loadSavedIndex();
-  if (!cached) {
-    setStatus("No cached single-file session found yet. Load chat.html or conversations.json first.");
+elements.loadSample.addEventListener("click", async () => {
+  const storedSession = await loadLatestSessionRecord();
+  if (storedSession) {
+    state.cacheMode = storedSession.sourceMode === "folder" ? "folder" : "single-file";
+    state.currentSessionKey = storedSession.sessionKey;
+    revokeObjectUrls();
+    applyIndex(
+      storedSession.index,
+      storedSession.sourceMode === "folder"
+        ? `Restored cached folder index for ${storedSession.sourceLabel}. Re-select the backup folder to reattach live image previews.`
+        : `Restored cached session for ${storedSession.sourceLabel}.`,
+    );
     return;
   }
 
-  state.cacheMode = "single-file";
-  revokeObjectUrls();
-  applyIndex(cached, "Restored last single-file session from browser storage.");
+  const cached = loadSavedIndex();
+  if (cached) {
+    state.cacheMode = "single-file";
+    revokeObjectUrls();
+    applyIndex(cached, "Restored last single-file session from browser storage.");
+    return;
+  }
+
+  setStatus("No cached session found yet. Load chat.html, conversations.json, or the whole backup folder first.");
 });
 
 elements.searchInput.addEventListener("input", () => {
@@ -1554,6 +1879,19 @@ async function restoreFromPickerOrCache() {
     return;
   }
 
+  const storedSession = await loadLatestSessionRecord();
+  if (storedSession) {
+    state.cacheMode = storedSession.sourceMode === "folder" ? "folder" : "single-file";
+    state.currentSessionKey = storedSession.sessionKey;
+    applyIndex(
+      storedSession.index,
+      storedSession.sourceMode === "folder"
+        ? `Restored cached folder index for ${storedSession.sourceLabel}. Re-select the backup folder to reattach live image previews.`
+        : `Restored cached session for ${storedSession.sourceLabel}.`,
+    );
+    return;
+  }
+
   const cached = loadSavedIndex();
   if (cached) {
     applyIndex(cached, "Restored last single-file session from browser storage.");
@@ -1564,12 +1902,3 @@ async function restoreFromPickerOrCache() {
 }
 
 restoreFromPickerOrCache();
-  const rawConversationMap = new Map();
-
-  rawData.forEach((conversation, index) => {
-    const id = conversation.conversation_id || conversation.id || `conversation-${index}`;
-    rawConversationMap.set(id, conversation);
-  });
-    rawConversationMap,
-    index.rawConversationMap = conversationData.rawConversationMap;
-    index.rawConversationMap = conversationData.rawConversationMap;

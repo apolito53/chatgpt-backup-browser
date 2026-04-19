@@ -8,6 +8,8 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - Extracts the embedded `jsonData` archive when using HTML, or reads the JSON directly
 - Builds a searchable conversation index
 - Indexes image files from the full backup folder
+- Persists a lightweight archive catalog in IndexedDB so the parsed backup structure can be restored without reparsing
+- Precomputes message-to-image attachment mappings instead of re-scanning the archive on every render
 - Lets you filter by role (`user`, `assistant`, `system`)
 - Sorts by update time, create time, title, or message count
 - Shows a clean reading view for the currently selected conversation
@@ -26,7 +28,8 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - The app is dependency-free and runs fully on your machine.
 - It runs fully in the browser with no dependencies or local server required.
 - The last parsed single-file session is cached in browser storage so you can reload the tool without choosing the file again.
-- Full folder sessions include live file handles for images, so those stay in the current tab session only.
+- The app also keeps a lightweight IndexedDB catalog of the parsed archive structure, raw conversation records, and attachment mappings.
+- Restored folder sessions can bring back the indexed metadata after refresh, but image previews still need the folder to be selected again because browsers do not persist the live file objects for you.
 - It reads the currently selected conversation branch from each exported conversation, which is usually what you want.
 
 ## Analysis Helper
