@@ -508,9 +508,15 @@ function renderConversation(conversation) {
           <span class="subtle">${escapeHtml(attachment.image.relativePath)}</span>
         `;
 
-        const img = document.createElement("img");
-        img.src = attachment.image.objectUrl;
-        img.alt = attachment.image.name;
+        const preview = attachment.image.objectUrl
+          ? Object.assign(document.createElement("img"), {
+            src: attachment.image.objectUrl,
+            alt: attachment.image.name,
+          })
+          : Object.assign(document.createElement("div"), {
+            className: "message-attachment-missing",
+            textContent: "Image preview unavailable until the backup folder is loaded again.",
+          });
 
         const details = document.createElement("details");
         details.innerHTML = `
@@ -519,7 +525,7 @@ function renderConversation(conversation) {
         `;
 
         block.appendChild(header);
-        block.appendChild(img);
+        block.appendChild(preview);
         block.appendChild(details);
         attachmentStack.appendChild(block);
       }
@@ -931,11 +937,18 @@ function renderImageDetail(image) {
   elements.imagePreviewPath.textContent = image.relativePath;
   elements.imagePreview.innerHTML = "";
 
-  const tag = document.createElement("img");
-  tag.src = image.objectUrl;
-  tag.alt = image.name;
-  tag.className = "image-preview-tag";
-  elements.imagePreview.appendChild(tag);
+  if (image.objectUrl) {
+    const tag = document.createElement("img");
+    tag.src = image.objectUrl;
+    tag.alt = image.name;
+    tag.className = "image-preview-tag";
+    elements.imagePreview.appendChild(tag);
+  } else {
+    const placeholder = document.createElement("div");
+    placeholder.className = "empty-note";
+    placeholder.textContent = "Preview unavailable in the cached index. Reload the backup folder to reattach the actual image file.";
+    elements.imagePreview.appendChild(placeholder);
+  }
   saveUiState();
 }
 
@@ -1005,10 +1018,17 @@ function renderImagesView() {
       button.classList.add("active");
     }
 
-    button.innerHTML = `
-      <img src="${image.objectUrl}" alt="${escapeHtml(image.name)}">
-      <span>${escapeHtml(image.name)}</span>
-    `;
+    if (image.objectUrl) {
+      button.innerHTML = `
+        <img src="${image.objectUrl}" alt="${escapeHtml(image.name)}">
+        <span>${escapeHtml(image.name)}</span>
+      `;
+    } else {
+      button.innerHTML = `
+        <div class="image-tile-placeholder">Preview unavailable</div>
+        <span>${escapeHtml(image.name)}</span>
+      `;
+    }
 
     button.addEventListener("click", () => {
       state.selectedImageId = image.id;

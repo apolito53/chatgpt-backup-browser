@@ -628,6 +628,21 @@ select {
   word-break: break-word;
 }
 
+.image-tile-placeholder,
+.message-attachment-missing {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  margin-bottom: 10px;
+  padding: 18px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 246, 234, 0.9), rgba(243, 232, 217, 0.95));
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.94rem;
+}
+
 .image-detail {
   display: flex;
   flex-direction: column;
