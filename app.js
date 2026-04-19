@@ -31,6 +31,7 @@ const state = {
 };
 
 const elements = {
+  rawConversationMap: new Map(),
   fileInput: document.querySelector("#file-input"),
   folderInput: document.querySelector("#folder-input"),
   sourceTabButtons: Array.from(document.querySelectorAll("[data-source]")),
@@ -76,6 +77,8 @@ const elements = {
   prevConversationBottom: document.querySelector("#prev-conversation-bottom"),
   nextConversationBottom: document.querySelector("#next-conversation-bottom"),
   conversationPositionTop: document.querySelector("#conversation-position-top"),
+  conversationRawDetails: document.querySelector("#conversation-raw-details"),
+  conversationRawOutput: document.querySelector("#conversation-raw-output"),
   conversationPositionBottom: document.querySelector("#conversation-position-bottom"),
   imageView: document.querySelector("#image-view"),
   imageCount: document.querySelector("#image-count"),
@@ -600,6 +603,8 @@ function extractPointerKey(candidate) {
     return serviceMatch[1];
   }
 
+    elements.conversationRawDetails.open = false;
+    elements.conversationRawOutput.textContent = "No conversation selected.";
   return normalized;
 }
 
@@ -686,6 +691,10 @@ function resolveMessageImages(message) {
       }
 
       usedImageIds.add(image.id);
+  const rawConversation = state.rawConversationMap.get(conversation.id);
+  elements.conversationRawOutput.textContent = rawConversation
+    ? JSON.stringify(rawConversation, null, 2)
+    : "Raw conversation JSON is unavailable for this session.";
       resolved.push({
         image,
         reference: reference.value,
@@ -1355,6 +1364,7 @@ async function parseFolder(fileList) {
   setSourceMode("folder");
   state.cacheMode = "folder";
   revokeObjectUrls();
+  state.rawConversationMap = index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map();
   setStatus("Scanning backup folder...");
   setProgress(10, false);
 
@@ -1534,3 +1544,12 @@ async function restoreFromPickerOrCache() {
 }
 
 restoreFromPickerOrCache();
+  const rawConversationMap = new Map();
+
+  rawData.forEach((conversation, index) => {
+    const id = conversation.conversation_id || conversation.id || `conversation-${index}`;
+    rawConversationMap.set(id, conversation);
+  });
+    rawConversationMap,
+    index.rawConversationMap = conversationData.rawConversationMap;
+    index.rawConversationMap = conversationData.rawConversationMap;

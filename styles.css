@@ -554,6 +554,34 @@ select {
   padding: 20px;
 }
 
+.conversation-raw {
+  padding: 0 20px 20px;
+}
+
+.conversation-raw details {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 252, 247, 0.88);
+  overflow: hidden;
+}
+
+.conversation-raw summary {
+  cursor: pointer;
+  padding: 14px 16px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  background: rgba(255, 247, 236, 0.9);
+}
+
+.conversation-raw .metadata-block {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  max-height: 480px;
+  overflow: auto;
+}
+
 .image-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
