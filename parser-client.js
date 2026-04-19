@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { IMAGE_EXTENSIONS, state } = window.ChatBrowser.stateModule;
@@ -112,3 +113,4 @@ window.ChatBrowser.parserClient = {
   buildImagesIndex,
   buildBackupIndex,
 };
+})();

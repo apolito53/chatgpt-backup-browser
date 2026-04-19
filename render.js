@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { state, elements, saveUiState } = window.ChatBrowser.stateModule;
@@ -114,3 +115,4 @@ window.ChatBrowser.render = {
   applyIndex,
   moveConversationSelection,
 };
+})();

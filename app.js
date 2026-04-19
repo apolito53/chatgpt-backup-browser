@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { state, elements, saveUiState, loadUiState, applyUiState, setSourceMode } = window.ChatBrowser.stateModule;
@@ -330,3 +331,4 @@ if (uiState) {
 
 renderChangelog();
 restoreFromPickerOrCache();
+})();

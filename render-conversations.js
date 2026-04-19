@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { CONVERSATION_LIST_PAGE_SIZE_OPTIONS, state, elements, saveUiState } = window.ChatBrowser.stateModule;
@@ -486,3 +487,4 @@ window.ChatBrowser.conversationRender = {
   renderConversationsView,
   moveConversationSelection,
 };
+})();

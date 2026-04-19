@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const STORAGE_KEY = "chatgpt-backup-browser:index";
@@ -208,3 +209,4 @@ window.ChatBrowser.stateModule = {
   setSourceMode,
   applyUiState,
 };
+})();

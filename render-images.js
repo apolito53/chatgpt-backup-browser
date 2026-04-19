@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { state, elements, saveUiState } = window.ChatBrowser.stateModule;
@@ -156,3 +157,4 @@ function renderImagesView() {
 window.ChatBrowser.imageRender = {
   renderImagesView,
 };
+})();

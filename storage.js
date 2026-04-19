@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const {
@@ -240,3 +241,4 @@ window.ChatBrowser.storage = {
   loadSavedIndex,
   revokeObjectUrls,
 };
+})();

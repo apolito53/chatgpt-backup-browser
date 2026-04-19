@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
@@ -56,3 +57,4 @@ window.ChatBrowser.changelog = {
   },
   ],
 };
+})();

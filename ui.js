@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { APP_VERSION, CHANGELOG_ENTRIES } = window.ChatBrowser.changelog;
@@ -98,3 +99,4 @@ window.ChatBrowser.ui = {
   renderChangelog,
   setChangelogOpen,
 };
+})();

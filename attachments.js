@@ -1,5 +1,6 @@
 // @ts-check
 
+(() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { state } = window.ChatBrowser.stateModule;
@@ -288,3 +289,4 @@ window.ChatBrowser.attachments = {
   buildMessageAssetMap,
   resolveMessageImages,
 };
+})();
