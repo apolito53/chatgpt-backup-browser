@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ChatGPT Backup Browser</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <p class="eyebrow">Local Archive Tool</p>
+          <h1>ChatGPT Backup Browser</h1>
+          <p class="subtle">
+            Load a single export file or the entire backup folder, search it properly,
+            and stop wrestling your archive like it insulted your family.
+          </p>
+        </div>
+
+        <section class="panel">
+          <div class="source-switch" role="tablist" aria-label="Import source">
+            <button class="source-tab active" type="button" data-source="folder" aria-pressed="true">Whole Backup Folder</button>
+            <button class="source-tab" type="button" data-source="file" aria-pressed="false">Chat / Conversation File</button>
+          </div>
+
+          <div id="folder-source-panel" class="source-panel">
+            <label class="upload folder-upload" for="folder-input">
+              <span class="upload-title">Load Entire Backup Folder</span>
+              <span class="upload-copy">Point it at the exported folder to index conversations and images together.</span>
+            </label>
+            <input id="folder-input" type="file" webkitdirectory directory multiple>
+          </div>
+
+          <div id="file-source-panel" class="source-panel" hidden>
+            <label class="upload" for="file-input">
+              <span class="upload-title">Load One File</span>
+              <span class="upload-copy">Pick either <code>chat.html</code> or <code>conversations.json</code>.</span>
+            </label>
+            <input id="file-input" type="file" accept=".html,.json,text/html,application/json">
+          </div>
+
+          <button id="load-sample" class="ghost-button" type="button">Use Last Loaded Session</button>
+          <p id="status" class="status">Waiting for a file.</p>
+          <progress id="progress" max="100" value="0" hidden></progress>
+        </section>
+
+        <section class="panel">
+          <div class="view-switch" role="tablist" aria-label="Archive view">
+            <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
+            <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
+          </div>
+
+          <label class="field-label" for="search-input">Search</label>
+          <input id="search-input" type="search" placeholder="Search titles, messages, or both">
+
+          <div class="filters">
+            <label>
+              <span>Sort</span>
+              <select id="sort-select">
+                <option value="updated-desc">Recently updated</option>
+                <option value="updated-asc">Oldest updated</option>
+                <option value="created-desc">Recently created</option>
+                <option value="created-asc">Oldest created</option>
+                <option value="title-asc">Title A-Z</option>
+                <option value="message-count-desc">Most messages</option>
+              </select>
+            </label>
+
+            <label id="role-filter-wrap">
+              <span>Role filter</span>
+              <select id="role-select">
+                <option value="all">All messages</option>
+                <option value="user">User only</option>
+                <option value="assistant">Assistant only</option>
+                <option value="system">System only</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel stats" id="stats">
+          <div>
+            <span class="stat-label">Conversations</span>
+            <strong id="stat-conversations">0</strong>
+          </div>
+          <div>
+            <span class="stat-label">Messages</span>
+            <strong id="stat-messages">0</strong>
+          </div>
+          <div>
+            <span class="stat-label">Images</span>
+            <strong id="stat-images">0</strong>
+          </div>
+          <div>
+            <span class="stat-label">Visible matches</span>
+            <strong id="stat-results">0</strong>
+          </div>
+        </section>
+
+        <section class="panel list-panel">
+          <div class="list-header">
+            <h2 id="list-title">Conversations</h2>
+            <span id="result-caption" class="subtle">No export loaded yet.</span>
+          </div>
+          <div id="list-pager-top" class="list-pager" hidden>
+            <div class="list-pager-size-row">
+              <label class="list-page-size">
+                <span>Show</span>
+                <select id="list-page-size-top">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+              <form id="list-page-jump-top" class="list-page-jump">
+                <label>
+                  <span>Page</span>
+                  <input id="list-page-input-top" type="number" min="1" inputmode="numeric" value="1">
+                </label>
+                <button class="pager-button compact" type="submit">Go</button>
+              </form>
+            </div>
+            <div class="list-pager-nav-row">
+              <button id="prev-list-page-top" class="pager-button compact" type="button">← Previous</button>
+              <span id="list-page-position-top" class="pager-position">0 of 0</span>
+              <button id="next-list-page-top" class="pager-button compact" type="button">Next →</button>
+            </div>
+          </div>
+          <div id="conversation-list" class="conversation-list" aria-live="polite"></div>
+          <div id="list-pager-bottom" class="list-pager" hidden>
+            <div class="list-pager-size-row">
+              <label class="list-page-size">
+                <span>Show</span>
+                <select id="list-page-size-bottom">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+              <form id="list-page-jump-bottom" class="list-page-jump">
+                <label>
+                  <span>Page</span>
+                  <input id="list-page-input-bottom" type="number" min="1" inputmode="numeric" value="1">
+                </label>
+                <button class="pager-button compact" type="submit">Go</button>
+              </form>
+            </div>
+            <div class="list-pager-nav-row">
+              <button id="prev-list-page-bottom" class="pager-button compact" type="button">← Previous</button>
+              <span id="list-page-position-bottom" class="pager-position">0 of 0</span>
+              <button id="next-list-page-bottom" class="pager-button compact" type="button">Next →</button>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <main class="content">
+        <section id="empty-state" class="empty-state">
+          <p class="eyebrow">Ready When You Are</p>
+          <h2>Load your export to browse it like a civilized person.</h2>
+          <p>
+            Once loaded, you can browse conversations, search message text, and now
+            flip into an image gallery for the media sitting in the backup folder.
+          </p>
+        </section>
+
+        <article id="conversation-view" class="conversation-view" hidden>
+          <div class="pager-bar top">
+            <button id="prev-conversation-top" class="pager-button" type="button">← Previous</button>
+            <div id="conversation-position-top" class="pager-position pager-picker" aria-label="Conversation picker"></div>
+            <button id="next-conversation-top" class="pager-button" type="button">Next →</button>
+          </div>
+
+          <header class="conversation-header">
+            <div>
+              <p class="eyebrow">Conversation</p>
+              <h2 id="conversation-title">Untitled conversation</h2>
+            </div>
+            <div class="conversation-meta">
+              <span id="conversation-dates"></span>
+              <span id="conversation-count"></span>
+            </div>
+          </header>
+
+          <section id="conversation-messages" class="message-stack"></section>
+
+          <div class="pager-bar bottom">
+            <button id="prev-conversation-bottom" class="pager-button" type="button">← Previous</button>
+            <div id="conversation-position-bottom" class="pager-position pager-picker" aria-label="Conversation picker"></div>
+            <button id="next-conversation-bottom" class="pager-button" type="button">Next →</button>
+          </div>
+        </article>
+
+        <article id="image-view" class="image-view" hidden>
+          <header class="conversation-header">
+            <div>
+              <p class="eyebrow">Image Browser</p>
+              <h2>Backup Images</h2>
+            </div>
+            <div class="conversation-meta">
+              <span id="image-count">0 visible images</span>
+            </div>
+          </header>
+
+          <section class="image-layout">
+            <div id="image-grid" class="image-grid">
+              <div class="empty-note">Load a backup folder to browse its images.</div>
+            </div>
+            <aside class="image-detail">
+              <div id="image-preview" class="image-preview">
+                <div class="empty-note">Pick an image to preview it here.</div>
+              </div>
+              <div class="image-copy">
+                <h3 id="image-preview-name">No image selected</h3>
+                <p id="image-preview-meta" class="subtle"></p>
+                <p id="image-preview-path" class="subtle"></p>
+              </div>
+            </aside>
+          </section>
+        </article>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
