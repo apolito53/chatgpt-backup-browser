@@ -1,0 +1,488 @@
+// @ts-check
+
+window.ChatBrowser = window.ChatBrowser || {};
+
+const { CONVERSATION_LIST_PAGE_SIZE_OPTIONS, state, elements, saveUiState } = window.ChatBrowser.stateModule;
+const { resolveMessageImages } = window.ChatBrowser.attachments;
+const { formatDate, escapeHtml } = window.ChatBrowser.ui;
+
+function getRoleLabel(message) {
+  if (message.authorName) {
+    return `${message.role} (${message.authorName})`;
+  }
+  return message.role;
+}
+
+function compareConversations(a, b, mode) {
+  switch (mode) {
+    case "updated-asc":
+      return (a.updatedAt || 0) - (b.updatedAt || 0);
+    case "created-desc":
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    case "created-asc":
+      return (a.createdAt || 0) - (b.createdAt || 0);
+    case "title-asc":
+      return a.title.localeCompare(b.title);
+    case "message-count-desc":
+      return b.messageCount - a.messageCount;
+    case "updated-desc":
+    default:
+      return (b.updatedAt || 0) - (a.updatedAt || 0);
+  }
+}
+
+function getConversationListPageCount() {
+  return Math.max(1, Math.ceil(state.filteredConversations.length / state.conversationListPageSize));
+}
+
+function clampConversationListPage() {
+  state.conversationListPage = Math.max(0, Math.min(state.conversationListPage, getConversationListPageCount() - 1));
+}
+
+function ensureSelectedConversationPage() {
+  const selectedIndex = state.filteredConversations.findIndex(
+    (conversation) => conversation.id === state.selectedConversationId,
+  );
+
+  if (selectedIndex === -1) {
+    clampConversationListPage();
+    return;
+  }
+
+  state.conversationListPage = Math.floor(selectedIndex / state.conversationListPageSize);
+}
+
+function updateConversationListPager() {
+  const isVisible = state.activeView === "conversations" && state.filteredConversations.length > state.conversationListPageSize;
+  const totalPages = getConversationListPageCount();
+  const currentPage = state.conversationListPage + 1;
+  const label = `${currentPage} of ${totalPages}`;
+
+  elements.listPagerTop.hidden = !isVisible;
+  elements.listPagerBottom.hidden = !isVisible;
+  elements.listPagePositionTop.textContent = label;
+  elements.listPagePositionBottom.textContent = label;
+  elements.listPageSizeTop.value = String(state.conversationListPageSize);
+  elements.listPageSizeBottom.value = String(state.conversationListPageSize);
+  elements.listPageInputTop.value = String(currentPage);
+  elements.listPageInputBottom.value = String(currentPage);
+  elements.listPageInputTop.max = String(totalPages);
+  elements.listPageInputBottom.max = String(totalPages);
+
+  const disablePrev = state.conversationListPage <= 0;
+  const disableNext = state.conversationListPage >= totalPages - 1;
+
+  elements.prevListPageTop.disabled = disablePrev;
+  elements.prevListPageBottom.disabled = disablePrev;
+  elements.nextListPageTop.disabled = disableNext;
+  elements.nextListPageBottom.disabled = disableNext;
+  elements.listPageInputTop.disabled = !isVisible;
+  elements.listPageInputBottom.disabled = !isVisible;
+}
+
+function moveConversationListPage(direction) {
+  state.conversationListPage += direction;
+  clampConversationListPage();
+
+  const start = state.conversationListPage * state.conversationListPageSize;
+  const nextConversation = state.filteredConversations[start];
+  if (nextConversation) {
+    state.selectedConversationId = nextConversation.id;
+  }
+
+  renderConversationsView();
+}
+
+function setConversationListPageSize(value) {
+  const nextSize = Number(value);
+  if (!CONVERSATION_LIST_PAGE_SIZE_OPTIONS.has(nextSize)) {
+    return;
+  }
+
+  if (nextSize === state.conversationListPageSize) {
+    return;
+  }
+
+  state.conversationListPageSize = nextSize;
+  state.conversationListPage = 0;
+
+  if (state.filteredConversations.length) {
+    ensureSelectedConversationPage();
+  }
+
+  renderConversationsView();
+}
+
+function jumpConversationListPage(value) {
+  const requestedPage = Number.parseInt(value, 10);
+  if (!Number.isFinite(requestedPage)) {
+    updateConversationListPager();
+    return;
+  }
+
+  const totalPages = getConversationListPageCount();
+  state.conversationListPage = Math.max(0, Math.min(requestedPage - 1, totalPages - 1));
+
+  const start = state.conversationListPage * state.conversationListPageSize;
+  const nextConversation = state.filteredConversations[start];
+  if (nextConversation) {
+    state.selectedConversationId = nextConversation.id;
+  }
+
+  renderConversationsView();
+}
+
+function roleFilterMatches(conversation, role) {
+  if (role === "all") {
+    return true;
+  }
+  return conversation.messages.some((message) => message.role === role);
+}
+
+function searchMatchesConversation(conversation, query, role) {
+  if (!query) {
+    return true;
+  }
+
+  const lowerQuery = query.toLowerCase();
+  if (role === "all") {
+    return conversation.searchBlob.includes(lowerQuery);
+  }
+
+  if (conversation.title.toLowerCase().includes(lowerQuery)) {
+    return true;
+  }
+
+  return conversation.messages.some(
+    (message) => message.role === role && message.text.toLowerCase().includes(lowerQuery),
+  );
+}
+
+function getVisibleMessages(conversation) {
+  const role = elements.roleSelect.value;
+  if (role === "all") {
+    return conversation.messages;
+  }
+  return conversation.messages.filter((message) => message.role === role);
+}
+
+function renderConversation(conversation) {
+  if (!conversation) {
+    elements.conversationView.hidden = true;
+    elements.conversationRawDetails.open = false;
+    elements.conversationRawOutput.textContent = "No conversation selected.";
+    updateConversationPager();
+    updateConversationListPager();
+    return;
+  }
+
+  const visibleMessages = getVisibleMessages(conversation);
+  elements.conversationView.hidden = false;
+  elements.conversationTitle.textContent = conversation.title;
+  elements.conversationDates.textContent = `Created ${formatDate(conversation.createdAt)} | Updated ${formatDate(conversation.updatedAt)}`;
+  elements.conversationCount.textContent = `${visibleMessages.length} visible message${visibleMessages.length === 1 ? "" : "s"}`;
+
+  if (!visibleMessages.length) {
+    elements.conversationMessages.innerHTML = '<div class="empty-note">This conversation exists, but nothing matches the current role filter.</div>';
+    return;
+  }
+
+  const cards = visibleMessages.map((message) => {
+    const card = document.createElement("section");
+    card.className = `message-card ${message.role}`;
+
+    const body = document.createElement("div");
+    body.className = "message-body";
+
+    const attachments = resolveMessageImages(message);
+    const hasBodyText = typeof message.text === "string" && message.text.trim().length > 0;
+
+    if (hasBodyText) {
+      body.textContent = message.text;
+    } else if (attachments.length) {
+      const placeholder = document.createElement("p");
+      placeholder.className = "message-structured-placeholder";
+      placeholder.textContent = "This message contains media or structured content.";
+      body.appendChild(placeholder);
+    }
+
+    card.innerHTML = `
+      <div class="message-header">
+        <div class="message-author">${escapeHtml(getRoleLabel(message))}</div>
+        <div class="message-meta">${escapeHtml(formatDate(message.createTime || message.updateTime))}</div>
+      </div>
+    `;
+    card.appendChild(body);
+
+    if (attachments.length) {
+      const attachmentStack = document.createElement("div");
+      attachmentStack.className = "message-attachments";
+
+      for (const attachment of attachments) {
+        const block = document.createElement("section");
+        block.className = "message-attachment";
+
+        const header = document.createElement("div");
+        header.className = "message-attachment-header";
+        header.innerHTML = `
+          <span class="message-attachment-title">${escapeHtml(attachment.image.name)}</span>
+          <span class="subtle">${escapeHtml(attachment.image.relativePath)}</span>
+        `;
+
+        const preview = attachment.image.objectUrl
+          ? Object.assign(document.createElement("img"), {
+            src: attachment.image.objectUrl,
+            alt: attachment.image.name,
+          })
+          : Object.assign(document.createElement("div"), {
+            className: "message-attachment-missing",
+            textContent: "Image preview unavailable until the backup folder is loaded again.",
+          });
+
+        const details = document.createElement("details");
+        details.innerHTML = `
+          <summary>Show metadata</summary>
+          <pre class="metadata-block">${escapeHtml(JSON.stringify(attachment.reference, null, 2))}</pre>
+        `;
+
+        block.appendChild(header);
+        block.appendChild(preview);
+        block.appendChild(details);
+        attachmentStack.appendChild(block);
+      }
+
+      body.appendChild(attachmentStack);
+    }
+    return card;
+  });
+
+  elements.conversationMessages.replaceChildren(...cards);
+  const rawConversation = state.rawConversationMap.get(conversation.id);
+  elements.conversationRawOutput.textContent = rawConversation
+    ? JSON.stringify(rawConversation, null, 2)
+    : "Raw conversation JSON is unavailable for this session.";
+  updateConversationPager();
+  updateConversationListPager();
+  saveUiState();
+}
+
+function moveConversationSelection(direction) {
+  if (!state.filteredConversations.length) {
+    return;
+  }
+
+  const currentIndex = state.filteredConversations.findIndex(
+    (conversation) => conversation.id === state.selectedConversationId,
+  );
+
+  if (currentIndex === -1) {
+    state.selectedConversationId = state.filteredConversations[0].id;
+    renderConversationsView();
+    return;
+  }
+
+  const nextIndex = currentIndex + direction;
+  if (nextIndex < 0 || nextIndex >= state.filteredConversations.length) {
+    return;
+  }
+
+  state.selectedConversationId = state.filteredConversations[nextIndex].id;
+  ensureSelectedConversationPage();
+  renderConversationsView();
+}
+
+function jumpToConversationIndex(index) {
+  if (!state.filteredConversations.length) {
+    return;
+  }
+
+  const clampedIndex = Math.max(0, Math.min(index, state.filteredConversations.length - 1));
+  const conversation = state.filteredConversations[clampedIndex];
+  if (!conversation) {
+    return;
+  }
+
+  state.selectedConversationId = conversation.id;
+  ensureSelectedConversationPage();
+  renderConversationsView();
+}
+
+function buildConversationPagerTokens(total, currentIndex) {
+  if (total <= 0 || currentIndex < 0) {
+    return [];
+  }
+
+  const pages = new Set([0, total - 1, currentIndex]);
+  for (let offset = 1; offset <= 2; offset += 1) {
+    if (currentIndex - offset >= 0) {
+      pages.add(currentIndex - offset);
+    }
+    if (currentIndex + offset < total) {
+      pages.add(currentIndex + offset);
+    }
+  }
+
+  const orderedPages = Array.from(pages).sort((a, b) => a - b);
+  const tokens = [];
+
+  orderedPages.forEach((pageIndex, index) => {
+    if (index > 0 && pageIndex - orderedPages[index - 1] > 1) {
+      tokens.push({ type: "ellipsis", key: `ellipsis-${orderedPages[index - 1]}-${pageIndex}` });
+    }
+    tokens.push({ type: "page", value: pageIndex, key: `page-${pageIndex}` });
+  });
+
+  return tokens;
+}
+
+function renderConversationPagerPicker(container, total, currentIndex) {
+  container.replaceChildren();
+
+  if (!total || currentIndex < 0) {
+    container.textContent = "0 of 0";
+    return;
+  }
+
+  const pages = document.createElement("div");
+  pages.className = "pager-pages";
+
+  for (const token of buildConversationPagerTokens(total, currentIndex)) {
+    if (token.type === "ellipsis") {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "pager-ellipsis";
+      ellipsis.textContent = "...";
+      pages.appendChild(ellipsis);
+      continue;
+    }
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pager-page-button";
+    button.textContent = String(token.value + 1);
+    if (token.value === currentIndex) {
+      button.classList.add("active");
+      button.setAttribute("aria-current", "page");
+    }
+    button.addEventListener("click", () => {
+      jumpToConversationIndex(token.value);
+    });
+    pages.appendChild(button);
+  }
+
+  const totalWrap = document.createElement("div");
+  totalWrap.className = "pager-total";
+
+  const ofLabel = document.createElement("span");
+  ofLabel.textContent = "of";
+
+  const totalButton = document.createElement("button");
+  totalButton.type = "button";
+  totalButton.className = "pager-total-button";
+  totalButton.textContent = total.toLocaleString();
+  totalButton.addEventListener("click", () => {
+    jumpToConversationIndex(total - 1);
+  });
+
+  totalWrap.append(ofLabel, totalButton);
+  container.append(pages, totalWrap);
+}
+
+function updateConversationPager() {
+  const total = state.filteredConversations.length;
+  const currentIndex = state.filteredConversations.findIndex(
+    (conversation) => conversation.id === state.selectedConversationId,
+  );
+  const hasSelection = currentIndex !== -1;
+  renderConversationPagerPicker(elements.conversationPositionTop, total, currentIndex);
+  renderConversationPagerPicker(elements.conversationPositionBottom, total, currentIndex);
+
+  const disablePrev = !hasSelection || currentIndex <= 0;
+  const disableNext = !hasSelection || currentIndex >= total - 1;
+
+  elements.prevConversationTop.disabled = disablePrev;
+  elements.prevConversationBottom.disabled = disablePrev;
+  elements.nextConversationTop.disabled = disableNext;
+  elements.nextConversationBottom.disabled = disableNext;
+}
+
+function renderConversationsView() {
+  const query = elements.searchInput.value.trim();
+  const role = elements.roleSelect.value;
+  const sort = elements.sortSelect.value;
+
+  if (!state.index) {
+    elements.conversationList.innerHTML = "";
+    elements.resultCaption.textContent = "No export loaded yet.";
+    elements.statResults.textContent = "0";
+    state.conversationListPage = 0;
+    updateConversationListPager();
+    renderConversation(null);
+    return;
+  }
+
+  state.filteredConversations = state.index.conversations
+    .filter((conversation) => roleFilterMatches(conversation, role))
+    .filter((conversation) => searchMatchesConversation(conversation, query, role))
+    .sort((a, b) => compareConversations(a, b, sort));
+
+  elements.resultCaption.textContent = `${state.filteredConversations.length} matching conversation${state.filteredConversations.length === 1 ? "" : "s"}`;
+  elements.statResults.textContent = String(state.filteredConversations.length);
+
+  if (!state.filteredConversations.length) {
+    elements.conversationList.innerHTML = '<div class="empty-note">No conversation matches. Try a different search or role filter.</div>';
+    state.conversationListPage = 0;
+    updateConversationListPager();
+    renderConversation(null);
+    return;
+  }
+
+  if (!state.filteredConversations.some((conversation) => conversation.id === state.selectedConversationId)) {
+    state.selectedConversationId = state.filteredConversations[0].id;
+  }
+
+  ensureSelectedConversationPage();
+  const start = state.conversationListPage * state.conversationListPageSize;
+  const end = start + state.conversationListPageSize;
+  const pageConversations = state.filteredConversations.slice(start, end);
+
+  const buttons = pageConversations.map((conversation) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "conversation-item";
+    if (conversation.id === state.selectedConversationId) {
+      button.classList.add("active");
+    }
+
+    button.innerHTML = `
+      <h3>${escapeHtml(conversation.title)}</h3>
+      <p>${escapeHtml(conversation.preview)}</p>
+      <div class="conversation-item-meta">
+        <span>${conversation.messageCount} messages</span>
+        <span>${escapeHtml(formatDate(conversation.updatedAt))}</span>
+      </div>
+    `;
+
+    button.addEventListener("click", () => {
+      state.selectedConversationId = conversation.id;
+      ensureSelectedConversationPage();
+      renderConversationsView();
+    });
+
+    return button;
+  });
+
+  elements.conversationList.replaceChildren(...buttons);
+  updateConversationListPager();
+  renderConversation(
+    state.filteredConversations.find((conversation) => conversation.id === state.selectedConversationId) || null,
+  );
+}
+
+window.ChatBrowser.conversationRender = {
+  moveConversationListPage,
+  setConversationListPageSize,
+  jumpConversationListPage,
+  updateConversationListPager,
+  renderConversationsView,
+  moveConversationSelection,
+};

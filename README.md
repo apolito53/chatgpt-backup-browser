@@ -15,6 +15,7 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - Sorts by update time, create time, title, or message count
 - Shows a clean reading view for the currently selected conversation
 - Includes an image gallery plus preview panel when you load the folder
+- Stays dependency-free while using split browser scripts and `jsconfig.json` type-checking hints to keep the codebase sane
 
 ## How to use it
 
