@@ -40,6 +40,10 @@ body {
   min-height: 100vh;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 code {
   font-family: "Cascadia Code", Consolas, monospace;
   font-size: 0.95em;
@@ -75,6 +79,45 @@ code {
 
 .brand h1 {
   font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.brand-actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.version-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: rgba(255, 244, 229, 0.92);
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.link-button,
+.modal-close {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--accent-strong);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.link-button:hover,
+.modal-close:hover {
+  color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .brand,
@@ -525,6 +568,97 @@ select {
   overflow: hidden;
 }
 
+.modal-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(47, 36, 24, 0.44);
+  backdrop-filter: blur(6px);
+}
+
+.modal-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(78vh, 860px);
+  background: rgba(255, 250, 242, 0.98);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 32px 80px rgba(47, 36, 24, 0.24);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px 18px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(135deg, rgba(255, 244, 229, 0.96), rgba(243, 232, 217, 0.92));
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+}
+
+.modal-body {
+  max-height: calc(78vh - 110px);
+  overflow: auto;
+  padding: 22px;
+}
+
+.changelog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.changelog-entry {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 252, 247, 0.96);
+  padding: 18px;
+}
+
+.changelog-entry-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.changelog-entry-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.changelog-entry-date {
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.changelog-entry ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text);
+}
+
+.changelog-entry li + li {
+  margin-top: 8px;
+}
+
 .conversation-header {
   display: flex;
   justify-content: space-between;
@@ -834,5 +968,18 @@ progress {
 
   .image-layout {
     grid-template-columns: 1fr;
+  }
+
+  .changelog-entry-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal-shell {
+    padding: 14px;
+  }
+
+  .modal-body {
+    padding: 18px;
   }
 }

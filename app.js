@@ -3,6 +3,40 @@ const UI_STATE_KEY = "chatgpt-backup-browser:ui-state";
 const ARCHIVE_DB_NAME = "chatgpt-backup-browser";
 const ARCHIVE_DB_VERSION = 1;
 const ARCHIVE_SESSION_STORE = "sessions";
+const APP_VERSION = "0.4.0";
+const CHANGELOG_ENTRIES = [
+  {
+    version: "0.4.0",
+    date: "April 19, 2026",
+    changes: [
+      "Added a compact in-app changelog with versioned release notes.",
+      "Started tracking completed work as proper feature and fix commits instead of one giant mystery blob.",
+    ],
+  },
+  {
+    version: "0.3.0",
+    date: "April 19, 2026",
+    changes: [
+      "Persisted parsed archive sessions in IndexedDB so the app can restore its place after a refresh.",
+      "Precomputed message-to-image attachment mappings so linked images stop being rediscovered from scratch every render.",
+    ],
+  },
+  {
+    version: "0.2.1",
+    date: "April 19, 2026",
+    changes: [
+      "Hardened image rendering with graceful placeholders when a cached session no longer has live file previews attached.",
+    ],
+  },
+  {
+    version: "0.2.0",
+    date: "April 19, 2026",
+    changes: [
+      "Added raw conversation JSON beneath the reading view so odd exported branches are easier to inspect.",
+      "Kept inline metadata available without forcing the main conversation rendering to wear the whole blob.",
+    ],
+  },
+];
 const HIDDEN_MESSAGE_FLAGS = [
   "is_visually_hidden_from_conversation",
   "is_user_system_message",
@@ -92,6 +126,12 @@ const elements = {
   imagePreviewName: document.querySelector("#image-preview-name"),
   imagePreviewMeta: document.querySelector("#image-preview-meta"),
   imagePreviewPath: document.querySelector("#image-preview-path"),
+  appVersion: document.querySelector("#app-version"),
+  openChangelog: document.querySelector("#open-changelog"),
+  closeChangelog: document.querySelector("#close-changelog"),
+  changelogModal: document.querySelector("#changelog-modal"),
+  changelogList: document.querySelector("#changelog-list"),
+  changelogCloseTargets: Array.from(document.querySelectorAll("[data-close-changelog]")),
 };
 
 let archiveDbPromise = null;
@@ -368,6 +408,36 @@ function formatFileSize(bytes) {
 
   const rounded = value >= 10 || unitIndex === 0 ? Math.round(value) : value.toFixed(1);
   return `${rounded} ${units[unitIndex]}`;
+}
+
+function renderChangelog() {
+  elements.appVersion.textContent = `v${APP_VERSION}`;
+
+  const cards = CHANGELOG_ENTRIES.map((entry) => {
+    const article = document.createElement("article");
+    article.className = "changelog-entry";
+
+    const changes = entry.changes
+      .map((item) => `<li>${escapeHtml(item)}</li>`)
+      .join("");
+
+    article.innerHTML = `
+      <div class="changelog-entry-header">
+        <h3>v${escapeHtml(entry.version)}</h3>
+        <span class="changelog-entry-date">${escapeHtml(entry.date)}</span>
+      </div>
+      <ul>${changes}</ul>
+    `;
+
+    return article;
+  });
+
+  elements.changelogList.replaceChildren(...cards);
+}
+
+function setChangelogOpen(isOpen) {
+  elements.changelogModal.hidden = !isOpen;
+  document.body.classList.toggle("modal-open", isOpen);
 }
 
 function getMessageAttachmentKey(message) {
@@ -1842,6 +1912,20 @@ elements.listPageJumpBottom.addEventListener("submit", (event) => {
   jumpConversationListPage(elements.listPageInputBottom.value);
 });
 
+elements.openChangelog.addEventListener("click", () => {
+  setChangelogOpen(true);
+});
+
+elements.closeChangelog.addEventListener("click", () => {
+  setChangelogOpen(false);
+});
+
+for (const target of elements.changelogCloseTargets) {
+  target.addEventListener("click", () => {
+    setChangelogOpen(false);
+  });
+}
+
 for (const button of elements.tabButtons) {
   button.addEventListener("click", () => {
     if (button.disabled) {
@@ -1861,12 +1945,20 @@ window.addEventListener("beforeunload", () => {
   revokeObjectUrls();
 });
 
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !elements.changelogModal.hidden) {
+    setChangelogOpen(false);
+  }
+});
+
 const uiState = loadUiState();
 if (uiState) {
   applyUiState(uiState);
 } else {
   setSourceMode("folder");
 }
+
+renderChangelog();
 
 async function restoreFromPickerOrCache() {
   if (elements.folderInput.files && elements.folderInput.files.length) {

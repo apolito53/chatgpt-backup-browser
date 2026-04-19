@@ -10,6 +10,7 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - Indexes image files from the full backup folder
 - Persists a lightweight archive catalog in IndexedDB so the parsed backup structure can be restored without reparsing
 - Precomputes message-to-image attachment mappings instead of re-scanning the archive on every render
+- Includes a small in-app changelog modal so the tool can show versioned changes without taking over the UI
 - Lets you filter by role (`user`, `assistant`, `system`)
 - Sorts by update time, create time, title, or message count
 - Shows a clean reading view for the currently selected conversation

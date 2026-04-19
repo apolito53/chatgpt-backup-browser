@@ -16,6 +16,10 @@
             Load a single export file or the entire backup folder, search it properly,
             and stop wrestling your archive like it insulted your family.
           </p>
+          <div class="brand-actions">
+            <span id="app-version" class="version-pill">v0.4.0</span>
+            <button id="open-changelog" class="link-button" type="button">What's new</button>
+          </div>
         </div>
 
         <section class="panel">
@@ -229,6 +233,22 @@
           </section>
         </article>
       </main>
+    </div>
+
+    <div id="changelog-modal" class="modal-shell" hidden>
+      <div class="modal-backdrop" data-close-changelog></div>
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="changelog-title">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Release Notes</p>
+            <h2 id="changelog-title">What Changed</h2>
+          </div>
+          <button id="close-changelog" class="modal-close" type="button" aria-label="Close changelog">Close</button>
+        </div>
+        <div class="modal-body">
+          <div id="changelog-list" class="changelog-list"></div>
+        </div>
+      </section>
     </div>
 
     <script src="./app.js"></script>
