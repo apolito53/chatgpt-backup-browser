@@ -66,15 +66,17 @@
   }
 
   function updateReattachMessaging(): void {
-    const reattachCopy = elements.reattachFolderBanner.querySelector("p");
-    const reattachTitle = elements.reattachFolderBanner.querySelector("strong");
+    const reattachCopy = elements.reattachFolderBanner?.querySelector("p") || null;
+    const reattachTitle = elements.reattachFolderBanner?.querySelector("strong") || null;
     const imageReattachCopy = elements.imageReattachPrompt?.querySelector("p") || null;
     const imageReattachTitle = elements.imageReattachPrompt?.querySelector("strong") || null;
     const supportsDirectoryAccess = browserSupportsDirectoryAccess();
 
-    elements.reattachFolderButton.textContent = supportsDirectoryAccess
-      ? "Reconnect Backup Folder"
-      : "Select Backup Folder Again";
+    if (elements.reattachFolderButton) {
+      elements.reattachFolderButton.textContent = supportsDirectoryAccess
+        ? "Reconnect Backup Folder"
+        : "Select Backup Folder Again";
+    }
     if (elements.imageReattachButton) {
       elements.imageReattachButton.textContent = supportsDirectoryAccess
         ? "Reconnect Backup Folder"
@@ -932,7 +934,7 @@
     void parseFolder(files);
   });
 
-  elements.reattachFolderButton.addEventListener("click", () => {
+  elements.reattachFolderButton?.addEventListener("click", () => {
     promptFolderReattach();
   });
 

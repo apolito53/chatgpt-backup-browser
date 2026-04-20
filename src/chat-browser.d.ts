@@ -204,8 +204,8 @@ interface ElementsRegistry {
   browserControls: HTMLElement | null;
   browserControlsBody: HTMLElement | null;
   browserControlsToggle: HTMLButtonElement | null;
-  reattachFolderBanner: HTMLElement;
-  reattachFolderButton: HTMLButtonElement;
+  reattachFolderBanner: HTMLElement | null;
+  reattachFolderButton: HTMLButtonElement | null;
   statConversations: HTMLElement;
   statMessages: HTMLElement;
   statImages: HTMLElement;

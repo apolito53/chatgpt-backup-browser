@@ -113,7 +113,9 @@ function renderActiveView(): void {
   elements.browserView.hidden = !hasData || state.pageType !== "browser" || state.activeView !== "conversations";
   elements.conversationView.hidden = !hasData || state.pageType !== "conversation" || state.activeView !== "conversations";
   elements.imageView.hidden = !hasData || state.pageType === "conversation" || state.activeView !== "images";
-  elements.reattachFolderBanner.hidden = !hasData || !needsFolderReattach() || state.pageType !== "browser";
+  if (elements.reattachFolderBanner) {
+    elements.reattachFolderBanner.hidden = !hasData || !needsFolderReattach() || state.pageType !== "browser";
+  }
   if (elements.imageReattachPrompt) {
     elements.imageReattachPrompt.hidden = !hasData || !needsFolderReattach() || state.pageType === "conversation" || state.activeView !== "images";
   }

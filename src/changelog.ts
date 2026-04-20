@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.43",
+  APP_VERSION: "0.5.44",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.44",
+      date: "April 20, 2026",
+      changes: [
+        "Finished hardening the conversation reader startup path by making the browser-only folder reconnect banner optional there too.",
+        "Guarded the reader against missing reconnect controls so opening conversation.html no longer dies before archived data can restore.",
+      ],
+    },
     {
       version: "0.5.43",
       date: "April 20, 2026",
