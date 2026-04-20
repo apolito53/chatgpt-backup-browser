@@ -1,75 +1,54 @@
 # ChatGPT Backup Browser
 
-This is a tiny local browser app for exploring a ChatGPT backup without loading the raw export into a normal tab and hoping for the best.
+ChatGPT Backup Browser is a small local tool for exploring a ChatGPT export without dumping a giant backup file into a normal browser tab and praying.
 
-## What it does
+It is meant to be simple to run, easy to browse, and useful for reading old conversations, inspecting metadata, and digging through attached images from a full backup folder.
 
-- Loads either a single export file or the whole backup folder
-- Extracts the embedded `jsonData` archive when using HTML, or reads the JSON directly
-- Builds a searchable conversation index
-- Indexes image files from the full backup folder
-- Persists a lightweight archive catalog in IndexedDB so the parsed backup structure can be restored without reparsing
-- Resolves message-to-image attachment mappings lazily and caches them after first use
-- Lets you lazy-load full raw JSON and attachment metadata for an individual conversation when you need to inspect it more closely
-- Shows inline conversation images using explicit backup attachment references instead of broad fuzzy matching
-- Mirrors the selected conversation id into the URL so browser back/forward navigation can follow your place inside the archive
-- Uses an in-app replacement confirm modal when you pick a new upload while another archive is already loaded
-- Labels assistant turns with the speaking model when the export includes per-message model metadata
-- Includes a small in-app changelog modal so the tool can show versioned changes without taking over the UI
-- Lets you filter by role (`user`, `assistant`, `system`)
-- Lets you filter conversations by model when the export includes `model_slug` or `default_model_slug`
-- Sorts by update time, create time, title, or message count
-- Shows a clean reading view for the currently selected conversation
-- Includes an image gallery plus preview panel when you load the folder
-- Stays lightweight while moving toward TypeScript without dragging in a full frontend toolchain
+## Highlights
 
-## How to use it
+- Open either `chat.html`, `conversations.json`, or an entire backup folder
+- Browse conversations and move through them with in-app pagination and browser back/forward history
+- Search, sort, and filter by role or model
+- Browse backup images and show matching images inline inside conversations
+- Inspect raw conversation JSON on demand when something looks odd
+- Restore cached sessions without reparsing the whole archive every time
+- See which model produced assistant turns when the export includes that metadata
+- Check a small in-app changelog instead of wondering what changed this time
+
+## Getting Started
 
 1. Open [index.html](./index.html) in a browser.
-2. Use **Load One File** if you only want `chat.html` or `conversations.json`.
-3. Use **Load Entire Backup Folder** if you want conversations and images together.
-4. Wait for parsing to finish.
-5. Switch between **Conversations** and **Images** as needed.
+2. Pick **Load One File** if you only care about `chat.html` or `conversations.json`.
+3. Pick **Load Entire Backup Folder** if you want conversations and images together.
+4. Choose `Lightweight` or `Robust` mode for folder imports.
+5. Browse conversations, inspect images, and load raw JSON for specific conversations when needed.
 
-## TypeScript Workflow
+## Import Modes
 
-- TypeScript source files live in `src/`.
-- The browser still loads plain `.js` files from the project root.
-- Run `powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1` to compile the migrated `.ts` files back into those browser-facing `.js` files.
-- The project vendors a local TypeScript compiler under `tools\typescript` because this environment does not have `npm` available.
-- The build script also creates a local `tools\node-runtime\node.exe` copy when Windows blocks the packaged `node.exe` inside `WindowsApps`.
-
-## Maintenance Notes
-
-- When a commit changes app behavior, workflow, setup, UX, or visible capabilities, update the in-app changelog and the README in the same slice of work if needed.
-- When we brainstorm or agree on future features, follow-up ideas, or direction changes, capture them in `TODO.md` before they wander off into chat history.
-- Keep feature/fix commits intentional and small enough that the matching changelog and documentation updates are obvious.
-
-The first migration batch covers the shared foundation files:
-
-- `src/changelog.ts`
-- `src/state.ts`
-- `src/ui.ts`
-- `src/render.ts`
+- `Load One File` is best when you only need the conversation archive.
+- `Load Entire Backup Folder` is best when you want images and file-backed attachments too.
+- `Lightweight` mode keeps parsing leaner for huge exports.
+- `Robust` mode keeps more metadata available and is the better default when your browser can handle it.
 
 ## Notes
 
-- The app runs fully on your machine.
-- It runs fully in the browser with no dependencies or local server required.
-- The last parsed single-file session is cached in browser storage so you can reload the tool without choosing the file again.
-- The app also keeps a lightweight IndexedDB catalog of the parsed archive structure, raw conversation records, and attachment mappings.
-- Restored folder sessions can bring back the indexed metadata after refresh, but image previews still need the folder to be selected again because browsers do not persist the live file objects for you.
-- Conversations restored from cache can fetch their full raw JSON and attachment metadata later if the original file or folder is still re-selected in the browser.
-- It reads the currently selected conversation branch from each exported conversation, which is usually what you want.
-- Project ideas and planned features live in [TODO.md](./TODO.md).
+- The app runs fully on your machine in the browser.
+- It does not need a backend or database server.
+- Single-file sessions can be restored from browser storage after refresh.
+- Folder sessions can restore cached metadata, but live image previews still require re-selecting the original folder because browsers do not persist those file handles for ordinary pages.
+- The viewer reads the selected conversation branch from the export, which is usually the branch you actually care about.
 
-## Analysis Helper
+## Project Roadmap
 
-There is also a PowerShell helper for inspecting huge export files without relying on fragile ad hoc searches:
+Planned features and longer-term ideas live in [TODO.md](./TODO.md).
+
+## For Contributors
+
+Contributor workflow notes live in [DEVELOPER_NOTES.md](./DEVELOPER_NOTES.md).
+
+There is also a PowerShell helper for inspecting large exports if you are working on parser or archive tooling changes:
 
 - `.\Analyze-Backup.ps1 summary "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json"`
 - `.\Analyze-Backup.ps1 find "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json" "file_id" -MaxMatches 10`
 - `.\Analyze-Backup.ps1 image-refs "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json" -MaxMatches 20`
 - `.\Analyze-Backup.ps1 extract-json "C:\Users\apoli\Desktop\ChatGPT Backup\chat.html"`
-
-Use `extract-json` when you want the embedded `jsonData` payload pulled out of `chat.html` into a standalone JSON file for easier inspection.
