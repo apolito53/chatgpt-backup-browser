@@ -2,7 +2,7 @@
   window.ChatBrowser = window.ChatBrowser || {};
 
   const { CONVERSATION_LIST_PAGE_SIZE_OPTIONS, state, elements, saveUiState } = window.ChatBrowser.stateModule!;
-  const { saveSessionHandoff, saveSessionRecord } = window.ChatBrowser.storage!;
+  const { saveSessionHandoff, saveSessionRecord, saveWindowSessionHandoff } = window.ChatBrowser.storage!;
   const { getMessageAttachmentKey, resolveMessageImages } = window.ChatBrowser.attachments!;
   const { canLoadConversationDetails, loadConversationDetails } = window.ChatBrowser.parserClient!;
   const { formatDate, escapeHtml } = window.ChatBrowser.ui!;
@@ -810,6 +810,12 @@
             const sourceLabel = state.index.source || "cached session";
 
             saveSessionHandoff({
+              sessionKey: state.currentSessionKey,
+              sourceMode,
+              sourceLabel,
+              index: state.index,
+            });
+            saveWindowSessionHandoff({
               sessionKey: state.currentSessionKey,
               sourceMode,
               sourceLabel,

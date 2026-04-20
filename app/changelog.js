@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.40",
+        APP_VERSION: "0.5.41",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.41",
+                date: "April 20, 2026",
+                changes: [
+                    "Switched the browser-to-reader archive handoff to use window.name as the primary same-tab bridge, so conversation.html can restore the active archive immediately without waiting on background storage timing.",
+                    "Kept IndexedDB and session-storage restores as fallbacks, but stopped relying on them as the only path when jumping from the archive list into the reader.",
+                ],
+            },
             {
                 version: "0.5.40",
                 date: "April 20, 2026",

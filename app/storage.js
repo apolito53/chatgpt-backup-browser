@@ -3,6 +3,7 @@
     window.ChatBrowser = window.ChatBrowser || {};
     const { STORAGE_KEY, UI_STATE_KEY, ARCHIVE_DB_NAME, ARCHIVE_DB_VERSION, ARCHIVE_SESSION_STORE, ARCHIVE_HANDLE_STORE, state, } = window.ChatBrowser.stateModule;
     const SESSION_HANDOFF_KEY = `${UI_STATE_KEY}:session-handoff`;
+    const WINDOW_SESSION_HANDOFF_PREFIX = "chatgpt-backup-browser:session-handoff:";
     let archiveDbPromise = null;
     function requestToPromise(request) {
         return new Promise((resolve, reject) => {
@@ -282,6 +283,48 @@
             return null;
         }
     }
+    function saveWindowSessionHandoff({ sessionKey, sourceMode, sourceLabel, index, }) {
+        try {
+            window.name = `${WINDOW_SESSION_HANDOFF_PREFIX}${JSON.stringify({
+                key: sessionKey,
+                sourceMode,
+                sourceLabel,
+                savedAt: Date.now(),
+                index: serializeIndexForStorage(index),
+                rawConversationEntries: Array.from((index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map()).entries()),
+            })}`;
+        }
+        catch (error) {
+            console.warn("Failed to save window session handoff cache:", error);
+        }
+    }
+    function loadWindowSessionHandoff(sessionKey) {
+        try {
+            if (!window.name || !window.name.startsWith(WINDOW_SESSION_HANDOFF_PREFIX)) {
+                return null;
+            }
+            const record = JSON.parse(window.name.slice(WINDOW_SESSION_HANDOFF_PREFIX.length));
+            if (!record || record.key !== sessionKey) {
+                return null;
+            }
+            const index = deserializeStoredIndex(record);
+            if (!index) {
+                return null;
+            }
+            return {
+                sessionKey: record.key,
+                sourceMode: record.sourceMode || "file",
+                sourceLabel: record.sourceLabel || index.source || "cached session",
+                savedAt: Number.isFinite(record.savedAt) ? record.savedAt : 0,
+                index,
+                stats: normalizeStats(index),
+            };
+        }
+        catch (error) {
+            console.warn("Failed to restore window session handoff cache:", error);
+            return null;
+        }
+    }
     function saveIndex(index) {
         if (state.cacheMode !== "single-file") {
             return;
@@ -327,6 +370,8 @@
         loadFolderHandleRecord,
         saveSessionHandoff,
         loadSessionHandoff,
+        saveWindowSessionHandoff,
+        loadWindowSessionHandoff,
         saveIndex,
         loadSavedIndex,
         revokeObjectUrls,
