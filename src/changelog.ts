@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.18",
+  APP_VERSION: "0.5.19",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.19",
+      date: "April 19, 2026",
+      changes: [
+        "Added a windowless VBS launcher so the app can be opened from Explorer without leaving a PowerShell or command prompt window hanging around.",
+        "Updated the existing CMD launcher to hand off immediately to the quiet launcher instead of running the startup script in the visible console window.",
+      ],
+    },
     {
       version: "0.5.18",
       date: "April 19, 2026",

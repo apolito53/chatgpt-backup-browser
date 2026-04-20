@@ -2,6 +2,6 @@
 setlocal
 
 set "SCRIPT_DIR=%~dp0"
-powershell -ExecutionPolicy Bypass -File "%SCRIPT_DIR%scripts\start.ps1"
+start "" wscript.exe "%SCRIPT_DIR%Open ChatGPT Backup Browser.vbs"
 
 endlocal
