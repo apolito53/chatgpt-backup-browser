@@ -56,7 +56,9 @@ async function parseSingleFile(file) {
     applyIndex(
       index,
       conversationData.rawConversationEntriesOmitted
-        ? `Loaded ${file.name}. Raw conversation JSON was trimmed for this large archive so the parser worker doesn't fall over.`
+        ? state.parserMode === "lightweight"
+          ? `Loaded ${file.name} in lightweight mode. Raw conversation JSON and inline attachment metadata were skipped to keep the browser responsive.`
+          : `Loaded ${file.name}. Raw conversation JSON was trimmed for this large archive so the parser worker doesn't fall over.`
         : `Loaded ${file.name}.`,
     );
     saveSessionRecord({
@@ -123,7 +125,9 @@ async function parseFolder(fileList) {
     applyIndex(
       index,
       conversationData.rawConversationEntriesOmitted
-        ? `Loaded folder ${rootSegment}. Raw conversation JSON was trimmed for this large archive so the parser worker stays upright. Folder sessions are kept in this tab only.`
+        ? state.parserMode === "lightweight"
+          ? `Loaded folder ${rootSegment} in lightweight mode. Raw conversation JSON and inline attachment metadata were skipped to keep the browser responsive. Folder sessions are kept in this tab only.`
+          : `Loaded folder ${rootSegment}. Raw conversation JSON was trimmed for this large archive so the parser worker stays upright. Folder sessions are kept in this tab only.`
         : `Loaded folder ${rootSegment}. Folder sessions are kept in this tab only.`,
     );
     saveSessionRecord({

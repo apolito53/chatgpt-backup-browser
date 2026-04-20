@@ -213,6 +213,59 @@ function summarizeConversation(conversation, index) {
   };
 }
 
+function summarizeConversationLightweight(conversation, index) {
+  const orderedIds = lineageForConversation(conversation);
+  const conversationId = conversation.conversation_id || conversation.id || `conversation-${index}`;
+  const messages = [];
+
+  for (const id of orderedIds) {
+    const node = conversation.mapping?.[id];
+    const message = node?.message;
+    if (!message) {
+      continue;
+    }
+
+    const metadata = message.metadata || {};
+    if (metadata.is_visually_hidden_from_conversation || metadata.is_user_system_message) {
+      continue;
+    }
+
+    const text = coerceTextParts(message.content).trim();
+    if (!text) {
+      continue;
+    }
+
+    messages.push({
+      id: message.id || id,
+      conversationId,
+      role: message.author?.role || "unknown",
+      authorName: message.author?.name || null,
+      createTime: message.create_time || null,
+      updateTime: message.update_time || null,
+      text,
+    });
+  }
+
+  const title = (conversation.title || "").trim() || "Untitled conversation";
+  const previewSource = messages.find((message) => message.role !== "system") || messages[0];
+  const preview = previewSource
+    ? previewSource.text.replace(/\s+/g, " ").slice(0, 180)
+    : "No visible text message content in lightweight mode.";
+
+  const searchBlob = `${title}\n${messages.map((message) => `${message.role}\n${message.text}`).join("\n")}`.toLowerCase();
+
+  return {
+    id: conversationId,
+    title,
+    createdAt: conversation.create_time || null,
+    updatedAt: conversation.update_time || null,
+    preview,
+    messageCount: messages.length,
+    messages,
+    searchBlob,
+  };
+}
+
 async function parseConversationsLightweight(rawText) {
   postLocalProgress("Extracting conversation payload...", 10);
   const payload = extractConversationArray(rawText);
@@ -231,13 +284,9 @@ async function parseConversationsLightweight(rawText) {
 
   for (let index = 0; index < rawData.length; index += 1) {
     const conversation = rawData[index];
-    const summary = summarizeConversation(conversation, index);
+    const summary = summarizeConversationLightweight(conversation, index);
     conversations.push(summary);
     totalMessages += summary.messageCount;
-
-    if (rawConversationEntries.length < maxRawConversationEntries) {
-      rawConversationEntries.push([summary.id, conversation]);
-    }
 
     if (index > 0 && index % 25 === 0) {
       const progress = Math.min(95, 45 + Math.round((index / rawData.length) * 50));
@@ -252,8 +301,8 @@ async function parseConversationsLightweight(rawText) {
   return {
     conversations,
     totalMessages,
-    rawConversationMap: new Map(rawConversationEntries),
-    rawConversationEntriesOmitted: rawData.length > maxRawConversationEntries,
+    rawConversationMap: new Map(),
+    rawConversationEntriesOmitted: true,
   };
 }
 
@@ -644,15 +693,19 @@ function buildImagesIndex(files) {
 
 function buildBackupIndex({ conversations, images, source }) {
   const totalMessages = conversations.reduce((sum, conversation) => sum + conversation.messageCount, 0);
-  const messageAssetMap = buildMessageAssetMap(conversations, images);
+  const messageAssetMap = state.parserMode === "lightweight"
+    ? new Map()
+    : buildMessageAssetMap(conversations, images);
 
   // Attachment lookup only needs the raw message blobs during indexing.
   // Drop them afterwards so large exports do not keep duplicate payloads alive in memory.
-  for (const conversation of conversations) {
-    for (const message of conversation.messages) {
-      delete message.rawContent;
-      delete message.rawMetadata;
-      delete message.contentType;
+  if (state.parserMode !== "lightweight") {
+    for (const conversation of conversations) {
+      for (const message of conversation.messages) {
+        delete message.rawContent;
+        delete message.rawMetadata;
+        delete message.contentType;
+      }
     }
   }
 
