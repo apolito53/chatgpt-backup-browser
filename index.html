@@ -17,7 +17,7 @@
             and stop wrestling your archive like it insulted your family.
           </p>
           <div class="brand-actions">
-            <span id="app-version" class="version-pill">v0.5.5</span>
+            <span id="app-version" class="version-pill">v0.5.6</span>
             <button
               id="open-changelog"
               class="link-button"
@@ -214,6 +214,10 @@
           <section id="conversation-messages" class="message-stack"></section>
 
           <section class="conversation-raw">
+            <div id="conversation-detail-actions" class="conversation-detail-actions" hidden>
+              <button id="load-conversation-details" class="ghost-button conversation-detail-button" type="button">Load Full Conversation Details</button>
+              <p id="conversation-detail-status" class="subtle">Load raw JSON and attachment data for this conversation.</p>
+            </div>
             <details id="conversation-raw-details">
               <summary>View raw conversation JSON</summary>
               <pre id="conversation-raw-output" class="metadata-block">No conversation selected.</pre>

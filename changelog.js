@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.5",
+        APP_VERSION: "0.5.6",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.6",
+                date: "April 19, 2026",
+                changes: [
+                    "Added a per-conversation Load Full Conversation Details action for chats that were not fully cached up front.",
+                    "Lazy-loaded raw JSON and attachment metadata for later-picked conversations when the original backup source is still attached.",
+                    "Kept the viewer honest by explaining when the source file or folder needs to be re-selected before full details can be loaded.",
+                ],
+            },
             {
                 version: "0.5.5",
                 date: "April 19, 2026",

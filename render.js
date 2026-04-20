@@ -5,7 +5,7 @@
     const { state, elements, saveUiState } = window.ChatBrowser.stateModule;
     const { normalizeIndex } = window.ChatBrowser.storage;
     const { setStatus, setProgress } = window.ChatBrowser.ui;
-    const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, renderConversationsView, moveConversationSelection, updateConversationListPager, } = window.ChatBrowser.conversationRender;
+    const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, renderConversationsView, moveConversationSelection, loadSelectedConversationDetails, updateConversationListPager, } = window.ChatBrowser.conversationRender;
     const { renderImagesView } = window.ChatBrowser.imageRender;
     function setActiveView(view) {
         state.activeView = view;
@@ -95,5 +95,6 @@
         renderActiveView,
         applyIndex,
         moveConversationSelection,
+        loadSelectedConversationDetails,
     };
 })();

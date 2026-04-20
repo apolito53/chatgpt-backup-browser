@@ -4,8 +4,12 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { CONVERSATION_LIST_PAGE_SIZE_OPTIONS, state, elements, saveUiState } = window.ChatBrowser.stateModule;
-const { resolveMessageImages } = window.ChatBrowser.attachments;
+const { getMessageAttachmentKey, resolveMessageImages } = window.ChatBrowser.attachments;
+const { canLoadConversationDetails, loadConversationDetails } = window.ChatBrowser.parserClient;
 const { formatDate, escapeHtml } = window.ChatBrowser.ui;
+
+let loadingConversationDetailsId = null;
+const conversationDetailErrors = new Map();
 
 function normalizeModelSlug(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -259,9 +263,123 @@ function getVisibleMessages(conversation) {
   return conversation.messages.filter((message) => message.role === role);
 }
 
+function messageNeedsDetailHydration(message) {
+  if (!message) {
+    return false;
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(message, "rawContent")
+    || Object.prototype.hasOwnProperty.call(message, "rawMetadata")
+    || Object.prototype.hasOwnProperty.call(message, "contentType")
+  ) {
+    return false;
+  }
+
+  return !state.messageAssetMap.has(getMessageAttachmentKey(message));
+}
+
+function conversationNeedsDetailHydration(conversation) {
+  if (!conversation) {
+    return false;
+  }
+
+  if (!state.rawConversationMap.has(conversation.id)) {
+    return true;
+  }
+
+  return conversation.messages.some((message) => messageNeedsDetailHydration(message));
+}
+
+function replaceConversationRecord(nextConversation) {
+  if (!state.index) {
+    return;
+  }
+
+  state.index.conversations = state.index.conversations.map((conversation) => (
+    conversation.id === nextConversation.id ? nextConversation : conversation
+  ));
+  state.filteredConversations = state.filteredConversations.map((conversation) => (
+    conversation.id === nextConversation.id ? nextConversation : conversation
+  ));
+}
+
+async function loadSelectedConversationDetails() {
+  const conversation = state.index?.conversations.find(
+    (item) => item.id === state.selectedConversationId,
+  );
+
+  if (!conversation || loadingConversationDetailsId === conversation.id) {
+    return;
+  }
+
+  loadingConversationDetailsId = conversation.id;
+  conversationDetailErrors.delete(conversation.id);
+  renderConversation(conversation);
+
+  try {
+    const loaded = await loadConversationDetails(conversation.id);
+    if (!loaded?.conversation) {
+      throw new Error("Couldn't find that conversation in the selected backup source.");
+    }
+
+    replaceConversationRecord(loaded.conversation);
+  } catch (error) {
+    conversationDetailErrors.set(
+      conversation.id,
+      error instanceof Error ? error.message : "Failed to load full conversation details.",
+    );
+  } finally {
+    loadingConversationDetailsId = null;
+    renderConversationsView();
+  }
+}
+
+function updateConversationDetailActions(conversation) {
+  if (!conversation) {
+    elements.conversationDetailActions.hidden = true;
+    elements.loadConversationDetails.disabled = false;
+    elements.conversationDetailStatus.textContent = "";
+    return;
+  }
+
+  const needsDetails = conversationNeedsDetailHydration(conversation);
+  if (!needsDetails) {
+    elements.conversationDetailActions.hidden = true;
+    elements.loadConversationDetails.disabled = false;
+    elements.conversationDetailStatus.textContent = "";
+    return;
+  }
+
+  const isLoading = loadingConversationDetailsId === conversation.id;
+  const canLoad = canLoadConversationDetails(conversation.id);
+  const errorMessage = conversationDetailErrors.get(conversation.id) || "";
+
+  elements.conversationDetailActions.hidden = false;
+  elements.loadConversationDetails.disabled = isLoading || !canLoad;
+  elements.loadConversationDetails.textContent = isLoading
+    ? "Loading Full Conversation Details..."
+    : "Load Full Conversation Details";
+
+  if (isLoading) {
+    elements.conversationDetailStatus.textContent = "Loading raw JSON and attachment data for this conversation...";
+    return;
+  }
+
+  if (errorMessage) {
+    elements.conversationDetailStatus.textContent = errorMessage;
+    return;
+  }
+
+  elements.conversationDetailStatus.textContent = canLoad
+    ? "Load raw JSON and attachment data for this conversation."
+    : "Re-select the original backup file or folder to load raw JSON and attachments for this conversation.";
+}
+
 function renderConversation(conversation) {
   if (!conversation) {
     elements.conversationView.hidden = true;
+    elements.conversationDetailActions.hidden = true;
     elements.conversationRawDetails.open = false;
     elements.conversationRawOutput.textContent = "No conversation selected.";
     elements.conversationModel.textContent = "";
@@ -276,9 +394,19 @@ function renderConversation(conversation) {
   elements.conversationDates.textContent = `Created ${formatDate(conversation.createdAt)} | Updated ${formatDate(conversation.updatedAt)}`;
   elements.conversationModel.textContent = `Model ${formatConversationModel(conversation)}`;
   elements.conversationCount.textContent = `${visibleMessages.length} visible message${visibleMessages.length === 1 ? "" : "s"}`;
+  updateConversationDetailActions(conversation);
+  const rawConversation = state.rawConversationMap.get(conversation.id);
+  elements.conversationRawOutput.textContent = rawConversation
+    ? JSON.stringify(rawConversation, null, 2)
+    : canLoadConversationDetails(conversation.id)
+      ? "Raw conversation JSON is not loaded yet. Use Load Full Conversation Details to fetch it for this conversation."
+      : "Raw conversation JSON is unavailable for this session. Re-select the original backup source to load it.";
 
   if (!visibleMessages.length) {
     elements.conversationMessages.innerHTML = '<div class="empty-note">This conversation exists, but nothing matches the current role filter.</div>';
+    updateConversationPager();
+    updateConversationListPager();
+    saveUiState();
     return;
   }
 
@@ -352,10 +480,6 @@ function renderConversation(conversation) {
   });
 
   elements.conversationMessages.replaceChildren(...cards);
-  const rawConversation = state.rawConversationMap.get(conversation.id);
-  elements.conversationRawOutput.textContent = rawConversation
-    ? JSON.stringify(rawConversation, null, 2)
-    : "Raw conversation JSON is unavailable for this session.";
   updateConversationPager();
   updateConversationListPager();
   saveUiState();
@@ -584,5 +708,6 @@ window.ChatBrowser.conversationRender = {
   updateConversationListPager,
   renderConversationsView,
   moveConversationSelection,
+  loadSelectedConversationDetails,
 };
 })();

@@ -3,8 +3,11 @@
 (() => {
 window.ChatBrowser = window.ChatBrowser || {};
 
-const { IMAGE_EXTENSIONS, state } = window.ChatBrowser.stateModule;
+const { IMAGE_EXTENSIONS, state, elements } = window.ChatBrowser.stateModule;
 const { setStatus, setProgress } = window.ChatBrowser.ui;
+
+const pendingConversationDetailLoads = new Map();
+let conversationDetailSessionKey = null;
 
 function postLocalProgress(status, progress) {
   setStatus(status);
@@ -47,6 +50,41 @@ function extractConversationArray(rawText) {
   }
 
   throw new Error("Unsupported export format. Choose chat.html or conversations.json.");
+}
+
+function getSelectedConversationSourceFile() {
+  if (elements.fileInput.files?.length) {
+    return elements.fileInput.files[0];
+  }
+
+  if (elements.folderInput.files?.length) {
+    return Array.from(elements.folderInput.files).find(
+      (file) => (file.webkitRelativePath || file.name).endsWith("conversations.json"),
+    ) || Array.from(elements.folderInput.files).find(
+      (file) => (file.webkitRelativePath || file.name).endsWith("chat.html"),
+    ) || null;
+  }
+
+  return null;
+}
+
+function canLoadConversationDetails(conversationId) {
+  return Boolean(
+    conversationId
+    && (
+      state.rawConversationMap.has(conversationId)
+      || getSelectedConversationSourceFile()
+    ),
+  );
+}
+
+function resetConversationDetailLoadStateIfNeeded() {
+  if (conversationDetailSessionKey === state.currentSessionKey) {
+    return;
+  }
+
+  conversationDetailSessionKey = state.currentSessionKey;
+  pendingConversationDetailLoads.clear();
 }
 
 function coerceTextParts(content) {
@@ -233,6 +271,62 @@ function summarizeConversation(conversation, index) {
     messages,
     searchBlob,
   };
+}
+
+async function loadConversationDetails(conversationId) {
+  if (!conversationId) {
+    return null;
+  }
+
+  const cachedRawConversation = state.rawConversationMap.get(conversationId);
+  if (cachedRawConversation) {
+    return {
+      rawConversation: cachedRawConversation,
+      conversation: summarizeConversation(cachedRawConversation, 0),
+    };
+  }
+
+  resetConversationDetailLoadStateIfNeeded();
+  if (pendingConversationDetailLoads.has(conversationId)) {
+    return pendingConversationDetailLoads.get(conversationId);
+  }
+
+  const pendingLoad = (async () => {
+    const sourceFile = getSelectedConversationSourceFile();
+    if (!sourceFile) {
+      return null;
+    }
+
+    const rawText = await sourceFile.text();
+    const payload = extractConversationArray(rawText);
+    const rawData = JSON.parse(payload);
+    if (!Array.isArray(rawData)) {
+      throw new Error("Expected the export to contain a conversation array.");
+    }
+
+    const rawConversation = rawData.find((conversation) => {
+      const rawConversationId = conversation?.conversation_id || conversation?.id || "";
+      return rawConversationId === conversationId;
+    }) || null;
+
+    if (!rawConversation) {
+      return null;
+    }
+
+    state.rawConversationMap.set(conversationId, rawConversation);
+    return {
+      rawConversation,
+      conversation: summarizeConversation(rawConversation, 0),
+    };
+  })();
+
+  pendingConversationDetailLoads.set(conversationId, pendingLoad);
+
+  try {
+    return await pendingLoad;
+  } finally {
+    pendingConversationDetailLoads.delete(conversationId);
+  }
 }
 
 function summarizeConversationLightweight(conversation, index) {
@@ -759,5 +853,7 @@ window.ChatBrowser.parserClient = {
   parseConversationsInWorker,
   buildImagesIndex,
   buildBackupIndex,
+  canLoadConversationDetails,
+  loadConversationDetails,
 };
 })();

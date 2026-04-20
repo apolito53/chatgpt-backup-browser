@@ -24,6 +24,7 @@ const {
   renderActiveView,
   applyIndex,
   moveConversationSelection,
+  loadSelectedConversationDetails,
 } = window.ChatBrowser.render;
 
 function updateFolderDigestButton() {
@@ -242,6 +243,10 @@ elements.loadSample.addEventListener("click", async () => {
     setStatus("Couldn't restore the saved session. Reload the source file or folder and I'll cache it again.");
     setProgress(0, true);
   }
+});
+
+elements.loadConversationDetails.addEventListener("click", () => {
+  loadSelectedConversationDetails();
 });
 
 elements.searchInput.addEventListener("input", () => {

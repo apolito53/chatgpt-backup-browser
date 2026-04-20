@@ -12,6 +12,7 @@ const {
   jumpConversationListPage,
   renderConversationsView,
   moveConversationSelection,
+  loadSelectedConversationDetails,
   updateConversationListPager,
 } = window.ChatBrowser.conversationRender!;
 const { renderImagesView } = window.ChatBrowser.imageRender!;
@@ -115,5 +116,6 @@ window.ChatBrowser.render = {
   renderActiveView,
   applyIndex,
   moveConversationSelection,
+  loadSelectedConversationDetails,
 };
 })();

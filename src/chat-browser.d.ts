@@ -114,6 +114,9 @@ interface ElementsRegistry {
   conversationCount: HTMLElement;
   conversationModel: HTMLElement;
   conversationMessages: HTMLElement;
+  conversationDetailActions: HTMLElement;
+  loadConversationDetails: HTMLButtonElement;
+  conversationDetailStatus: HTMLElement;
   conversationRawDetails: HTMLDetailsElement;
   conversationRawOutput: HTMLElement;
   prevConversationTop: HTMLButtonElement;
