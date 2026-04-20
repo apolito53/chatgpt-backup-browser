@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.6",
+        APP_VERSION: "0.5.7",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.7",
+                date: "April 19, 2026",
+                changes: [
+                    "Stopped unrelated images from appearing in conversations by tightening attachment reference detection to real file ids, paths, URLs, and image filenames.",
+                    "Reworked attachment lookup keys so message metadata now matches images by explicit identifiers instead of broad fuzzy text guesses.",
+                    "Kept lazy image hydration intact while making the resolver far less eager to hallucinate a nearby PNG.",
+                ],
+            },
             {
                 version: "0.5.6",
                 date: "April 19, 2026",

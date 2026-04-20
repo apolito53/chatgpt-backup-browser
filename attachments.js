@@ -8,9 +8,40 @@ const { state } = window.ChatBrowser.stateModule;
 let cachedImagesReference = null;
 let cachedImageLookup = new Map();
 let cachedImageById = new Map();
+const IMAGE_REFERENCE_EXTENSION_PATTERN = /\.(png|jpe?g|gif|webp|bmp|svg)(?:[?#].*)?$/i;
+const IMAGE_REFERENCE_PATH_HINT_PATTERN = /(file-service:\/\/|sediment:\/\/|sandbox:\/mnt\/data\/|\/backend-api\/files\/|dalle-generations\/|conversations\/)/i;
+const IMAGE_REFERENCE_ID_PATTERN = /(file_[a-z0-9]+|file-[a-z0-9-]+)/i;
 
 function getMessageAttachmentKey(message) {
   return `${message.conversationId || "conversation"}::${message.id || "message"}`;
+}
+
+function stripQueryAndFragment(value) {
+  return String(value).split(/[?#]/, 1)[0];
+}
+
+function basenameForPath(value) {
+  const normalized = stripQueryAndFragment(value).replace(/\\/g, "/");
+  if (!normalized) {
+    return "";
+  }
+
+  const segments = normalized.split("/").filter(Boolean);
+  return segments.length ? segments[segments.length - 1] : normalized;
+}
+
+function looksLikeImageReferenceString(value) {
+  const normalized = normalizeCandidate(value);
+  if (!normalized) {
+    return false;
+  }
+
+  const stripped = stripQueryAndFragment(normalized);
+  return (
+    IMAGE_REFERENCE_ID_PATTERN.test(stripped)
+    || IMAGE_REFERENCE_EXTENSION_PATTERN.test(stripped)
+    || IMAGE_REFERENCE_PATH_HINT_PATTERN.test(stripped)
+  );
 }
 
 function collectImageReferenceCandidates(value, found = []) {
@@ -19,7 +50,9 @@ function collectImageReferenceCandidates(value, found = []) {
   }
 
   if (typeof value === "string") {
-    found.push(value);
+    if (looksLikeImageReferenceString(value) && !found.includes(value)) {
+      found.push(value);
+    }
     return found;
   }
 
@@ -71,17 +104,79 @@ function extractPointerKey(candidate) {
     return "";
   }
 
-  const sedimentMatch = normalized.match(/(file_[a-z0-9]+|file-[a-z0-9]+)/);
-  if (sedimentMatch) {
-    return sedimentMatch[1];
+  const pointerMatch = normalized.match(IMAGE_REFERENCE_ID_PATTERN);
+  if (pointerMatch) {
+    return pointerMatch[1];
   }
 
-  const serviceMatch = normalized.match(/file-service:\/\/(file-[a-z0-9]+)/);
-  if (serviceMatch) {
-    return serviceMatch[1];
+  return "";
+}
+
+function buildReferenceLookupKeys(value) {
+  const normalized = normalizeCandidate(value);
+  if (!normalized) {
+    return [];
   }
 
-  return normalized;
+  const stripped = stripQueryAndFragment(normalized);
+  const basename = basenameForPath(stripped).toLowerCase();
+  const pointerKey = extractPointerKey(stripped);
+  const keys = new Set();
+
+  if (stripped) {
+    keys.add(stripped);
+  }
+  if (basename) {
+    keys.add(basename);
+  }
+  if (pointerKey) {
+    keys.add(pointerKey);
+  }
+
+  return Array.from(keys);
+}
+
+function findMatchingImageIds(candidate, imageLookup) {
+  const normalized = normalizeCandidate(candidate);
+  if (!normalized) {
+    return [];
+  }
+
+  const stripped = stripQueryAndFragment(normalized);
+  const basename = basenameForPath(stripped).toLowerCase();
+  const pointerKey = extractPointerKey(stripped);
+
+  if (pointerKey) {
+    const pointerMatches = imageLookup.get(pointerKey) || [];
+    if (pointerMatches.length) {
+      return pointerMatches.slice();
+    }
+  }
+
+  const canUseExactString = Boolean(
+    stripped
+    && stripped !== basename
+    && (
+      IMAGE_REFERENCE_PATH_HINT_PATTERN.test(stripped)
+      || IMAGE_REFERENCE_ID_PATTERN.test(stripped)
+    ),
+  );
+
+  if (canUseExactString) {
+    const exactMatches = imageLookup.get(stripped) || [];
+    if (exactMatches.length) {
+      return exactMatches.slice();
+    }
+  }
+
+  if (basename) {
+    const basenameMatches = imageLookup.get(basename) || [];
+    if (basenameMatches.length === 1) {
+      return basenameMatches.slice();
+    }
+  }
+
+  return [];
 }
 
 function matchesImageCandidate(image, candidate) {
@@ -90,19 +185,23 @@ function matchesImageCandidate(image, candidate) {
     return false;
   }
 
-  const pointerKey = extractPointerKey(candidate);
+  const stripped = stripQueryAndFragment(normalized);
   const path = image.relativePath.toLowerCase();
   const name = image.name.toLowerCase();
+  const basename = basenameForPath(stripped).toLowerCase();
+  const pointerKey = extractPointerKey(stripped);
+  const canUseExactString = Boolean(
+    stripped
+    && stripped !== basename
+    && (
+      IMAGE_REFERENCE_PATH_HINT_PATTERN.test(stripped)
+      || IMAGE_REFERENCE_ID_PATTERN.test(stripped)
+    ),
+  );
 
   return (
-    (pointerKey && (path.includes(pointerKey) || name.includes(pointerKey))) ||
-    path.includes(normalized) ||
-    name.includes(normalized) ||
-    normalized.includes(name) ||
-    normalized.includes(path) ||
-    path.includes(normalized.replace("file-service://", "")) ||
-    path.includes(normalized.replace("sandbox:/mnt/data/", "")) ||
-    name.includes(normalized.replace("sandbox:/mnt/data/", ""))
+    Boolean(pointerKey && (path.includes(pointerKey) || name.includes(pointerKey)))
+    || (canUseExactString && (stripped === path || stripped === name))
   );
 }
 
@@ -170,8 +269,7 @@ function resolveMessageImages(message) {
   for (const reference of references) {
     const candidates = collectImageReferenceCandidates(reference.value, []);
     for (const candidate of candidates) {
-      const pointerKey = extractPointerKey(candidate);
-      const matchingIds = imageLookup.get(pointerKey) || [];
+      const matchingIds = findMatchingImageIds(candidate, imageLookup);
       let image = matchingIds
         .map((imageId) => imageById.get(imageId))
         .find((item) => item && !usedImageIds.has(item.id));
@@ -223,17 +321,11 @@ function buildImageLookup(images) {
 
   for (const image of images) {
     const keys = new Set();
-    keys.add(image.name.toLowerCase());
-    keys.add(image.relativePath.toLowerCase());
 
-    const fileServiceMatch = image.name.toLowerCase().match(/(file-[a-z0-9]+)/);
-    if (fileServiceMatch) {
-      keys.add(fileServiceMatch[1]);
-    }
-
-    const sedimentMatch = image.name.toLowerCase().match(/(file_[a-z0-9]+)/);
-    if (sedimentMatch) {
-      keys.add(sedimentMatch[1]);
+    for (const value of [image.name, image.relativePath]) {
+      for (const key of buildReferenceLookupKeys(value)) {
+        keys.add(key);
+      }
     }
 
     for (const key of keys) {
@@ -273,8 +365,7 @@ function buildMessageAssetMap(conversations, images) {
       for (const reference of references) {
         const candidates = collectImageReferenceCandidates(reference.value, []);
         for (const candidate of candidates) {
-          const pointerKey = extractPointerKey(candidate);
-          const matchingIds = imageLookup.get(pointerKey) || [];
+          const matchingIds = findMatchingImageIds(candidate, imageLookup);
           let image = matchingIds
             .map((imageId) => imageById.get(imageId))
             .find((item) => item && !usedImageIds.has(item.id));
@@ -349,8 +440,7 @@ async function buildMessageAssetMapIncremental(conversations, images, options = 
         for (const reference of references) {
           const candidates = collectImageReferenceCandidates(reference.value, []);
           for (const candidate of candidates) {
-            const pointerKey = extractPointerKey(candidate);
-            const matchingIds = imageLookup.get(pointerKey) || [];
+            const matchingIds = findMatchingImageIds(candidate, imageLookup);
             let image = matchingIds
               .map((imageId) => imageById.get(imageId))
               .find((item) => item && !usedImageIds.has(item.id));
