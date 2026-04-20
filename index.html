@@ -17,7 +17,7 @@
             and stop wrestling your archive like it insulted your family.
           </p>
           <div class="brand-actions">
-            <span id="app-version" class="version-pill">v0.5.14</span>
+            <span id="app-version" class="version-pill">v0.5.15</span>
             <button
               id="open-changelog"
               class="link-button"
@@ -65,7 +65,11 @@
 
           <button id="digest-folder" class="ghost-button" type="button" disabled>Digest Selected Folder</button>
 
-          <button id="load-sample" class="ghost-button" type="button">Use Last Loaded Session</button>
+          <section id="recent-archives-panel" class="recent-archives" hidden>
+            <span class="field-label">Recent archives</span>
+            <p class="subtle recent-archives-copy">Reopen one of the backups this browser has already cached.</p>
+            <div id="recent-archives-list" class="recent-archives-list"></div>
+          </section>
           <p id="status" class="status">Waiting for a file.</p>
           <progress id="progress" max="100" value="0" hidden></progress>
         </section>

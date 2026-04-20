@@ -290,6 +290,63 @@ select {
   margin-top: 12px;
 }
 
+.recent-archives {
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 248, 239, 0.82);
+}
+
+.recent-archives-copy {
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.recent-archives-list {
+  display: grid;
+  gap: 10px;
+}
+
+.recent-archive-button {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  margin-top: 0;
+}
+
+.recent-archive-button[disabled] {
+  cursor: default;
+  opacity: 0.72;
+  transform: none;
+}
+
+.recent-archive-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+}
+
+.recent-archive-tag {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+  background: rgba(255, 238, 217, 0.95);
+  border: 1px solid rgba(159, 67, 34, 0.18);
+}
+
+.recent-archive-meta {
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .source-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;

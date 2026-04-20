@@ -9,6 +9,8 @@ const {
   buildFileFingerprint,
   buildSessionKey,
   saveSessionRecord,
+  loadRecentSessionRecords,
+  loadSessionRecord,
   loadLatestSessionRecord,
   saveIndex,
   loadSavedIndex,
@@ -36,6 +38,78 @@ function updateFolderDigestButton() {
 
 function hasLoadedArchive() {
   return Boolean(state.index && (state.index.conversations.length || state.index.images.length));
+}
+
+function formatRecentArchiveTimestamp(timestamp) {
+  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+    return "Saved sometime mysterious";
+  }
+
+  return new Date(timestamp).toLocaleString([], {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function buildRestoreStatusMessage(sessionRecord) {
+  return sessionRecord.sourceMode === "folder"
+    ? `Restored cached folder index for ${sessionRecord.sourceLabel}. Re-select the backup folder to reattach live image previews.`
+    : `Restored cached session for ${sessionRecord.sourceLabel}.`;
+}
+
+function applyStoredSession(sessionRecord) {
+  state.cacheMode = sessionRecord.sourceMode === "folder" ? "folder" : "single-file";
+  state.currentSessionKey = sessionRecord.sessionKey;
+  revokeObjectUrls();
+  applyIndex(sessionRecord.index, buildRestoreStatusMessage(sessionRecord));
+}
+
+async function refreshRecentArchives() {
+  try {
+    const recentSessions = await loadRecentSessionRecords(6);
+    elements.recentArchivesList.textContent = "";
+
+    if (!recentSessions.length) {
+      elements.recentArchivesPanel.hidden = true;
+      return;
+    }
+
+    elements.recentArchivesPanel.hidden = false;
+
+    for (const session of recentSessions) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "ghost-button recent-archive-button";
+      button.dataset.sessionKey = session.sessionKey;
+      button.disabled = session.sessionKey === state.currentSessionKey;
+
+      const titleRow = document.createElement("span");
+      titleRow.className = "recent-archive-title-row";
+
+      const title = document.createElement("span");
+      title.textContent = session.sourceLabel || "Cached archive";
+      titleRow.append(title);
+
+      const tag = document.createElement("span");
+      tag.className = "recent-archive-tag";
+      tag.textContent = session.sessionKey === state.currentSessionKey
+        ? "Current"
+        : session.sourceMode === "folder"
+          ? "Folder"
+          : "File";
+      titleRow.append(tag);
+
+      const meta = document.createElement("span");
+      meta.className = "recent-archive-meta";
+      meta.textContent = `${session.stats.conversations} convos • ${session.stats.images} images • ${formatRecentArchiveTimestamp(session.savedAt)}`;
+
+      button.append(titleRow, meta);
+      elements.recentArchivesList.append(button);
+    }
+  } catch (error) {
+    console.warn("Failed to refresh recent archives:", error);
+    elements.recentArchivesPanel.hidden = true;
+  }
 }
 
 async function confirmArchiveReplacement(nextSourceLabel) {
@@ -93,6 +167,9 @@ async function parseSingleFile(file) {
       index,
     }).catch((error) => {
       console.warn("Failed to persist single-file session:", error);
+    });
+    refreshRecentArchives().catch((error) => {
+      console.warn("Failed to refresh recent archives after single-file parse:", error);
     });
   } catch (error) {
     console.error(error);
@@ -163,6 +240,9 @@ async function parseFolder(fileList) {
     }).catch((error) => {
       console.warn("Failed to persist folder session:", error);
     });
+    refreshRecentArchives().catch((error) => {
+      console.warn("Failed to refresh recent archives after folder parse:", error);
+    });
   } catch (error) {
     console.error(error);
     setStatus(error instanceof Error ? error.message : "Failed to parse backup folder.");
@@ -188,14 +268,10 @@ async function restoreFromPickerOrCache() {
   try {
     const storedSession = await loadLatestSessionRecord();
     if (storedSession) {
-      state.cacheMode = storedSession.sourceMode === "folder" ? "folder" : "single-file";
-      state.currentSessionKey = storedSession.sessionKey;
-      applyIndex(
-        storedSession.index,
-        storedSession.sourceMode === "folder"
-          ? `Restored cached folder index for ${storedSession.sourceLabel}. Re-select the backup folder to reattach live image previews.`
-          : `Restored cached session for ${storedSession.sourceLabel}.`,
-      );
+      applyStoredSession(storedSession);
+      refreshRecentArchives().catch((error) => {
+        console.warn("Failed to refresh recent archives after restore:", error);
+      });
       return;
     }
 
@@ -252,34 +328,30 @@ elements.folderInput.addEventListener("change", async (event) => {
   setProgress(0, true);
 });
 
-elements.loadSample.addEventListener("click", async () => {
+elements.recentArchivesList.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-session-key]");
+  if (!button) {
+    return;
+  }
+
+  const sessionKey = button.dataset.sessionKey;
+  if (!sessionKey || sessionKey === state.currentSessionKey) {
+    return;
+  }
+
   try {
-    const storedSession = await loadLatestSessionRecord();
-    if (storedSession) {
-      state.cacheMode = storedSession.sourceMode === "folder" ? "folder" : "single-file";
-      state.currentSessionKey = storedSession.sessionKey;
-      revokeObjectUrls();
-      applyIndex(
-        storedSession.index,
-        storedSession.sourceMode === "folder"
-          ? `Restored cached folder index for ${storedSession.sourceLabel}. Re-select the backup folder to reattach live image previews.`
-          : `Restored cached session for ${storedSession.sourceLabel}.`,
-      );
+    const storedSession = await loadSessionRecord(sessionKey);
+    if (!storedSession) {
+      setStatus("That cached archive is no longer available. Re-load the backup and I'll cache it again.");
+      await refreshRecentArchives();
       return;
     }
 
-    const cached = loadSavedIndex();
-    if (cached) {
-      state.cacheMode = "single-file";
-      revokeObjectUrls();
-      applyIndex(cached, "Restored last single-file session from browser storage.");
-      return;
-    }
-
-    setStatus("No cached session found yet. Load chat.html, conversations.json, or the whole backup folder first.");
+    applyStoredSession(storedSession);
+    await refreshRecentArchives();
   } catch (error) {
     console.error(error);
-    setStatus("Couldn't restore the saved session. Reload the source file or folder and I'll cache it again.");
+    setStatus("Couldn't restore that cached archive. Re-load the source and I'll rebuild it.");
     setProgress(0, true);
   }
 });
@@ -433,6 +505,7 @@ if (conversationIdFromUrl) {
 
 updateFolderDigestButton();
 renderChangelog();
+refreshRecentArchives();
 restoreFromPickerOrCache();
 
 window.addEventListener("popstate", () => {

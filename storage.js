@@ -174,10 +174,31 @@ async function saveSessionRecord({ sessionKey, sourceMode, sourceLabel, index })
   await transactionToPromise(transaction);
 }
 
-async function loadLatestSessionRecord() {
+function summarizeRecord(record) {
+  const index = deserializeStoredIndex(record);
+  if (!index) {
+    return null;
+  }
+
+  return {
+    sessionKey: record.key,
+    sourceMode: record.sourceMode || "file",
+    sourceLabel: record.sourceLabel || index.source || "cached session",
+    savedAt: Number.isFinite(record.savedAt) ? record.savedAt : 0,
+    stats: normalizeStats(index),
+  };
+}
+
+function sortStoredRecords(records) {
+  return records
+    .slice()
+    .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+}
+
+async function loadRecentSessionRecords(limit = 5) {
   const database = await openArchiveDatabase();
   if (!database) {
-    return null;
+    return [];
   }
 
   const transaction = database.transaction(ARCHIVE_SESSION_STORE, "readonly");
@@ -185,24 +206,48 @@ async function loadLatestSessionRecord() {
   const records = await requestToPromise(store.getAll());
   await transactionToPromise(transaction);
 
-  if (!records.length) {
+  return sortStoredRecords(records)
+    .map(summarizeRecord)
+    .filter(Boolean)
+    .slice(0, Math.max(0, limit));
+}
+
+async function loadSessionRecord(sessionKey) {
+  const database = await openArchiveDatabase();
+  if (!database) {
     return null;
   }
 
-  const latest = records
-    .slice()
-    .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))[0];
-  const index = deserializeStoredIndex(latest);
+  const transaction = database.transaction(ARCHIVE_SESSION_STORE, "readonly");
+  const store = transaction.objectStore(ARCHIVE_SESSION_STORE);
+  const record = await requestToPromise(store.get(sessionKey));
+  await transactionToPromise(transaction);
+
+  if (!record) {
+    return null;
+  }
+
+  const index = deserializeStoredIndex(record);
   if (!index) {
     return null;
   }
 
   return {
-    sessionKey: latest.key,
-    sourceMode: latest.sourceMode || "file",
+    sessionKey: record.key,
+    sourceMode: record.sourceMode || "file",
+    sourceLabel: record.sourceLabel || index.source || "cached session",
+    savedAt: Number.isFinite(record.savedAt) ? record.savedAt : 0,
     index,
-    sourceLabel: latest.sourceLabel || index.source || "cached session",
   };
+}
+
+async function loadLatestSessionRecord() {
+  const recent = await loadRecentSessionRecords(1);
+  if (!recent.length) {
+    return null;
+  }
+
+  return loadSessionRecord(recent[0].sessionKey);
 }
 
 function saveIndex(index) {
@@ -245,6 +290,8 @@ window.ChatBrowser.storage = {
   buildSessionKey,
   normalizeIndex,
   saveSessionRecord,
+  loadRecentSessionRecords,
+  loadSessionRecord,
   loadLatestSessionRecord,
   saveIndex,
   loadSavedIndex,

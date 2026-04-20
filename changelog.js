@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.14",
+        APP_VERSION: "0.5.15",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.15",
+                date: "April 19, 2026",
+                changes: [
+                    "Replaced the vague Use Last Loaded Session button with a real Recent archives list that shows multiple cached backups.",
+                    "Let each recent archive restore itself directly instead of blindly reloading whichever session happened to be newest.",
+                    "Marked the currently open archive in the recent list so the sidebar stops pretending the obvious button is useful.",
+                ],
+            },
             {
                 version: "0.5.14",
                 date: "April 19, 2026",

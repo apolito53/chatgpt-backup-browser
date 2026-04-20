@@ -43,6 +43,14 @@ interface ArchiveStats {
   images: number;
 }
 
+interface SessionRecordSummary {
+  sessionKey: string;
+  sourceMode: SourceMode;
+  sourceLabel: string;
+  savedAt: number;
+  stats: ArchiveStats;
+}
+
 interface ArchiveIndex {
   conversations: ConversationRecord[];
   images: ImageRecord[];
@@ -78,7 +86,8 @@ interface ElementsRegistry {
   fileSourcePanel: HTMLElement;
   parserModeSelect: HTMLSelectElement;
   digestFolderButton: HTMLButtonElement;
-  loadSample: HTMLButtonElement;
+  recentArchivesPanel: HTMLElement;
+  recentArchivesList: HTMLElement;
   searchInput: HTMLInputElement;
   sortSelect: HTMLSelectElement;
   roleWrap: HTMLElement;

@@ -13,6 +13,7 @@ It is meant to be simple to run, easy to browse, and useful for reading old conv
 - Browse backup images and show matching images inline inside conversations
 - Keep the image preview panel in view while browsing long image lists
 - Switch between backups with clearer in-app confirmation wording when another archive is already open
+- Reopen recently cached backups from a small Recent archives list instead of re-digesting the same folder every time
 - Inspect raw conversation JSON on demand when something looks odd
 - Restore cached sessions without reparsing the whole archive every time
 - See which model produced assistant turns when the export includes that metadata, without internal tool chatter cluttering the reader
