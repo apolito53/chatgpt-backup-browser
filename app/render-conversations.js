@@ -2,7 +2,7 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     const { CONVERSATION_LIST_PAGE_SIZE_OPTIONS, state, elements, saveUiState } = window.ChatBrowser.stateModule;
-    const { saveSessionHandoff, saveSessionRecord } = window.ChatBrowser.storage;
+    const { saveSessionHandoff } = window.ChatBrowser.storage;
     const { getMessageAttachmentKey, resolveMessageImages } = window.ChatBrowser.attachments;
     const { canLoadConversationDetails, loadConversationDetails } = window.ChatBrowser.parserClient;
     const { formatDate, escapeHtml } = window.ChatBrowser.ui;
@@ -652,28 +652,15 @@
           <span>${escapeHtml(formatConversationModel(conversation))}</span>
         </div>
       `;
-            button.addEventListener("click", async () => {
+            button.addEventListener("click", () => {
                 if (state.pageType === "browser") {
                     if (state.index && state.currentSessionKey) {
-                        const sourceMode = state.cacheMode === "folder" ? "folder" : "file";
-                        const sourceLabel = state.index.source || "cached session";
                         saveSessionHandoff({
                             sessionKey: state.currentSessionKey,
-                            sourceMode,
-                            sourceLabel,
+                            sourceMode: state.cacheMode === "folder" ? "folder" : "file",
+                            sourceLabel: state.index.source || "cached session",
                             index: state.index,
                         });
-                        try {
-                            await saveSessionRecord({
-                                sessionKey: state.currentSessionKey,
-                                sourceMode,
-                                sourceLabel,
-                                index: state.index,
-                            });
-                        }
-                        catch (error) {
-                            console.warn("Failed to persist the active archive before opening the reader:", error);
-                        }
                     }
                     window.location.href = buildUrlForConversation(conversation.id);
                     return;
