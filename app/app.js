@@ -23,6 +23,14 @@
         const userAgent = typeof navigator?.userAgent === "string" ? navigator.userAgent : "";
         return /firefox/i.test(userAgent) && !/seamonkey/i.test(userAgent);
     }
+    function canRestoreFolderSessionsFromCache() {
+        return browserSupportsDirectoryAccess();
+    }
+    function getManualFolderReloadMessage(sourceLabel) {
+        return browserIsFirefox()
+            ? `Firefox cannot reopen cached folder indexes by itself yet. Select the ${sourceLabel} backup folder again, then digest it to reload the archive.`
+            : `This browser cannot reopen cached folder indexes by itself. Select the ${sourceLabel} backup folder again, then digest it to reload the archive.`;
+    }
     function updateReattachMessaging() {
         const reattachCopy = elements.reattachFolderBanner.querySelector("p");
         const reattachTitle = elements.reattachFolderBanner.querySelector("strong");
@@ -376,9 +384,11 @@
                 tag.className = "recent-archive-tag";
                 tag.textContent = session.sessionKey === state.currentSessionKey
                     ? "Current"
-                    : session.sourceMode === "folder"
-                        ? "Folder"
-                        : "File";
+                    : session.sourceMode === "folder" && !canRestoreFolderSessionsFromCache()
+                        ? "Folder / Re-select"
+                        : session.sourceMode === "folder"
+                            ? "Folder"
+                            : "File";
                 titleRow.append(tag);
                 const meta = document.createElement("span");
                 meta.className = "recent-archive-meta";
@@ -532,23 +542,35 @@
         try {
             const storedSession = await loadLatestSessionRecord();
             if (storedSession) {
-                applyStoredSession(storedSession);
-                if (storedSession.sourceMode === "folder") {
-                    const restoredAccess = await reconnectCurrentFolderAccess({
-                        hydrateImages: state.parserMode !== "lightweight",
-                        promptIfNeeded: false,
-                    });
-                    if (!restoredAccess) {
-                        setStatus(buildRestoreStatusMessage(storedSession));
-                    }
+                if (storedSession.sourceMode === "folder" && !canRestoreFolderSessionsFromCache()) {
+                    setSourceMode("folder");
+                    state.cacheMode = "folder";
+                    state.currentSessionKey = null;
+                    state.attachedFolderFiles = [];
+                    updateFolderDigestButton();
+                    setStatus(getManualFolderReloadMessage(storedSession.sourceLabel));
+                    setProgress(0, true);
+                    await refreshRecentArchives();
                 }
-                updateFolderAccessControls().catch((handleError) => {
-                    console.warn("Failed to refresh folder access controls after restore:", handleError);
-                });
-                refreshRecentArchives().catch((error) => {
-                    console.warn("Failed to refresh recent archives after restore:", error);
-                });
-                return;
+                else {
+                    applyStoredSession(storedSession);
+                    if (storedSession.sourceMode === "folder") {
+                        const restoredAccess = await reconnectCurrentFolderAccess({
+                            hydrateImages: state.parserMode !== "lightweight",
+                            promptIfNeeded: false,
+                        });
+                        if (!restoredAccess) {
+                            setStatus(buildRestoreStatusMessage(storedSession));
+                        }
+                    }
+                    updateFolderAccessControls().catch((handleError) => {
+                        console.warn("Failed to refresh folder access controls after restore:", handleError);
+                    });
+                    refreshRecentArchives().catch((error) => {
+                        console.warn("Failed to refresh recent archives after restore:", error);
+                    });
+                    return;
+                }
             }
             const cached = loadSavedIndex();
             if (cached) {
@@ -656,6 +678,17 @@
             const storedSession = await loadSessionRecord(sessionKey);
             if (!storedSession) {
                 setStatus("That cached archive is no longer available. Re-load the backup and I'll cache it again.");
+                await refreshRecentArchives();
+                return;
+            }
+            if (storedSession.sourceMode === "folder" && !canRestoreFolderSessionsFromCache()) {
+                setSourceMode("folder");
+                state.cacheMode = "folder";
+                state.currentSessionKey = null;
+                state.attachedFolderFiles = [];
+                updateFolderDigestButton();
+                setStatus(getManualFolderReloadMessage(storedSession.sourceLabel));
+                setProgress(0, true);
                 await refreshRecentArchives();
                 return;
             }

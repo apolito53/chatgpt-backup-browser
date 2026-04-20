@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.33",
+  APP_VERSION: "0.5.34",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.34",
+      date: "April 20, 2026",
+      changes: [
+        "Stopped unsupported browsers from auto-restoring cached folder indexes on startup, since those sessions are not truly usable there without selecting the backup folder again.",
+        "Kept folder sessions in the recent archives list for reference, but marked them as re-select flows instead of pretending they can be reopened from cache alone.",
+      ],
+    },
     {
       version: "0.5.33",
       date: "April 20, 2026",
