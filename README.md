@@ -22,11 +22,13 @@ It is meant to be simple to run, easy to browse, and useful for reading old conv
 
 ## Getting Started
 
-1. Open [index.html](./index.html) in a browser.
+1. Run `powershell -ExecutionPolicy Bypass -File .\scripts\start.ps1`.
 2. Pick **Load One File** if you only care about `chat.html` or `conversations.json`.
 3. Pick **Load Entire Backup Folder** if you want conversations and images together.
 4. Choose `Lightweight` or `Robust` mode for folder imports.
 5. Browse conversations, inspect images, and load raw JSON for specific conversations when needed.
+
+The start script builds the current browser assets, launches a small local server, and opens the app for you.
 
 ## Import Modes
 

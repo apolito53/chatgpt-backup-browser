@@ -651,6 +651,26 @@ select {
   gap: 8px;
 }
 
+.splash-stack {
+  width: min(920px, 100%);
+  display: grid;
+  gap: 20px;
+}
+
+.splash-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.splash-copy p {
+  margin: 0;
+}
+
+.splash-import-panel {
+  width: 100%;
+  text-align: left;
+}
+
 .conversation-view {
   display: flex;
   flex-direction: column;

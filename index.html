@@ -27,53 +27,6 @@
           </div>
         </div>
 
-        <section class="panel">
-          <div class="source-switch" role="tablist" aria-label="Import source">
-            <button class="source-tab active" type="button" data-source="folder" aria-pressed="true">Whole Backup Folder</button>
-            <button class="source-tab" type="button" data-source="file" aria-pressed="false">Chat / Conversation File</button>
-          </div>
-
-          <div id="folder-source-panel" class="source-panel">
-            <label class="upload folder-upload" for="folder-input">
-              <span class="upload-title">Load Entire Backup Folder</span>
-              <span class="upload-copy">Point it at the exported folder to index conversations and images together.</span>
-            </label>
-            <input id="folder-input" type="file" webkitdirectory directory multiple>
-          </div>
-
-          <div id="file-source-panel" class="source-panel" hidden>
-            <label class="upload" for="file-input">
-              <span class="upload-title">Load One File</span>
-              <span class="upload-copy">Pick either <code>chat.html</code> or <code>conversations.json</code>.</span>
-            </label>
-            <input id="file-input" type="file" accept=".html,.json,text/html,application/json">
-          </div>
-
-          <label class="field-label" for="parser-mode-select">Digest method</label>
-          <select id="parser-mode-select">
-            <option value="lightweight">Lightweight: faster, less detail</option>
-            <option value="robust" selected>Robust: fuller data, recommended</option>
-          </select>
-          <details class="digest-help">
-            <summary>What do these mean?</summary>
-            <div class="digest-help-copy">
-              <p><strong>Robust</strong> is the better default. It keeps more metadata available, handles attachments more completely, and is what you want unless a huge archive is making the browser struggle.</p>
-              <p><strong>Lightweight</strong> skips some heavier detail during the first pass so very large exports load more easily, but you give up some richness until you load more details later.</p>
-              <p class="subtle">Rule of thumb: start with <strong>Robust</strong>. Switch to <strong>Lightweight</strong> only if the browser starts acting dramatic.</p>
-            </div>
-          </details>
-
-          <button id="digest-folder" class="ghost-button" type="button" disabled>Digest Selected Folder</button>
-
-          <section id="recent-archives-panel" class="recent-archives" hidden>
-            <span class="field-label">Recent archives</span>
-            <p class="subtle recent-archives-copy">Reopen one of the backups this browser has already cached.</p>
-            <div id="recent-archives-list" class="recent-archives-list"></div>
-          </section>
-          <p id="status" class="status">Waiting for a file.</p>
-          <progress id="progress" max="100" value="0" hidden></progress>
-        </section>
-
         <section class="panel stats" id="stats">
           <div>
             <span class="stat-label">Conversations</span>
@@ -138,12 +91,63 @@
 
       <main class="content browser-content">
         <section id="empty-state" class="empty-state">
-          <p class="eyebrow">Ready When You Are</p>
-          <h2>Load your export to browse it like a civilized person.</h2>
-          <p>
-            Once loaded, you can browse conversations, search message text, and now
-            flip into an image gallery for the media sitting in the backup folder.
-          </p>
+          <div class="splash-stack">
+            <div class="splash-copy">
+              <p class="eyebrow">Ready When You Are</p>
+              <h2>Load your export to browse it like a civilized person.</h2>
+              <p>
+                Once loaded, you can browse conversations, search message text, and now
+                flip into an image gallery for the media sitting in the backup folder.
+              </p>
+            </div>
+
+            <section class="panel splash-import-panel">
+              <div class="source-switch" role="tablist" aria-label="Import source">
+                <button class="source-tab active" type="button" data-source="folder" aria-pressed="true">Whole Backup Folder</button>
+                <button class="source-tab" type="button" data-source="file" aria-pressed="false">Chat / Conversation File</button>
+              </div>
+
+              <div id="folder-source-panel" class="source-panel">
+                <label class="upload folder-upload" for="folder-input">
+                  <span class="upload-title">Load Entire Backup Folder</span>
+                  <span class="upload-copy">Point it at the exported folder to index conversations and images together.</span>
+                </label>
+                <input id="folder-input" type="file" webkitdirectory directory multiple>
+              </div>
+
+              <div id="file-source-panel" class="source-panel" hidden>
+                <label class="upload" for="file-input">
+                  <span class="upload-title">Load One File</span>
+                  <span class="upload-copy">Pick either <code>chat.html</code> or <code>conversations.json</code>.</span>
+                </label>
+                <input id="file-input" type="file" accept=".html,.json,text/html,application/json">
+              </div>
+
+              <label class="field-label" for="parser-mode-select">Digest method</label>
+              <select id="parser-mode-select">
+                <option value="lightweight">Lightweight: faster, less detail</option>
+                <option value="robust" selected>Robust: fuller data, recommended</option>
+              </select>
+              <details class="digest-help">
+                <summary>What do these mean?</summary>
+                <div class="digest-help-copy">
+                  <p><strong>Robust</strong> is the better default. It keeps more metadata available, handles attachments more completely, and is what you want unless a huge archive is making the browser struggle.</p>
+                  <p><strong>Lightweight</strong> skips some heavier detail during the first pass so very large exports load more easily, but you give up some richness until you load more details later.</p>
+                  <p class="subtle">Rule of thumb: start with <strong>Robust</strong>. Switch to <strong>Lightweight</strong> only if the browser starts acting dramatic.</p>
+                </div>
+              </details>
+
+              <button id="digest-folder" class="ghost-button" type="button" disabled>Digest Selected Folder</button>
+
+              <section id="recent-archives-panel" class="recent-archives" hidden>
+                <span class="field-label">Recent archives</span>
+                <p class="subtle recent-archives-copy">Reopen one of the backups this browser has already cached.</p>
+                <div id="recent-archives-list" class="recent-archives-list"></div>
+              </section>
+              <p id="status" class="status">Waiting for a file.</p>
+              <progress id="progress" max="100" value="0" hidden></progress>
+            </section>
+          </div>
         </section>
 
         <article id="browser-view" class="browser-view" hidden>

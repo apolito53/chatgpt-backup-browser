@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.16",
+  APP_VERSION: "0.5.17",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.17",
+      date: "April 19, 2026",
+      changes: [
+        "Moved the browser page importer into the splash state so the sidebar can stay focused on stats and filters once an archive is loaded.",
+        "Added a local start script that builds the app, serves it over localhost, and opens the browser automatically instead of relying on opening index.html directly.",
+        "Bundled a tiny static server script so the app has a cleaner launch path and fewer file:// weirdnesses.",
+      ],
+    },
     {
       version: "0.5.16",
       date: "April 19, 2026",
