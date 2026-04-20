@@ -503,8 +503,38 @@ select {
   padding: 20px;
 }
 
-.browser-header {
+.browser-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.browser-controls-top {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(280px, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.browser-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.browser-search .field-label {
+  margin-bottom: 0;
+}
+
+.browser-filters {
+  margin-top: 0;
+}
+
+.browser-header {
+  margin-bottom: 14px;
 }
 
 .filter-panel {
@@ -1252,6 +1282,10 @@ progress {
   }
 
   .conversation-browser-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .browser-controls-top {
     grid-template-columns: 1fr;
   }
 

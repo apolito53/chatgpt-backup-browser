@@ -45,48 +45,6 @@
             <strong id="stat-results">0</strong>
           </div>
         </section>
-
-        <section class="panel filter-panel">
-          <div class="view-switch" role="tablist" aria-label="Archive view">
-            <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
-            <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
-          </div>
-
-          <label class="field-label" for="search-input">Search</label>
-          <input id="search-input" type="search" placeholder="Search titles, messages, or both">
-
-          <div class="filters">
-            <label>
-              <span>Sort</span>
-              <select id="sort-select">
-                <option value="updated-desc">Recently updated</option>
-                <option value="updated-asc">Oldest updated</option>
-                <option value="created-desc">Recently created</option>
-                <option value="created-asc">Oldest created</option>
-                <option value="title-asc">Title A-Z</option>
-                <option value="message-count-desc">Most messages</option>
-              </select>
-            </label>
-
-            <label id="role-filter-wrap">
-              <span>Role filter</span>
-              <select id="role-select">
-                <option value="all">All messages</option>
-                <option value="user">User only</option>
-                <option value="assistant">Assistant only</option>
-                <option value="system">System only</option>
-              </select>
-            </label>
-
-            <label id="model-filter-wrap">
-              <span>Model filter</span>
-              <select id="model-select">
-                <option value="all">All models</option>
-                <option value="unknown">Unknown model</option>
-              </select>
-            </label>
-          </div>
-        </section>
       </aside>
 
       <main class="content browser-content">
@@ -148,6 +106,52 @@
         </section>
 
         <article id="browser-view" class="browser-view" hidden>
+          <section class="browser-controls">
+            <div class="browser-controls-top">
+              <div class="view-switch" role="tablist" aria-label="Archive view">
+                <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
+                <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
+              </div>
+
+              <label class="browser-search">
+                <span class="field-label">Search</span>
+                <input id="search-input" type="search" placeholder="Search titles, messages, or both">
+              </label>
+            </div>
+
+            <div class="filters browser-filters">
+              <label>
+                <span>Sort</span>
+                <select id="sort-select">
+                  <option value="updated-desc">Recently updated</option>
+                  <option value="updated-asc">Oldest updated</option>
+                  <option value="created-desc">Recently created</option>
+                  <option value="created-asc">Oldest created</option>
+                  <option value="title-asc">Title A-Z</option>
+                  <option value="message-count-desc">Most messages</option>
+                </select>
+              </label>
+
+              <label id="role-filter-wrap">
+                <span>Role filter</span>
+                <select id="role-select">
+                  <option value="all">All messages</option>
+                  <option value="user">User only</option>
+                  <option value="assistant">Assistant only</option>
+                  <option value="system">System only</option>
+                </select>
+              </label>
+
+              <label id="model-filter-wrap">
+                <span>Model filter</span>
+                <select id="model-select">
+                  <option value="all">All models</option>
+                  <option value="unknown">Unknown model</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
           <div class="list-header browser-header">
             <h2 id="list-title">Conversations</h2>
             <span id="result-caption" class="subtle">No export loaded yet.</span>

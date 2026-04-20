@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.21",
+        APP_VERSION: "0.5.22",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.22",
+                date: "April 19, 2026",
+                changes: [
+                    "Removed the browser page filter panel from the left sidebar so the explorer can breathe a little.",
+                    "Moved search, view switching, and conversation filter controls into the top of the main browser pane above the archive list and pagination.",
+                ],
+            },
             {
                 version: "0.5.21",
                 date: "April 19, 2026",
