@@ -15,7 +15,7 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - Sorts by update time, create time, title, or message count
 - Shows a clean reading view for the currently selected conversation
 - Includes an image gallery plus preview panel when you load the folder
-- Stays dependency-free while using split browser scripts and `jsconfig.json` type-checking hints to keep the codebase sane
+- Stays lightweight while moving toward TypeScript without dragging in a full frontend toolchain
 
 ## How to use it
 
@@ -25,9 +25,24 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 4. Wait for parsing to finish.
 5. Switch between **Conversations** and **Images** as needed.
 
+## TypeScript Workflow
+
+- TypeScript source files live in `src/`.
+- The browser still loads plain `.js` files from the project root.
+- Run `powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1` to compile the migrated `.ts` files back into those browser-facing `.js` files.
+- The project vendors a local TypeScript compiler under `tools\typescript` because this environment does not have `npm` available.
+- The build script also creates a local `tools\node-runtime\node.exe` copy when Windows blocks the packaged `node.exe` inside `WindowsApps`.
+
+The first migration batch covers the shared foundation files:
+
+- `src/changelog.ts`
+- `src/state.ts`
+- `src/ui.ts`
+- `src/render.ts`
+
 ## Notes
 
-- The app is dependency-free and runs fully on your machine.
+- The app runs fully on your machine.
 - It runs fully in the browser with no dependencies or local server required.
 - The last parsed single-file session is cached in browser storage so you can reload the tool without choosing the file again.
 - The app also keeps a lightweight IndexedDB catalog of the parsed archive structure, raw conversation records, and attachment mappings.
