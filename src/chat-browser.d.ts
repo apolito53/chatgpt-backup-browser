@@ -6,6 +6,7 @@ type PageType = "browser" | "conversation";
 
 interface MessageRecord {
   id: string;
+  conversationId?: string;
   role: string;
   text: string;
   createTime?: number | null;
@@ -13,6 +14,9 @@ interface MessageRecord {
   authorName?: string | null;
   speakerModelSlug?: string | null;
   speakerDefaultModelSlug?: string | null;
+  rawContent?: unknown;
+  rawMetadata?: unknown;
+  contentType?: string | null;
 }
 
 interface ConversationRecord {
@@ -53,11 +57,13 @@ interface SessionRecordSummary {
 }
 
 interface ArchiveIndex {
+  loadedAt?: number;
+  source?: string;
   conversations: ConversationRecord[];
   images: ImageRecord[];
   stats: ArchiveStats;
   rawConversationMap: Map<string, unknown>;
-  messageAssetMap: Map<string, unknown[]>;
+  messageAssetMap: Map<string, MessageAttachmentRecord[]>;
 }
 
 interface AppState {
@@ -74,10 +80,78 @@ interface AppState {
   conversationListPageSize: number;
   modelFilter: string;
   rawConversationMap: Map<string, unknown>;
-  messageAssetMap: Map<string, unknown[]>;
+  messageAssetMap: Map<string, MessageAttachmentRecord[]>;
   currentSessionKey: string | null;
   parserMode: ParserMode;
   pageType: PageType;
+}
+
+interface MessageAttachmentRecord {
+  imageId: string;
+  candidate?: string;
+  referenceSource?: string;
+  reference: unknown;
+}
+
+interface MessageImageResolution {
+  image: ImageRecord;
+  reference: unknown;
+}
+
+interface SessionRecord extends SessionRecordSummary {
+  index: ArchiveIndex;
+}
+
+interface ConfirmActionOptions {
+  title?: string;
+  message?: string;
+  acceptLabel?: string;
+  cancelLabel?: string;
+}
+
+interface SessionKeyOptions {
+  sourceMode: SourceMode;
+  sourceName: string;
+  fingerprint: string;
+}
+
+interface BuildBackupIndexOptions {
+  conversations: ConversationRecord[];
+  images: ImageRecord[];
+  source: string;
+}
+
+interface ConversationLoadResult {
+  rawConversation: unknown;
+  conversation: ConversationRecord;
+}
+
+interface ParseConversationResult {
+  conversations: ConversationRecord[];
+  totalMessages: number;
+  rawConversationMap: Map<string, unknown>;
+  rawConversationEntriesOmitted: boolean;
+}
+
+interface ParseProgressPayload {
+  processedMessages: number;
+  totalMessages: number;
+  progress: number;
+}
+
+interface IncrementalAttachmentOptions {
+  chunkSize?: number;
+  onProgress?(payload: ParseProgressPayload): void;
+}
+
+interface HistoryModeOptions {
+  history?: "replace" | "push" | "ignore";
+}
+
+interface PagerToken {
+  type: "ellipsis" | "page";
+  key: string;
+  value?: number;
 }
 
 interface ElementsRegistry {
@@ -210,19 +284,113 @@ interface UiModule {
   escapeHtml(value: string): string;
   renderChangelog(): void;
   setChangelogOpen(isOpen: boolean): void;
-  confirmAction(options?: { title?: string; message?: string; acceptLabel?: string; cancelLabel?: string }): Promise<boolean>;
+  confirmAction(options?: ConfirmActionOptions): Promise<boolean>;
+}
+
+interface StorageModule {
+  buildFileFingerprint(file: File): string;
+  buildSessionKey(options: SessionKeyOptions): string;
+  normalizeIndex(index: unknown): ArchiveIndex | null;
+  saveSessionRecord(record: {
+    sessionKey: string;
+    sourceMode: SourceMode;
+    sourceLabel: string;
+    index: ArchiveIndex;
+  }): Promise<void>;
+  loadRecentSessionRecords(limit?: number): Promise<SessionRecordSummary[]>;
+  loadSessionRecord(sessionKey: string): Promise<SessionRecord | null>;
+  loadLatestSessionRecord(): Promise<SessionRecord | null>;
+  saveIndex(index: ArchiveIndex): void;
+  loadSavedIndex(): ArchiveIndex | null;
+  revokeObjectUrls(): void;
+}
+
+interface AttachmentsModule {
+  getMessageAttachmentKey(message: MessageRecord): string;
+  collectImageReferenceCandidates(value: unknown, found?: string[]): string[];
+  hasStructuredMessageContent(message: unknown): boolean;
+  extractPointerKey(candidate: unknown): string;
+  buildMessageAssetMap(conversations: ConversationRecord[], images: ImageRecord[]): Map<string, MessageAttachmentRecord[]>;
+  buildMessageAssetMapIncremental(
+    conversations: ConversationRecord[],
+    images: ImageRecord[],
+    options?: IncrementalAttachmentOptions,
+  ): Promise<Map<string, MessageAttachmentRecord[]>>;
+  resolveMessageImages(message: MessageRecord): MessageImageResolution[];
+}
+
+interface ParserSharedModule {
+  extractConversationArray(rawText: string): string;
+  coerceTextParts(content: unknown): string;
+  collectImageReferenceCandidates(value: unknown, found?: string[]): string[];
+  hasStructuredMessageContent(message: unknown): boolean;
+  normalizeModelSlug(value: unknown): string;
+  getConversationModelInfo(conversation: any): { modelSlug: string; defaultModelSlug: string };
+  getMessageModelInfo(
+    message: any,
+    conversationModelInfo?: { modelSlug?: string; defaultModelSlug?: string },
+  ): { speakerModelSlug: string; speakerDefaultModelSlug: string };
+  isVisibleMessage(message: any): boolean;
+  lineageForConversation(conversation: any): string[];
+  summarizeConversation(conversation: any, index: number): ConversationRecord;
+  summarizeConversationLightweight(conversation: any, index: number): ConversationRecord;
+  buildConversationIndex(rawData: any[], options?: { onProgress?(status: string, progress: number): void }): {
+    conversations: ConversationRecord[];
+    totalMessages: number;
+    rawConversationEntries: [string, unknown][];
+    rawConversationEntriesOmitted: boolean;
+  };
+}
+
+interface ParserClientModule {
+  parseConversationsInWorker(rawText: string): Promise<ParseConversationResult>;
+  buildImagesIndex(files: File[]): ImageRecord[];
+  buildBackupIndex(options: BuildBackupIndexOptions): Promise<ArchiveIndex>;
+  canLoadConversationDetails(conversationId: string): boolean;
+  loadConversationDetails(conversationId: string): Promise<ConversationLoadResult | null>;
+}
+
+interface ConversationRenderModule {
+  moveConversationListPage(direction: number): void;
+  setConversationListPageSize(value: string): void;
+  jumpConversationListPage(value: string): void;
+  updateConversationListPager(): void;
+  renderConversationsView(): void;
+  moveConversationSelection(direction: number): void;
+  loadSelectedConversationDetails(): Promise<void>;
+  getConversationIdFromLocation(): string;
+  setSelectedConversation(conversationId: string | null, options?: HistoryModeOptions): boolean;
+}
+
+interface ImageRenderModule {
+  renderImagesView(): void;
+}
+
+interface RenderModule {
+  moveConversationListPage(direction: number): void;
+  setConversationListPageSize(value: string): void;
+  jumpConversationListPage(value: string): void;
+  setActiveView(view: ActiveView): void;
+  updateStats(): void;
+  renderActiveView(): void;
+  applyIndex(index: unknown, sourceLabel: string): void;
+  moveConversationSelection(direction: number): void;
+  loadSelectedConversationDetails(): Promise<void>;
+  getConversationIdFromLocation(): string;
+  setSelectedConversation(conversationId: string | null, options?: HistoryModeOptions): boolean;
 }
 
 interface ChatBrowserNamespace {
   changelog?: ChangelogModule;
   stateModule?: StateModule;
   ui?: UiModule;
-  storage?: any;
-  attachments?: any;
-  parserClient?: any;
-  conversationRender?: any;
-  imageRender?: any;
-  render?: any;
+  storage?: StorageModule;
+  attachments?: AttachmentsModule;
+  parserShared?: ParserSharedModule;
+  parserClient?: ParserClientModule;
+  conversationRender?: ConversationRenderModule;
+  imageRender?: ImageRenderModule;
+  render?: RenderModule;
 }
 
 interface Window {

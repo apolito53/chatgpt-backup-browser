@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.23",
+  APP_VERSION: "0.5.24",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.24",
+      date: "April 19, 2026",
+      changes: [
+        "Finished the TypeScript migration for the remaining runtime modules so app behavior now comes from src/ instead of hand-maintained browser JS files.",
+        "Added a shared parser layer used by both the main thread and the worker so conversation parsing logic stops living in two places and quietly drifting apart.",
+        "Updated the browser pages to load the shared parser script explicitly before the parser client and worker runtime.",
+      ],
+    },
     {
       version: "0.5.23",
       date: "April 19, 2026",
