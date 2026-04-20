@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.12",
+  APP_VERSION: "0.5.13",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.13",
+      date: "April 19, 2026",
+      changes: [
+        "Reworded the backup-switch modal so it reads like a temporary view change instead of something destructive or permanent.",
+        "Clarified that switching backups changes only the current tab view and does not delete the saved session cache.",
+        "Updated the modal buttons to read like plain choices instead of vague warnings.",
+      ],
+    },
     {
       version: "0.5.12",
       date: "April 19, 2026",

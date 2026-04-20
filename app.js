@@ -44,10 +44,10 @@ async function confirmArchiveReplacement(nextSourceLabel) {
   }
 
   return confirmAction({
-    title: "Load a different backup?",
-    message: `Loading ${nextSourceLabel} will replace the archive currently shown in the app. Your saved session cache will still be available, but this view will switch to the new upload.`,
-    acceptLabel: "Replace Archive",
-    cancelLabel: "Keep Current Archive",
+    title: "Switch to this backup?",
+    message: `This will swap the archive currently shown in the viewer for ${nextSourceLabel}. It does not delete your saved session cache. It only changes what this tab is showing right now.`,
+    acceptLabel: "Switch to New Backup",
+    cancelLabel: "Stay on Current Backup",
   });
 }
 
