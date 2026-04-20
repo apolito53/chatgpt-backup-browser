@@ -325,13 +325,7 @@ interface StorageModule {
   loadFolderHandleRecord(sessionKey: string): Promise<FolderHandleRecord | null>;
   saveSessionHandoff(record: { sessionKey: string; sourceMode: SourceMode; sourceLabel: string; index: ArchiveIndex }): void;
   loadSessionHandoff(sessionKey: string): SessionRecord | null;
-  saveWindowSessionHandoff(record: {
-    sessionKey: string;
-    sourceMode: SourceMode;
-    sourceLabel: string;
-    stats: ArchiveStats;
-    selectedConversation: ConversationRecord | null;
-  }): void;
+  saveWindowSessionHandoff(record: { sessionKey: string; sourceMode: SourceMode; sourceLabel: string; index: ArchiveIndex }): void;
   loadWindowSessionHandoff(sessionKey: string): SessionRecord | null;
   saveIndex(index: ArchiveIndex): void;
   loadSavedIndex(): ArchiveIndex | null;

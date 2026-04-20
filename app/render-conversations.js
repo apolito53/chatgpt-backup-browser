@@ -667,8 +667,7 @@
                             sessionKey: state.currentSessionKey,
                             sourceMode,
                             sourceLabel,
-                            stats: state.index.stats,
-                            selectedConversation: conversation,
+                            index: state.index,
                         });
                         try {
                             await saveSessionRecord({
