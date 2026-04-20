@@ -31,6 +31,12 @@ const {
   setSelectedConversation,
 } = window.ChatBrowser.render;
 
+if (state.pageType === "conversation") {
+  elements.tabButtons.forEach((button) => {
+    button.hidden = true;
+  });
+}
+
 function updateFolderDigestButton() {
   const hasFolderSelection = Boolean(elements.folderInput.files && elements.folderInput.files.length);
   elements.digestFolderButton.disabled = !hasFolderSelection;
@@ -509,6 +515,10 @@ refreshRecentArchives();
 restoreFromPickerOrCache();
 
 window.addEventListener("popstate", () => {
+  if (state.pageType !== "conversation") {
+    return;
+  }
+
   if (!state.index?.conversations?.length) {
     return;
   }

@@ -49,6 +49,7 @@ const state: AppState = {
   messageAssetMap: new Map(),
   currentSessionKey: null,
   parserMode: "robust",
+  pageType: document.body.dataset.page === "conversation" ? "conversation" : "browser",
 };
 
 const elements: ElementsRegistry = {
@@ -87,6 +88,7 @@ const elements: ElementsRegistry = {
   listPageInputTop: query<HTMLInputElement>("#list-page-input-top"),
   listPageInputBottom: query<HTMLInputElement>("#list-page-input-bottom"),
   resultCaption: query<HTMLElement>("#result-caption"),
+  browserView: query<HTMLElement>("#browser-view"),
   statConversations: query<HTMLElement>("#stat-conversations"),
   statMessages: query<HTMLElement>("#stat-messages"),
   statImages: query<HTMLElement>("#stat-images"),

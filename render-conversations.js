@@ -11,6 +11,7 @@ const { formatDate, escapeHtml } = window.ChatBrowser.ui;
 let loadingConversationDetailsId = null;
 const conversationDetailErrors = new Map();
 const CONVERSATION_URL_PARAM = "conversation";
+const CONVERSATION_PAGE_NAME = "conversation.html";
 
 function getConversationIdFromLocation() {
   try {
@@ -24,7 +25,9 @@ function getConversationIdFromLocation() {
 }
 
 function buildUrlForConversation(conversationId) {
-  const url = new URL(window.location.href);
+  const url = state.pageType === "conversation"
+    ? new URL(window.location.href)
+    : new URL(`./${CONVERSATION_PAGE_NAME}`, window.location.href);
   if (conversationId) {
     url.searchParams.set(CONVERSATION_URL_PARAM, conversationId);
   } else {
@@ -34,6 +37,10 @@ function buildUrlForConversation(conversationId) {
 }
 
 function syncConversationUrl(conversationId, mode = "replace") {
+  if (state.pageType !== "conversation") {
+    return;
+  }
+
   if (!window.history?.replaceState || !window.history?.pushState) {
     return;
   }
@@ -452,6 +459,11 @@ function updateConversationDetailActions(conversation) {
 }
 
 function renderConversation(conversation) {
+  if (state.pageType !== "conversation") {
+    elements.conversationView.hidden = true;
+    return;
+  }
+
   if (!conversation) {
     elements.conversationView.hidden = true;
     elements.conversationDetailActions.hidden = true;
@@ -561,6 +573,10 @@ function renderConversation(conversation) {
 }
 
 function moveConversationSelection(direction) {
+  if (state.pageType !== "conversation") {
+    return;
+  }
+
   if (!state.filteredConversations.length) {
     return;
   }
@@ -586,6 +602,10 @@ function moveConversationSelection(direction) {
 }
 
 function jumpToConversationIndex(index) {
+  if (state.pageType !== "conversation") {
+    return;
+  }
+
   if (!state.filteredConversations.length) {
     return;
   }
@@ -764,6 +784,11 @@ function renderConversationsView() {
     `;
 
     button.addEventListener("click", () => {
+      if (state.pageType === "browser") {
+        window.location.href = buildUrlForConversation(conversation.id);
+        return;
+      }
+
       setSelectedConversation(conversation.id, { history: "push" });
       ensureSelectedConversationPage();
       renderConversationsView();
@@ -774,9 +799,13 @@ function renderConversationsView() {
 
   elements.conversationList.replaceChildren(...buttons);
   updateConversationListPager();
-  renderConversation(
-    state.filteredConversations.find((conversation) => conversation.id === state.selectedConversationId) || null,
-  );
+  if (state.pageType === "conversation") {
+    renderConversation(
+      state.filteredConversations.find((conversation) => conversation.id === state.selectedConversationId) || null,
+    );
+  } else {
+    renderConversation(null);
+  }
 }
 
 window.ChatBrowser.conversationRender = {

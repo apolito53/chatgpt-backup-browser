@@ -55,6 +55,14 @@ code {
   min-height: 100vh;
 }
 
+.browser-shell {
+  grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+}
+
+.conversation-shell {
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+}
+
 .sidebar {
   padding: 24px;
   border-right: 1px solid var(--line);
@@ -87,6 +95,31 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.reader-actions {
+  margin-top: 14px;
+}
+
+.ghost-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-strong);
+  color: var(--text);
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.ghost-link:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: #fff1e1;
 }
 
 .version-pill {
@@ -446,6 +479,46 @@ select {
   flex-direction: column;
 }
 
+.browser-content,
+.conversation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.browser-view {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.browser-header {
+  margin-bottom: 18px;
+}
+
+.filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.conversation-browser-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.conversation-browser-grid .conversation-item {
+  margin-top: 0;
+  height: 100%;
+}
+
+.page-placeholder {
+  display: none !important;
+}
+
 .list-controls {
   display: flex;
   flex-direction: column;
@@ -696,6 +769,10 @@ select {
   border-radius: 24px;
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.reader-hidden {
+  display: none !important;
 }
 
 .modal-shell {
@@ -1117,6 +1194,10 @@ progress {
   }
 
   .image-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .conversation-browser-grid {
     grid-template-columns: 1fr;
   }
 

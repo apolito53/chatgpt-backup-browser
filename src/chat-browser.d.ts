@@ -2,6 +2,7 @@ type ActiveView = "conversations" | "images";
 type SourceMode = "folder" | "file";
 type CacheMode = "single-file" | "folder";
 type ParserMode = "lightweight" | "robust";
+type PageType = "browser" | "conversation";
 
 interface MessageRecord {
   id: string;
@@ -76,6 +77,7 @@ interface AppState {
   messageAssetMap: Map<string, unknown[]>;
   currentSessionKey: string | null;
   parserMode: ParserMode;
+  pageType: PageType;
 }
 
 interface ElementsRegistry {
@@ -114,6 +116,7 @@ interface ElementsRegistry {
   listPageInputTop: HTMLInputElement;
   listPageInputBottom: HTMLInputElement;
   resultCaption: HTMLElement;
+  browserView: HTMLElement;
   statConversations: HTMLElement;
   statMessages: HTMLElement;
   statImages: HTMLElement;

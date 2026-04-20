@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.15",
+        APP_VERSION: "0.5.16",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.16",
+                date: "April 19, 2026",
+                changes: [
+                    "Promoted the conversation browser into the main page content so the archive list no longer lives crammed into the sidebar.",
+                    "Split reading into a dedicated conversation.html page so opening a chat feels like entering a proper reader instead of toggling an in-place detail pane.",
+                    "Kept archive loading, filters, cached-session restore, and conversation navigation working across the new browser and reader pages.",
+                ],
+            },
             {
                 version: "0.5.15",
                 date: "April 19, 2026",

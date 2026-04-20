@@ -46,6 +46,7 @@
         messageAssetMap: new Map(),
         currentSessionKey: null,
         parserMode: "robust",
+        pageType: document.body.dataset.page === "conversation" ? "conversation" : "browser",
     };
     const elements = {
         fileInput: query("#file-input"),
@@ -83,6 +84,7 @@
         listPageInputTop: query("#list-page-input-top"),
         listPageInputBottom: query("#list-page-input-bottom"),
         resultCaption: query("#result-caption"),
+        browserView: query("#browser-view"),
         statConversations: query("#stat-conversations"),
         statMessages: query("#stat-messages"),
         statImages: query("#stat-images"),

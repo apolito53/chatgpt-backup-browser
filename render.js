@@ -8,18 +8,23 @@
     const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, renderConversationsView, moveConversationSelection, loadSelectedConversationDetails, updateConversationListPager, getConversationIdFromLocation, setSelectedConversation, } = window.ChatBrowser.conversationRender;
     const { renderImagesView } = window.ChatBrowser.imageRender;
     function setActiveView(view) {
-        state.activeView = view;
+        if (state.pageType === "conversation") {
+            state.activeView = "conversations";
+        }
+        else {
+            state.activeView = view;
+        }
         for (const button of elements.tabButtons) {
-            const isActive = button.dataset.view === view;
+            const isActive = button.dataset.view === state.activeView;
             button.classList.toggle("active", isActive);
             button.setAttribute("aria-pressed", String(isActive));
         }
-        elements.roleWrap.hidden = view !== "conversations";
-        elements.modelWrap.hidden = view !== "conversations";
-        elements.searchInput.placeholder = view === "images"
+        elements.roleWrap.hidden = state.activeView !== "conversations";
+        elements.modelWrap.hidden = state.activeView !== "conversations";
+        elements.searchInput.placeholder = state.activeView === "images"
             ? "Search image filenames or paths"
             : "Search titles, messages, or both";
-        elements.listTitle.textContent = view === "images" ? "Images" : "Conversations";
+        elements.listTitle.textContent = state.activeView === "images" ? "Images" : "Conversations";
         renderActiveView();
         saveUiState();
     }
@@ -38,8 +43,9 @@
     function renderActiveView() {
         const hasData = Boolean(state.index);
         elements.emptyState.hidden = hasData;
-        elements.conversationView.hidden = state.activeView !== "conversations";
-        elements.imageView.hidden = state.activeView !== "images";
+        elements.browserView.hidden = !hasData || state.pageType !== "browser" || state.activeView !== "conversations";
+        elements.conversationView.hidden = !hasData || state.pageType !== "conversation" || state.activeView !== "conversations";
+        elements.imageView.hidden = !hasData || state.pageType === "conversation" || state.activeView !== "images";
         if (!hasData) {
             elements.resultCaption.textContent = "No export loaded yet.";
             elements.conversationList.innerHTML = "";
