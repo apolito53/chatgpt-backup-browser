@@ -31,6 +31,16 @@
         return Boolean(state.index?.images?.length
             || state.cacheMode === "folder");
     }
+    function setBrowserControlsCollapsed(collapsed) {
+        state.browserControlsCollapsed = collapsed;
+        if (!elements.browserControls || !elements.browserControlsBody || !elements.browserControlsToggle) {
+            return;
+        }
+        elements.browserControls.classList.toggle("collapsed", collapsed);
+        elements.browserControlsBody.hidden = collapsed;
+        elements.browserControlsToggle.textContent = collapsed ? "Show filters" : "Minimize";
+        elements.browserControlsToggle.setAttribute("aria-expanded", String(!collapsed));
+    }
     function setActiveView(view) {
         if (state.pageType === "conversation") {
             state.activeView = "conversations";
@@ -127,6 +137,7 @@
         setConversationListPageSize,
         jumpConversationListPage,
         setActiveView,
+        setBrowserControlsCollapsed,
         updateStats,
         renderActiveView,
         applyIndex,

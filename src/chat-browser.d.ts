@@ -92,6 +92,7 @@ interface AppState {
   currentSessionKey: string | null;
   parserMode: ParserMode;
   pageType: PageType;
+  browserControlsCollapsed: boolean;
 }
 
 interface MessageAttachmentRecord {
@@ -200,6 +201,9 @@ interface ElementsRegistry {
   listPageInputBottom: HTMLSelectElement;
   resultCaption: HTMLElement;
   browserView: HTMLElement;
+  browserControls: HTMLElement | null;
+  browserControlsBody: HTMLElement | null;
+  browserControlsToggle: HTMLButtonElement | null;
   reattachFolderBanner: HTMLElement;
   reattachFolderButton: HTMLButtonElement;
   statConversations: HTMLElement;
@@ -259,6 +263,7 @@ interface UiStatePayload {
   conversationListPage: number;
   conversationListPageSize: number;
   modelFilter: string;
+  browserControlsCollapsed?: boolean;
   parserMode: ParserMode;
 }
 
@@ -389,6 +394,7 @@ interface RenderModule {
   setConversationListPageSize(value: string): void;
   jumpConversationListPage(value: string): void;
   setActiveView(view: ActiveView): void;
+  setBrowserControlsCollapsed(collapsed: boolean): void;
   updateStats(): void;
   renderActiveView(): void;
   applyIndex(index: unknown, sourceLabel: string): void;

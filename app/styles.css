@@ -588,6 +588,55 @@ select {
   z-index: 5;
 }
 
+.browser-controls-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.browser-controls-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.browser-controls-copy .eyebrow,
+.browser-controls-copy h3 {
+  margin: 0;
+}
+
+.browser-controls-copy h3 {
+  font-size: 1.1rem;
+}
+
+.browser-controls-toggle {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.94);
+  color: var(--accent-strong);
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.browser-controls-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: #fff1e1;
+}
+
+.browser-controls-body {
+  display: grid;
+  gap: 14px;
+}
+
+.browser-controls.collapsed {
+  gap: 0;
+  padding-bottom: 16px;
+}
+
 .browser-toolbar {
   display: grid;
   gap: 14px;

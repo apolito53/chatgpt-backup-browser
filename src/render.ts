@@ -52,6 +52,19 @@ function canOpenImagesWithoutHydration(): boolean {
   );
 }
 
+function setBrowserControlsCollapsed(collapsed: boolean): void {
+  state.browserControlsCollapsed = collapsed;
+
+  if (!elements.browserControls || !elements.browserControlsBody || !elements.browserControlsToggle) {
+    return;
+  }
+
+  elements.browserControls.classList.toggle("collapsed", collapsed);
+  elements.browserControlsBody.hidden = collapsed;
+  elements.browserControlsToggle.textContent = collapsed ? "Show filters" : "Minimize";
+  elements.browserControlsToggle.setAttribute("aria-expanded", String(!collapsed));
+}
+
 function setActiveView(view: ActiveView): void {
   if (state.pageType === "conversation") {
     state.activeView = "conversations";
@@ -159,6 +172,7 @@ window.ChatBrowser.render = {
   setConversationListPageSize,
   jumpConversationListPage,
   setActiveView,
+  setBrowserControlsCollapsed,
   updateStats,
   renderActiveView,
   applyIndex,

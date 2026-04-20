@@ -9,6 +9,7 @@
         }
         return element;
     };
+    const queryOptional = (selector) => document.querySelector(selector);
     const STORAGE_KEY = "chatgpt-backup-browser:index";
     const UI_STATE_KEY = "chatgpt-backup-browser:ui-state";
     const ARCHIVE_DB_NAME = "chatgpt-backup-browser";
@@ -49,6 +50,7 @@
         currentSessionKey: null,
         parserMode: "robust",
         pageType: document.body.dataset.page === "conversation" ? "conversation" : "browser",
+        browserControlsCollapsed: false,
     };
     const elements = {
         fileInput: query("#file-input"),
@@ -88,6 +90,9 @@
         listPageInputBottom: query("#list-page-input-bottom"),
         resultCaption: query("#result-caption"),
         browserView: query("#browser-view"),
+        browserControls: queryOptional("#browser-controls"),
+        browserControlsBody: queryOptional("#browser-controls-body"),
+        browserControlsToggle: queryOptional("#browser-controls-toggle"),
         reattachFolderBanner: query("#reattach-folder-banner"),
         reattachFolderButton: query("#reattach-folder-button"),
         statConversations: query("#stat-conversations"),
@@ -147,6 +152,7 @@
             conversationListPage: state.conversationListPage,
             conversationListPageSize: state.conversationListPageSize,
             modelFilter: state.modelFilter,
+            browserControlsCollapsed: state.browserControlsCollapsed,
             parserMode: state.parserMode,
         };
         try {
@@ -214,6 +220,9 @@
         }
         if (typeof uiState.modelFilter === "string") {
             state.modelFilter = uiState.modelFilter;
+        }
+        if (typeof uiState.browserControlsCollapsed === "boolean") {
+            state.browserControlsCollapsed = uiState.browserControlsCollapsed;
         }
         if (uiState.parserMode === "lightweight" || uiState.parserMode === "robust") {
             state.parserMode = uiState.parserMode;

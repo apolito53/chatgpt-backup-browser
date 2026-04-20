@@ -11,6 +11,8 @@ const query = <T extends Element>(selector: string): T => {
   return element;
 };
 
+const queryOptional = <T extends Element>(selector: string): T | null => document.querySelector<T>(selector);
+
 const STORAGE_KEY = "chatgpt-backup-browser:index";
 const UI_STATE_KEY = "chatgpt-backup-browser:ui-state";
 const ARCHIVE_DB_NAME = "chatgpt-backup-browser";
@@ -52,6 +54,7 @@ const state: AppState = {
   currentSessionKey: null,
   parserMode: "robust",
   pageType: document.body.dataset.page === "conversation" ? "conversation" : "browser",
+  browserControlsCollapsed: false,
 };
 
 const elements: ElementsRegistry = {
@@ -92,6 +95,9 @@ const elements: ElementsRegistry = {
   listPageInputBottom: query<HTMLSelectElement>("#list-page-input-bottom"),
   resultCaption: query<HTMLElement>("#result-caption"),
   browserView: query<HTMLElement>("#browser-view"),
+  browserControls: queryOptional<HTMLElement>("#browser-controls"),
+  browserControlsBody: queryOptional<HTMLElement>("#browser-controls-body"),
+  browserControlsToggle: queryOptional<HTMLButtonElement>("#browser-controls-toggle"),
   reattachFolderBanner: query<HTMLElement>("#reattach-folder-banner"),
   reattachFolderButton: query<HTMLButtonElement>("#reattach-folder-button"),
   statConversations: query<HTMLElement>("#stat-conversations"),
@@ -152,6 +158,7 @@ function saveUiState(): void {
     conversationListPage: state.conversationListPage,
     conversationListPageSize: state.conversationListPageSize,
     modelFilter: state.modelFilter,
+    browserControlsCollapsed: state.browserControlsCollapsed,
     parserMode: state.parserMode,
   };
 
@@ -226,6 +233,9 @@ function applyUiState(uiState: UiStatePayload | null): void {
   }
   if (typeof uiState.modelFilter === "string") {
     state.modelFilter = uiState.modelFilter;
+  }
+  if (typeof uiState.browserControlsCollapsed === "boolean") {
+    state.browserControlsCollapsed = uiState.browserControlsCollapsed;
   }
   if (uiState.parserMode === "lightweight" || uiState.parserMode === "robust") {
     state.parserMode = uiState.parserMode;

@@ -22,6 +22,7 @@
     setConversationListPageSize,
     jumpConversationListPage,
     setActiveView,
+    setBrowserControlsCollapsed,
     updateStats,
     renderActiveView,
     applyIndex,
@@ -912,6 +913,11 @@
     updateFolderDigestButton();
   });
 
+  elements.browserControlsToggle?.addEventListener("click", () => {
+    setBrowserControlsCollapsed(!state.browserControlsCollapsed);
+    saveUiState();
+  });
+
   elements.digestFolderButton.addEventListener("click", () => {
     const files = (elements.folderInput.files && elements.folderInput.files.length)
       ? elements.folderInput.files
@@ -992,6 +998,7 @@
   } else {
     setSourceMode("folder");
   }
+  setBrowserControlsCollapsed(state.browserControlsCollapsed);
 
   const conversationIdFromUrl = getConversationIdFromLocation();
   if (conversationIdFromUrl) {

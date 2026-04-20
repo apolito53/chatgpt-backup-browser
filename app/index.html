@@ -18,7 +18,7 @@
               and stop wrestling your archive like it insulted your family.
             </p>
             <div class="brand-actions">
-              <span id="app-version" class="version-pill">v0.5.36</span>
+              <span id="app-version" class="version-pill">v0.5.37</span>
               <button
                 id="open-changelog"
                 class="link-button"
@@ -106,50 +106,66 @@
         </section>
 
         <article id="browser-view" class="browser-view" hidden>
-          <section class="browser-controls">
-            <div class="browser-toolbar">
-              <div class="browser-toolbar-main">
-                <div class="browser-view-pillbox view-switch" role="tablist" aria-label="Archive view">
-                  <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
-                  <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
+          <section id="browser-controls" class="browser-controls">
+            <div class="browser-controls-header">
+              <div class="browser-controls-copy">
+                <p class="eyebrow">Search & Filter</p>
+                <h3>Archive controls</h3>
+              </div>
+              <button
+                id="browser-controls-toggle"
+                class="browser-controls-toggle"
+                type="button"
+                aria-expanded="true"
+                aria-controls="browser-controls-body"
+              >Minimize</button>
+            </div>
+
+            <div id="browser-controls-body" class="browser-controls-body">
+              <div class="browser-toolbar">
+                <div class="browser-toolbar-main">
+                  <div class="browser-view-pillbox view-switch" role="tablist" aria-label="Archive view">
+                    <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
+                    <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
+                  </div>
+
+                  <label class="browser-search browser-search-wide">
+                    <span class="field-label">Search archive</span>
+                    <input id="search-input" type="search" placeholder="Search titles, messages, or both">
+                  </label>
                 </div>
 
-                <label class="browser-search browser-search-wide">
-                  <span class="field-label">Search archive</span>
-                  <input id="search-input" type="search" placeholder="Search titles, messages, or both">
-                </label>
-              </div>
+                <div class="browser-filter-row">
+                  <label class="browser-filter-card">
+                    <span>Sort</span>
+                    <select id="sort-select">
+                      <option value="updated-desc">Recently updated</option>
+                      <option value="updated-asc">Oldest updated</option>
+                      <option value="created-desc">Recently created</option>
+                      <option value="created-asc">Oldest created</option>
+                      <option value="title-asc">Title A-Z</option>
+                      <option value="message-count-desc">Most messages</option>
+                    </select>
+                  </label>
 
-              <div class="browser-filter-row">
-                <label class="browser-filter-card">
-                  <span>Sort</span>
-                  <select id="sort-select">
-                    <option value="updated-desc">Recently updated</option>
-                    <option value="updated-asc">Oldest updated</option>
-                    <option value="created-desc">Recently created</option>
-                    <option value="created-asc">Oldest created</option>
-                    <option value="title-asc">Title A-Z</option>
-                    <option value="message-count-desc">Most messages</option>
-                  </select>
-                </label>
+                  <label id="role-filter-wrap" class="browser-filter-card">
+                    <span>Role</span>
+                    <select id="role-select">
+                      <option value="all">All messages</option>
+                      <option value="user">User only</option>
+                      <option value="assistant">Assistant only</option>
+                      <option value="system">System only</option>
+                    </select>
+                  </label>
 
-                <label id="role-filter-wrap" class="browser-filter-card">
-                  <span>Role</span>
-                  <select id="role-select">
-                    <option value="all">All messages</option>
-                    <option value="user">User only</option>
-                    <option value="assistant">Assistant only</option>
-                    <option value="system">System only</option>
-                  </select>
-                </label>
-
-                <label id="model-filter-wrap" class="browser-filter-card">
-                  <span>Model</span>
-                  <select id="model-select">
-                    <option value="all">All models</option>
-                    <option value="unknown">Unknown model</option>
-                  </select>
-                </label>
+                  <label id="model-filter-wrap" class="browser-filter-card">
+                    <span>Model</span>
+                    <select id="model-select">
+                      <option value="all">All models</option>
+                      <option value="unknown">Unknown model</option>
+                    </select>
+                  </label>
+                </div>
               </div>
             </div>
           </section>

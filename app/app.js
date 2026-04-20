@@ -5,7 +5,7 @@
     const { setStatus, setProgress, renderChangelog, setChangelogOpen, confirmAction } = window.ChatBrowser.ui;
     const { buildFileFingerprint, buildSessionKey, saveSessionRecord, loadRecentSessionRecords, loadSessionRecord, loadLatestSessionRecord, saveFolderHandleRecord, loadFolderHandleRecord, saveIndex, loadSavedIndex, revokeObjectUrls, } = window.ChatBrowser.storage;
     const { parseConversationsInWorker, buildImagesIndex, buildBackupIndex } = window.ChatBrowser.parserClient;
-    const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, setActiveView, updateStats, renderActiveView, applyIndex, moveConversationSelection, loadSelectedConversationDetails, getConversationIdFromLocation, setSelectedConversation, } = window.ChatBrowser.render;
+    const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, setActiveView, setBrowserControlsCollapsed, updateStats, renderActiveView, applyIndex, moveConversationSelection, loadSelectedConversationDetails, getConversationIdFromLocation, setSelectedConversation, } = window.ChatBrowser.render;
     if (state.pageType === "conversation") {
         elements.tabButtons.forEach((button) => {
             button.hidden = true;
@@ -762,6 +762,10 @@
         saveUiState();
         updateFolderDigestButton();
     });
+    elements.browserControlsToggle?.addEventListener("click", () => {
+        setBrowserControlsCollapsed(!state.browserControlsCollapsed);
+        saveUiState();
+    });
     elements.digestFolderButton.addEventListener("click", () => {
         const files = (elements.folderInput.files && elements.folderInput.files.length)
             ? elements.folderInput.files
@@ -830,6 +834,7 @@
     else {
         setSourceMode("folder");
     }
+    setBrowserControlsCollapsed(state.browserControlsCollapsed);
     const conversationIdFromUrl = getConversationIdFromLocation();
     if (conversationIdFromUrl) {
         state.selectedConversationId = conversationIdFromUrl;

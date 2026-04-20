@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.36",
+  APP_VERSION: "0.5.37",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.37",
+      date: "April 20, 2026",
+      changes: [
+        "Added a minimize button for the sticky archive controls so the search and filter panel can collapse out of the conversation list's way.",
+        "Made the browser remember whether that control panel was collapsed, so refreshes stop reopening it like nothing happened.",
+      ],
+    },
     {
       version: "0.5.36",
       date: "April 20, 2026",
