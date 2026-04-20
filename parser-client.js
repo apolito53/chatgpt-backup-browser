@@ -5,7 +5,7 @@ window.ChatBrowser = window.ChatBrowser || {};
 
 const { IMAGE_EXTENSIONS, state } = window.ChatBrowser.stateModule;
 const { setStatus, setProgress } = window.ChatBrowser.ui;
-const { buildMessageAssetMap } = window.ChatBrowser.attachments;
+const { buildMessageAssetMapIncremental } = window.ChatBrowser.attachments;
 
 function postLocalProgress(status, progress) {
   setStatus(status);
@@ -132,6 +132,26 @@ function hasStructuredMessageContent(message) {
   return contentCandidates.length > 0 || metadataCandidates.length > 0;
 }
 
+function normalizeModelSlug(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getConversationModelInfo(conversation) {
+  const metadata = conversation?.metadata && typeof conversation.metadata === "object" ? conversation.metadata : {};
+  const candidates = [
+    conversation?.model_slug,
+    conversation?.default_model_slug,
+    metadata.model_slug,
+    metadata.default_model_slug,
+  ];
+  const normalized = candidates.map(normalizeModelSlug).filter(Boolean);
+
+  return {
+    modelSlug: normalized[0] || "",
+    defaultModelSlug: normalized[1] || "",
+  };
+}
+
 function isVisibleMessage(message) {
   if (!message) {
     return false;
@@ -166,6 +186,7 @@ function summarizeConversation(conversation, index) {
   const orderedIds = lineageForConversation(conversation);
   const conversationId = conversation.conversation_id || conversation.id || `conversation-${index}`;
   const messages = [];
+  const { modelSlug, defaultModelSlug } = getConversationModelInfo(conversation);
 
   for (const id of orderedIds) {
     const node = conversation.mapping?.[id];
@@ -199,13 +220,15 @@ function summarizeConversation(conversation, index) {
     ? previewSource.text.replace(/\s+/g, " ").slice(0, 180)
     : "No visible message content in the selected branch.";
 
-  const searchBlob = `${title}\n${messages.map((message) => `${message.role}\n${message.text}`).join("\n")}`.toLowerCase();
+  const searchBlob = `${title}\n${modelSlug}\n${defaultModelSlug}\n${messages.map((message) => `${message.role}\n${message.text}`).join("\n")}`.toLowerCase();
 
   return {
     id: conversationId,
     title,
     createdAt: conversation.create_time || null,
     updatedAt: conversation.update_time || null,
+    modelSlug,
+    defaultModelSlug,
     preview,
     messageCount: messages.length,
     messages,
@@ -466,6 +489,26 @@ function parserWorkerBootstrap() {
     return contentCandidates.length > 0 || metadataCandidates.length > 0;
   }
 
+  function normalizeModelSlug(value) {
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  function getConversationModelInfo(conversation) {
+    const metadata = conversation?.metadata && typeof conversation.metadata === "object" ? conversation.metadata : {};
+    const candidates = [
+      conversation?.model_slug,
+      conversation?.default_model_slug,
+      metadata.model_slug,
+      metadata.default_model_slug,
+    ];
+    const normalized = candidates.map(normalizeModelSlug).filter(Boolean);
+
+    return {
+      modelSlug: normalized[0] || "",
+      defaultModelSlug: normalized[1] || "",
+    };
+  }
+
   function isVisibleMessage(message) {
     if (!message) {
       return false;
@@ -500,6 +543,7 @@ function parserWorkerBootstrap() {
     const orderedIds = lineageForConversation(conversation);
     const conversationId = conversation.conversation_id || conversation.id || `conversation-${index}`;
     const messages = [];
+    const { modelSlug, defaultModelSlug } = getConversationModelInfo(conversation);
 
     for (const id of orderedIds) {
       const node = conversation.mapping?.[id];
@@ -533,13 +577,15 @@ function parserWorkerBootstrap() {
       ? previewSource.text.replace(/\s+/g, " ").slice(0, 180)
       : "No visible message content in the selected branch.";
 
-    const searchBlob = `${title}\n${messages.map((message) => `${message.role}\n${message.text}`).join("\n")}`.toLowerCase();
+    const searchBlob = `${title}\n${modelSlug}\n${defaultModelSlug}\n${messages.map((message) => `${message.role}\n${message.text}`).join("\n")}`.toLowerCase();
 
     return {
       id: conversationId,
       title,
       createdAt: conversation.create_time || null,
       updatedAt: conversation.update_time || null,
+      modelSlug,
+      defaultModelSlug,
       preview,
       messageCount: messages.length,
       messages,
@@ -691,11 +737,29 @@ function buildImagesIndex(files) {
   return images;
 }
 
-function buildBackupIndex({ conversations, images, source }) {
+async function buildBackupIndex({ conversations, images, source }) {
   const totalMessages = conversations.reduce((sum, conversation) => sum + conversation.messageCount, 0);
-  const messageAssetMap = state.parserMode === "lightweight"
-    ? new Map()
-    : buildMessageAssetMap(conversations, images);
+  let messageAssetMap = new Map();
+
+  if (state.parserMode !== "lightweight") {
+    setStatus("Linking attachments in robust mode...");
+    setProgress(images.length ? 72 : 90, false);
+
+    messageAssetMap = await buildMessageAssetMapIncremental(conversations, images, {
+      chunkSize: 150,
+      onProgress({ processedMessages, totalMessages: attachmentTotalMessages, progress }) {
+        const safeTotalMessages = attachmentTotalMessages || totalMessages || 0;
+        const ratio = safeTotalMessages ? progress / 100 : 1;
+        const uiProgress = 72 + Math.round(ratio * 23);
+        setStatus(
+          safeTotalMessages
+            ? `Linking attachments in robust mode... ${processedMessages.toLocaleString()} / ${safeTotalMessages.toLocaleString()} messages`
+            : "Linking attachments in robust mode...",
+        );
+        setProgress(Math.min(95, uiProgress), false);
+      },
+    });
+  }
 
   // Attachment lookup only needs the raw message blobs during indexing.
   // Drop them afterwards so large exports do not keep duplicate payloads alive in memory.

@@ -17,7 +17,7 @@ self.addEventListener("message", (event) => {
     }
 
     postProgress("Summarizing conversations...", 45);
-    const { conversations, totalMessages, rawConversationEntries } = buildConversationIndex(rawData);
+    const { conversations, totalMessages, rawConversationEntries, rawConversationEntriesOmitted } = buildConversationIndex(rawData);
 
     self.postMessage({
       type: "parse-complete",

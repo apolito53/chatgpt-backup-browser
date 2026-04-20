@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.3",
+        APP_VERSION: "0.5.4",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.4",
+                date: "April 19, 2026",
+                changes: [
+                    "Fixed robust mode so the parser worker and the file:// fallback worker now agree on the same conversation metadata shape.",
+                    "Chunked robust attachment indexing into smaller async slices so large folder loads do not lock the browser solid at the end of parsing.",
+                    "Kept the full robust attachment map behavior while making the progress indicator reflect the attachment-linking phase.",
+                ],
+            },
             {
                 version: "0.5.3",
                 date: "April 19, 2026",

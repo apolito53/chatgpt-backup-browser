@@ -281,12 +281,106 @@ function buildMessageAssetMap(conversations, images) {
   return map;
 }
 
+async function buildMessageAssetMapIncremental(conversations, images, options = {}) {
+  if (!images.length) {
+    if (typeof options.onProgress === "function") {
+      options.onProgress({ processedMessages: 0, totalMessages: 0, progress: 100 });
+    }
+    return new Map();
+  }
+
+  const totalMessages = conversations.reduce(
+    (sum, conversation) => sum + (Array.isArray(conversation.messages) ? conversation.messages.length : 0),
+    0,
+  );
+
+  if (!totalMessages) {
+    if (typeof options.onProgress === "function") {
+      options.onProgress({ processedMessages: 0, totalMessages: 0, progress: 100 });
+    }
+    return new Map();
+  }
+
+  const imageLookup = buildImageLookup(images);
+  const imageById = new Map(images.map((image) => [image.id, image]));
+  const map = new Map();
+  const chunkSize = Math.max(10, Number(options.chunkSize) || 200);
+  let processedMessages = 0;
+
+  for (const conversation of conversations) {
+    for (const message of conversation.messages) {
+      const references = [];
+      if (message.rawContent) {
+        references.push({ source: "content", value: message.rawContent });
+      }
+      if (message.rawMetadata) {
+        references.push({ source: "metadata", value: message.rawMetadata });
+      }
+
+      if (references.length) {
+        const resolved = [];
+        const usedImageIds = new Set();
+
+        for (const reference of references) {
+          const candidates = collectImageReferenceCandidates(reference.value, []);
+          for (const candidate of candidates) {
+            const pointerKey = extractPointerKey(candidate);
+            const matchingIds = imageLookup.get(pointerKey) || [];
+            let image = matchingIds
+              .map((imageId) => imageById.get(imageId))
+              .find((item) => item && !usedImageIds.has(item.id));
+
+            if (!image) {
+              image = images.find((item) => !usedImageIds.has(item.id) && matchesImageCandidate(item, candidate));
+            }
+
+            if (!image) {
+              continue;
+            }
+
+            usedImageIds.add(image.id);
+            resolved.push({
+              imageId: image.id,
+              candidate,
+              referenceSource: reference.source,
+              reference: reference.value,
+            });
+          }
+        }
+
+        if (resolved.length) {
+          map.set(getMessageAttachmentKey(message), resolved);
+        }
+      }
+
+      processedMessages += 1;
+      if (processedMessages % chunkSize === 0) {
+        if (typeof options.onProgress === "function") {
+          options.onProgress({
+            processedMessages,
+            totalMessages,
+            progress: Math.min(100, Math.round((processedMessages / totalMessages) * 100)),
+          });
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+  }
+
+  if (typeof options.onProgress === "function") {
+    options.onProgress({ processedMessages, totalMessages, progress: 100 });
+  }
+
+  return map;
+}
+
 window.ChatBrowser.attachments = {
   getMessageAttachmentKey,
   collectImageReferenceCandidates,
   hasStructuredMessageContent,
   extractPointerKey,
   buildMessageAssetMap,
+  buildMessageAssetMapIncremental,
   resolveMessageImages,
 };
 })();

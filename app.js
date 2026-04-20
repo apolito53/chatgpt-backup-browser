@@ -50,7 +50,7 @@ async function parseSingleFile(file) {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const conversationData = await parseConversationsInWorker(rawText);
-    const index = buildBackupIndex({
+    const index = await buildBackupIndex({
       conversations: conversationData.conversations,
       images: [],
       source: file.name,
@@ -120,7 +120,7 @@ async function parseFolder(fileList) {
       fingerprint: [buildFileFingerprint(conversationFile), files.length].join(":"),
     });
 
-    const index = buildBackupIndex({
+    const index = await buildBackupIndex({
       conversations: conversationData.conversations,
       images,
       source: rootSegment,
