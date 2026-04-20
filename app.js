@@ -101,7 +101,7 @@ async function refreshRecentArchives() {
 
       const meta = document.createElement("span");
       meta.className = "recent-archive-meta";
-      meta.textContent = `${session.stats.conversations} convos • ${session.stats.images} images • ${formatRecentArchiveTimestamp(session.savedAt)}`;
+      meta.textContent = `${session.stats.conversations} convos | ${session.stats.images} images | ${formatRecentArchiveTimestamp(session.savedAt)}`;
 
       button.append(titleRow, meta);
       elements.recentArchivesList.append(button);
