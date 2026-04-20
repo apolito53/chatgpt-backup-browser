@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.17",
+        APP_VERSION: "0.5.18",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.18",
+                date: "April 19, 2026",
+                changes: [
+                    "Added a double-click launcher file for Windows so the app can be opened from Explorer without typing a PowerShell command.",
+                    "Kept the launcher pointed at the existing start script so the browser still builds, serves on localhost, and opens normally.",
+                ],
+            },
             {
                 version: "0.5.17",
                 date: "April 19, 2026",

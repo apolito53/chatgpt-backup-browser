@@ -22,7 +22,7 @@ It is meant to be simple to run, easy to browse, and useful for reading old conv
 
 ## Getting Started
 
-1. Run `powershell -ExecutionPolicy Bypass -File .\scripts\start.ps1`.
+1. Double-click `Open ChatGPT Backup Browser.cmd`, or run `powershell -ExecutionPolicy Bypass -File .\scripts\start.ps1`.
 2. Pick **Load One File** if you only care about `chat.html` or `conversations.json`.
 3. Pick **Load Entire Backup Folder** if you want conversations and images together.
 4. Choose `Lightweight` or `Robust` mode for folder imports.
