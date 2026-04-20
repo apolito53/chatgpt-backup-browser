@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.13",
+  APP_VERSION: "0.5.14",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.14",
+      date: "April 19, 2026",
+      changes: [
+        "Stopped tool-role messages from appearing in the conversation reader so internal tool chatter no longer clutters normal chats, including cached sessions that were parsed earlier.",
+        "Tightened assistant header labels so they prefer message-level model metadata and fall back to the conversation model before ever showing a generic assistant label.",
+      ],
+    },
     {
       version: "0.5.13",
       date: "April 19, 2026",

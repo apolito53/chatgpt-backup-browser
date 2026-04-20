@@ -15,7 +15,7 @@ It is meant to be simple to run, easy to browse, and useful for reading old conv
 - Switch between backups with clearer in-app confirmation wording when another archive is already open
 - Inspect raw conversation JSON on demand when something looks odd
 - Restore cached sessions without reparsing the whole archive every time
-- See which model produced assistant turns when the export includes that metadata
+- See which model produced assistant turns when the export includes that metadata, without internal tool chatter cluttering the reader
 - Check a small in-app changelog instead of wondering what changed this time
 
 ## Getting Started

@@ -211,6 +211,11 @@ function isVisibleMessage(message) {
     return false;
   }
 
+  const role = message.author?.role || "";
+  if (role === "tool") {
+    return false;
+  }
+
   const metadata = message.metadata || {};
   if (metadata.is_visually_hidden_from_conversation || metadata.is_user_system_message) {
     return false;
@@ -629,15 +634,20 @@ function parserWorkerBootstrap() {
     };
   }
 
-  function isVisibleMessage(message) {
-    if (!message) {
-      return false;
-    }
+function isVisibleMessage(message) {
+  if (!message) {
+    return false;
+  }
 
-    const metadata = message.metadata || {};
-    if (metadata.is_visually_hidden_from_conversation || metadata.is_user_system_message) {
-      return false;
-    }
+  const role = message.author?.role || "";
+  if (role === "tool") {
+    return false;
+  }
+
+  const metadata = message.metadata || {};
+  if (metadata.is_visually_hidden_from_conversation || metadata.is_user_system_message) {
+    return false;
+  }
 
     const text = coerceTextParts(message.content).trim();
     return Boolean(text) || hasStructuredMessageContent(message);

@@ -145,9 +145,20 @@ function syncModelFilterOptions() {
   elements.modelSelect.value = state.modelFilter;
 }
 
-function getRoleLabel(message) {
-  if (message.role === "assistant" && message.speakerModelSlug) {
-    return message.speakerModelSlug;
+function isReaderVisibleMessage(message) {
+  return Boolean(message && message.role !== "tool");
+}
+
+function getRoleLabel(message, conversation) {
+  if (message.role === "assistant") {
+    return (
+      message.speakerModelSlug
+      || message.speakerDefaultModelSlug
+      || conversation?.modelSlug
+      || conversation?.defaultModelSlug
+      || message.authorName
+      || "assistant"
+    );
   }
 
   if (message.authorName) {
@@ -277,9 +288,9 @@ function jumpConversationListPage(value) {
 
 function roleFilterMatches(conversation, role) {
   if (role === "all") {
-    return true;
+    return conversation.messages.some((message) => isReaderVisibleMessage(message));
   }
-  return conversation.messages.some((message) => message.role === role);
+  return conversation.messages.some((message) => isReaderVisibleMessage(message) && message.role === role);
 }
 
 function modelFilterMatches(conversation, modelFilter) {
@@ -314,16 +325,17 @@ function searchMatchesConversation(conversation, query, role) {
   }
 
   return conversation.messages.some(
-    (message) => message.role === role && message.text.toLowerCase().includes(lowerQuery),
+    (message) => isReaderVisibleMessage(message) && message.role === role && message.text.toLowerCase().includes(lowerQuery),
   );
 }
 
 function getVisibleMessages(conversation) {
+  const readerMessages = conversation.messages.filter((message) => isReaderVisibleMessage(message));
   const role = elements.roleSelect.value;
   if (role === "all") {
-    return conversation.messages;
+    return readerMessages;
   }
-  return conversation.messages.filter((message) => message.role === role);
+  return readerMessages.filter((message) => message.role === role);
 }
 
 function messageNeedsDetailHydration(message) {
@@ -494,7 +506,7 @@ function renderConversation(conversation) {
 
     card.innerHTML = `
       <div class="message-header">
-        <div class="message-author">${escapeHtml(getRoleLabel(message))}</div>
+        <div class="message-author">${escapeHtml(getRoleLabel(message, conversation))}</div>
         <div class="message-meta">${escapeHtml(formatDate(message.createTime || message.updateTime))}</div>
       </div>
     `;
