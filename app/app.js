@@ -5,7 +5,7 @@
     const { setStatus, setProgress, renderChangelog, setChangelogOpen, confirmAction } = window.ChatBrowser.ui;
     const { buildFileFingerprint, buildSessionKey, saveSessionRecord, loadRecentSessionRecords, loadSessionRecord, loadLatestSessionRecord, saveFolderHandleRecord, loadFolderHandleRecord, saveIndex, loadSavedIndex, revokeObjectUrls, } = window.ChatBrowser.storage;
     const { parseConversationsInWorker, buildImagesIndex, buildBackupIndex } = window.ChatBrowser.parserClient;
-    const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, setActiveView, setBrowserControlsCollapsed, updateStats, renderActiveView, applyIndex, moveConversationSelection, loadSelectedConversationDetails, getConversationIdFromLocation, setSelectedConversation, } = window.ChatBrowser.render;
+    const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, setActiveView, setBrowserControlsCollapsed, updateStats, renderActiveView, applyIndex, moveConversationSelection, loadSelectedConversationDetails, getConversationIdFromLocation, getSessionKeyFromLocation, setSelectedConversation, } = window.ChatBrowser.render;
     if (state.pageType === "conversation") {
         elements.tabButtons.forEach((button) => {
             button.hidden = true;
@@ -540,7 +540,10 @@
             return;
         }
         try {
-            const storedSession = await loadLatestSessionRecord();
+            const preferredSessionKey = getSessionKeyFromLocation();
+            const storedSession = preferredSessionKey
+                ? (await loadSessionRecord(preferredSessionKey)) || await loadLatestSessionRecord()
+                : await loadLatestSessionRecord();
             if (storedSession) {
                 if (storedSession.sourceMode === "folder" && !canRestoreFolderSessionsFromCache()) {
                     setSourceMode("folder");

@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.37",
+        APP_VERSION: "0.5.38",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.38",
+                date: "April 20, 2026",
+                changes: [
+                    "Conversation links now carry the active archive session key so the reader page restores the exact backup you clicked from instead of guessing from the most recent cache.",
+                    "Fixed a Chrome restore mismatch where the browser could report a folder as reconnected while the conversation reader was still opening against a different cached session.",
+                ],
+            },
             {
                 version: "0.5.37",
                 date: "April 20, 2026",

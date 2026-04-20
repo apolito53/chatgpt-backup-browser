@@ -8,6 +8,7 @@
     let loadingConversationDetailsId = null;
     const conversationDetailErrors = new Map();
     const CONVERSATION_URL_PARAM = "conversation";
+    const SESSION_URL_PARAM = "session";
     const CONVERSATION_PAGE_NAME = "conversation.html";
     function getConversationIdFromLocation() {
         try {
@@ -20,6 +21,17 @@
             return "";
         }
     }
+    function getSessionKeyFromLocation() {
+        try {
+            const url = new URL(window.location.href);
+            const sessionKey = url.searchParams.get(SESSION_URL_PARAM);
+            return sessionKey ? sessionKey.trim() : "";
+        }
+        catch (error) {
+            console.warn("Failed to read the session key from the URL:", error);
+            return "";
+        }
+    }
     function buildUrlForConversation(conversationId) {
         const url = state.pageType === "conversation"
             ? new URL(window.location.href)
@@ -29,6 +41,12 @@
         }
         else {
             url.searchParams.delete(CONVERSATION_URL_PARAM);
+        }
+        if (state.currentSessionKey) {
+            url.searchParams.set(SESSION_URL_PARAM, state.currentSessionKey);
+        }
+        else {
+            url.searchParams.delete(SESSION_URL_PARAM);
         }
         return url.toString();
     }
@@ -662,6 +680,7 @@
         moveConversationSelection,
         loadSelectedConversationDetails,
         getConversationIdFromLocation,
+        getSessionKeyFromLocation,
         setSelectedConversation,
     };
 })();

@@ -15,6 +15,7 @@ const {
   loadSelectedConversationDetails,
   updateConversationListPager,
   getConversationIdFromLocation,
+  getSessionKeyFromLocation,
   setSelectedConversation,
 } = window.ChatBrowser.conversationRender!;
 const { renderImagesView } = window.ChatBrowser.imageRender!;
@@ -179,6 +180,7 @@ window.ChatBrowser.render = {
   moveConversationSelection,
   loadSelectedConversationDetails,
   getConversationIdFromLocation,
+  getSessionKeyFromLocation,
   setSelectedConversation,
 };
 })();

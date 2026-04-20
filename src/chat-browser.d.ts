@@ -382,6 +382,7 @@ interface ConversationRenderModule {
   moveConversationSelection(direction: number): void;
   loadSelectedConversationDetails(): Promise<void>;
   getConversationIdFromLocation(): string;
+  getSessionKeyFromLocation(): string;
   setSelectedConversation(conversationId: string | null, options?: HistoryModeOptions): boolean;
 }
 
@@ -401,6 +402,7 @@ interface RenderModule {
   moveConversationSelection(direction: number): void;
   loadSelectedConversationDetails(): Promise<void>;
   getConversationIdFromLocation(): string;
+  getSessionKeyFromLocation(): string;
   setSelectedConversation(conversationId: string | null, options?: HistoryModeOptions): boolean;
 }
 

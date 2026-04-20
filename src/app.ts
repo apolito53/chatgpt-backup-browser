@@ -29,6 +29,7 @@
     moveConversationSelection,
     loadSelectedConversationDetails,
     getConversationIdFromLocation,
+    getSessionKeyFromLocation,
     setSelectedConversation,
   } = window.ChatBrowser.render!;
 
@@ -655,7 +656,10 @@
     }
 
     try {
-      const storedSession = await loadLatestSessionRecord();
+      const preferredSessionKey = getSessionKeyFromLocation();
+      const storedSession = preferredSessionKey
+        ? (await loadSessionRecord(preferredSessionKey)) || await loadLatestSessionRecord()
+        : await loadLatestSessionRecord();
       if (storedSession) {
         if (storedSession.sourceMode === "folder" && !canRestoreFolderSessionsFromCache()) {
           setSourceMode("folder");
