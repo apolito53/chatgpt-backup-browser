@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.39",
+  APP_VERSION: "0.5.40",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.40",
+      date: "April 20, 2026",
+      changes: [
+        "Made browser-to-reader navigation wait for the active archive session to persist before opening conversation.html, which stops reader loads from arriving before the archive exists.",
+        "Kept the lightweight session handoff as a fallback, but moved the main fix to the actual session save path instead of betting everything on storage quotas and timing luck.",
+      ],
+    },
     {
       version: "0.5.39",
       date: "April 20, 2026",
