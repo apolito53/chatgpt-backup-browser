@@ -656,8 +656,10 @@ select {
   width: 100%;
   min-height: calc(100vh - 56px);
   display: grid;
-  place-content: center;
+  justify-items: center;
+  align-content: start;
   gap: 8px;
+  padding-top: 28px;
 }
 
 .splash-stack {
