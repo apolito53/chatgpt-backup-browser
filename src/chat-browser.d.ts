@@ -181,6 +181,7 @@ interface ElementsRegistry {
   modelWrap: HTMLElement;
   modelSelect: HTMLSelectElement;
   status: HTMLElement;
+  statusBanner: HTMLElement;
   progress: HTMLProgressElement;
   tabButtons: HTMLButtonElement[];
   listTitle: HTMLElement;

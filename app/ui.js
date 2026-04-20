@@ -7,6 +7,17 @@
     let pendingConfirmResolver = null;
     function setStatus(message) {
         elements.status.textContent = message;
+        elements.statusBanner.textContent = message;
+        const normalized = (message || "").trim().toLowerCase();
+        const shouldHighlight = Boolean(normalized) && (normalized.includes("failed")
+            || normalized.includes("error")
+            || normalized.includes("crashed")
+            || normalized.includes("couldn't")
+            || normalized.includes("could not")
+            || normalized.includes("not granted")
+            || normalized.includes("unavailable"));
+        elements.statusBanner.hidden = !message;
+        elements.statusBanner.classList.toggle("error", shouldHighlight);
     }
     function setProgress(value, hidden = false) {
         elements.progress.hidden = hidden;

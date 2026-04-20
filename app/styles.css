@@ -692,6 +692,22 @@ select {
   align-self: center;
 }
 
+.status-banner {
+  padding: 14px 16px;
+  border: 1px solid rgba(106, 72, 38, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 251, 245, 0.94);
+  color: var(--muted);
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.status-banner.error {
+  border-color: rgba(159, 67, 34, 0.28);
+  background: linear-gradient(135deg, rgba(255, 239, 231, 0.94), rgba(255, 248, 241, 0.98));
+  color: var(--accent-strong);
+}
+
 .image-restore-banner {
   margin: 20px 20px 0;
 }

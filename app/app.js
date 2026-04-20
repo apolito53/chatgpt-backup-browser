@@ -551,6 +551,20 @@
                 setProgress(0, true);
                 return;
             }
+            if (state.index) {
+                try {
+                    const attached = await attachImagesToCurrentFolderSession(files);
+                    if (!attached) {
+                        setStatus("Reattached the folder, but couldn't refresh live previews from it.");
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+                    setStatus(error instanceof Error ? error.message : "Failed to reattach the current backup folder.");
+                    setProgress(0, true);
+                }
+                return;
+            }
             void parseFolder(files);
             return;
         }

@@ -73,6 +73,7 @@ const elements: ElementsRegistry = {
   modelWrap: query<HTMLElement>("#model-filter-wrap"),
   modelSelect: query<HTMLSelectElement>("#model-select"),
   status: query<HTMLElement>("#status"),
+  statusBanner: query<HTMLElement>("#status-banner"),
   progress: query<HTMLProgressElement>("#progress"),
   tabButtons: Array.from(document.querySelectorAll<HTMLButtonElement>("[data-view]")),
   listTitle: query<HTMLElement>("#list-title"),

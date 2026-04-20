@@ -69,6 +69,7 @@
         modelWrap: query("#model-filter-wrap"),
         modelSelect: query("#model-select"),
         status: query("#status"),
+        statusBanner: query("#status-banner"),
         progress: query("#progress"),
         tabButtons: Array.from(document.querySelectorAll("[data-view]")),
         listTitle: query("#list-title"),
