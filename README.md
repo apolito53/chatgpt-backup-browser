@@ -47,15 +47,15 @@ The start script builds the current browser assets, launches a small local serve
 
 ## Project Roadmap
 
-Planned features and longer-term ideas live in [TODO.md](./TODO.md).
+Planned features and longer-term ideas live in [docs/TODO.md](./docs/TODO.md).
 
 ## For Contributors
 
-Contributor workflow notes live in [DEVELOPER_NOTES.md](./DEVELOPER_NOTES.md).
+Contributor workflow notes live in [docs/DEVELOPER_NOTES.md](./docs/DEVELOPER_NOTES.md).
 
 There is also a PowerShell helper for inspecting large exports if you are working on parser or archive tooling changes:
 
-- `.\Analyze-Backup.ps1 summary "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json"`
-- `.\Analyze-Backup.ps1 find "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json" "file_id" -MaxMatches 10`
-- `.\Analyze-Backup.ps1 image-refs "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json" -MaxMatches 20`
-- `.\Analyze-Backup.ps1 extract-json "C:\Users\apoli\Desktop\ChatGPT Backup\chat.html"`
+- `.\scripts\Analyze-Backup.ps1 summary "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json"`
+- `.\scripts\Analyze-Backup.ps1 find "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json" "file_id" -MaxMatches 10`
+- `.\scripts\Analyze-Backup.ps1 image-refs "C:\Users\apoli\Desktop\ChatGPT Backup\conversations.json" -MaxMatches 20`
+- `.\scripts\Analyze-Backup.ps1 extract-json "C:\Users\apoli\Desktop\ChatGPT Backup\chat.html"`

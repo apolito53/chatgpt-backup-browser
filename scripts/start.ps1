@@ -6,7 +6,7 @@ $localNodeDir = Join-Path $projectRoot "tools\node-runtime"
 $localNode = Join-Path $localNodeDir "node.exe"
 $serverScript = Join-Path $PSScriptRoot "serve.mjs"
 $defaultPort = if ($env:CHATGPT_BROWSER_PORT) { $env:CHATGPT_BROWSER_PORT } else { "4173" }
-$startPage = if ($env:CHATGPT_BROWSER_PAGE) { $env:CHATGPT_BROWSER_PAGE } else { "index.html" }
+$startPage = if ($env:CHATGPT_BROWSER_PAGE) { $env:CHATGPT_BROWSER_PAGE } else { "app/index.html" }
 
 if (Test-Path $buildScript) {
   & powershell -ExecutionPolicy Bypass -File $buildScript

@@ -8,7 +8,7 @@ const __dirname = resolve(__filename, "..");
 const projectRoot = resolve(__dirname, "..");
 const host = "127.0.0.1";
 const requestedPort = Number.parseInt(process.env.CHATGPT_BROWSER_PORT || "4173", 10);
-const startPage = process.env.CHATGPT_BROWSER_PAGE || "index.html";
+const startPage = process.env.CHATGPT_BROWSER_PAGE || "app/index.html";
 
 const contentTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -25,6 +25,11 @@ const contentTypes = new Map([
   [".txt", "text/plain; charset=utf-8"],
 ]);
 
+const redirectPaths = new Map([
+  ["/index.html", "/app/index.html"],
+  ["/conversation.html", "/app/conversation.html"],
+]);
+
 function send(response, statusCode, body, type = "text/plain; charset=utf-8") {
   response.writeHead(statusCode, { "Content-Type": type });
   response.end(body);
@@ -38,6 +43,14 @@ function resolveRequestPath(requestUrl) {
 }
 
 function handleRequest(request, response) {
+  const parsed = new URL(request.url || "/", `http://${host}`);
+  const redirectedPath = redirectPaths.get(parsed.pathname);
+  if (redirectedPath) {
+    response.writeHead(302, { Location: redirectedPath });
+    response.end();
+    return;
+  }
+
   const filePath = resolveRequestPath(request.url || "/");
   if (!filePath.startsWith(projectRoot)) {
     send(response, 403, "Forbidden");

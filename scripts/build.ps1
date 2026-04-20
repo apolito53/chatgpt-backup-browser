@@ -5,6 +5,7 @@ $localNodeDir = Join-Path $projectRoot "tools\node-runtime"
 $localNode = Join-Path $localNodeDir "node.exe"
 $typescriptCli = Join-Path $projectRoot "tools\typescript\package\lib\tsc.js"
 $buildDir = Join-Path $projectRoot ".tsbuild"
+$appDir = Join-Path $projectRoot "app"
 
 if (-not (Test-Path $typescriptCli)) {
   throw "TypeScript compiler not found at $typescriptCli"
@@ -31,7 +32,7 @@ try {
 
   Get-ChildItem -Path $buildDir -Filter *.js -Recurse | ForEach-Object {
     $relativePath = $_.FullName.Substring($buildDir.Length).TrimStart('\')
-    $targetPath = Join-Path $projectRoot $relativePath
+    $targetPath = Join-Path $appDir $relativePath
     $targetDir = Split-Path -Parent $targetPath
     if (-not (Test-Path $targetDir)) {
       New-Item -ItemType Directory -Force -Path $targetDir | Out-Null

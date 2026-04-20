@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.20",
+        APP_VERSION: "0.5.21",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.21",
+                date: "April 19, 2026",
+                changes: [
+                    "Reorganized the repo so the browser runtime lives under app/, docs live under docs/, and the root folder stops looking like a yard sale.",
+                    "Moved the backup-analysis helper into scripts/ and tucked the older launcher wrappers into launchers/ while keeping START_BROWSER.vbs at the root.",
+                    "Updated the local server and start script to serve the app from app/index.html and gently redirect older index and conversation URLs.",
+                ],
+            },
             {
                 version: "0.5.20",
                 date: "April 19, 2026",

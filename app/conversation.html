@@ -3,21 +3,20 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ChatGPT Backup Browser</title>
+    <title>ChatGPT Backup Browser - Conversation</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
-  <body data-page="browser">
-    <div class="shell browser-shell">
+  <body data-page="conversation">
+    <div class="shell conversation-shell">
       <aside class="sidebar">
         <div class="brand">
-          <p class="eyebrow">Local Archive Tool</p>
+          <p class="eyebrow">Conversation Reader</p>
           <h1>ChatGPT Backup Browser</h1>
           <p class="subtle">
-            Load a single export file or the entire backup folder, search it properly,
-            and stop wrestling your archive like it insulted your family.
+            Read one conversation properly without the browser list crammed into the corner like an afterthought.
           </p>
           <div class="brand-actions">
-            <span id="app-version" class="version-pill">v0.5.16</span>
+            <span id="app-version" class="version-pill">v0.5.21</span>
             <button
               id="open-changelog"
               class="link-button"
@@ -25,7 +24,57 @@
               onclick="window.ChatBrowser?.ui?.setChangelogOpen(true)"
             >What's new</button>
           </div>
+          <div class="reader-actions">
+            <a class="ghost-link" href="./index.html">Back to Browser</a>
+          </div>
         </div>
+
+        <section class="panel">
+          <div class="source-switch" role="tablist" aria-label="Import source">
+            <button class="source-tab active" type="button" data-source="folder" aria-pressed="true">Whole Backup Folder</button>
+            <button class="source-tab" type="button" data-source="file" aria-pressed="false">Chat / Conversation File</button>
+          </div>
+
+          <div id="folder-source-panel" class="source-panel">
+            <label class="upload folder-upload" for="folder-input">
+              <span class="upload-title">Load Entire Backup Folder</span>
+              <span class="upload-copy">Point it at the exported folder to reattach images and raw conversation data.</span>
+            </label>
+            <input id="folder-input" type="file" webkitdirectory directory multiple>
+          </div>
+
+          <div id="file-source-panel" class="source-panel" hidden>
+            <label class="upload" for="file-input">
+              <span class="upload-title">Load One File</span>
+              <span class="upload-copy">Pick either <code>chat.html</code> or <code>conversations.json</code>.</span>
+            </label>
+            <input id="file-input" type="file" accept=".html,.json,text/html,application/json">
+          </div>
+
+          <label class="field-label" for="parser-mode-select">Digest method</label>
+          <select id="parser-mode-select">
+            <option value="lightweight">Lightweight: faster, less detail</option>
+            <option value="robust" selected>Robust: fuller data, recommended</option>
+          </select>
+          <details class="digest-help">
+            <summary>What do these mean?</summary>
+            <div class="digest-help-copy">
+              <p><strong>Robust</strong> is the better default. It keeps more metadata available, handles attachments more completely, and is what you want unless a huge archive is making the browser struggle.</p>
+              <p><strong>Lightweight</strong> skips some heavier detail during the first pass so very large exports load more easily, but you give up some richness until you load more details later.</p>
+              <p class="subtle">Rule of thumb: start with <strong>Robust</strong>. Switch to <strong>Lightweight</strong> only if the browser starts acting dramatic.</p>
+            </div>
+          </details>
+
+          <button id="digest-folder" class="ghost-button" type="button" disabled>Digest Selected Folder</button>
+
+          <section id="recent-archives-panel" class="recent-archives" hidden>
+            <span class="field-label">Recent archives</span>
+            <p class="subtle recent-archives-copy">Reopen one of the backups this browser has already cached.</p>
+            <div id="recent-archives-list" class="recent-archives-list"></div>
+          </section>
+          <p id="status" class="status">Waiting for a file.</p>
+          <progress id="progress" max="100" value="0" hidden></progress>
+        </section>
 
         <section class="panel stats" id="stats">
           <div>
@@ -47,12 +96,7 @@
         </section>
 
         <section class="panel filter-panel">
-          <div class="view-switch" role="tablist" aria-label="Archive view">
-            <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
-            <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
-          </div>
-
-          <label class="field-label" for="search-input">Search</label>
+          <label class="field-label" for="search-input">Search Within Archive</label>
           <input id="search-input" type="search" placeholder="Search titles, messages, or both">
 
           <div class="filters">
@@ -86,154 +130,24 @@
               </select>
             </label>
           </div>
+
+          <div class="view-switch reader-hidden" role="tablist" aria-label="Archive view" hidden>
+            <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
+            <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
+          </div>
         </section>
       </aside>
 
-      <main class="content browser-content">
+      <main class="content conversation-content">
         <section id="empty-state" class="empty-state">
-          <div class="splash-stack">
-            <div class="splash-copy">
-              <p class="eyebrow">ChatGPT Backup Browser</p>
-              <h2>Load your export.</h2>
-              <p>Pick a full backup folder or a single conversation file to get started.</p>
-            </div>
-
-            <section class="panel splash-import-panel">
-              <div class="source-switch" role="tablist" aria-label="Import source">
-                <button class="source-tab active" type="button" data-source="folder" aria-pressed="true">Whole Backup Folder</button>
-                <button class="source-tab" type="button" data-source="file" aria-pressed="false">Chat / Conversation File</button>
-              </div>
-
-              <div id="folder-source-panel" class="source-panel">
-                <label class="upload folder-upload" for="folder-input">
-                  <span class="upload-title">Load Entire Backup Folder</span>
-                  <span class="upload-copy">Point it at the exported folder to index conversations and images together.</span>
-                </label>
-                <input id="folder-input" type="file" webkitdirectory directory multiple>
-              </div>
-
-              <div id="file-source-panel" class="source-panel" hidden>
-                <label class="upload" for="file-input">
-                  <span class="upload-title">Load One File</span>
-                  <span class="upload-copy">Pick either <code>chat.html</code> or <code>conversations.json</code>.</span>
-                </label>
-                <input id="file-input" type="file" accept=".html,.json,text/html,application/json">
-              </div>
-
-              <label class="field-label" for="parser-mode-select">Digest method</label>
-              <select id="parser-mode-select">
-                <option value="lightweight">Lightweight: faster, less detail</option>
-                <option value="robust" selected>Robust: fuller data, recommended</option>
-              </select>
-              <details class="digest-help">
-                <summary>What do these mean?</summary>
-                <div class="digest-help-copy">
-                  <p><strong>Robust</strong> is the better default. It keeps more metadata available, handles attachments more completely, and is what you want unless a huge archive is making the browser struggle.</p>
-                  <p><strong>Lightweight</strong> skips some heavier detail during the first pass so very large exports load more easily, but you give up some richness until you load more details later.</p>
-                  <p class="subtle">Rule of thumb: start with <strong>Robust</strong>. Switch to <strong>Lightweight</strong> only if the browser starts acting dramatic.</p>
-                </div>
-              </details>
-
-              <button id="digest-folder" class="ghost-button" type="button" disabled>Digest Selected Folder</button>
-
-              <details id="recent-archives-panel" class="recent-archives" hidden>
-                <summary>Recent archives</summary>
-                <p class="subtle recent-archives-copy">Reopen one of the backups this browser has already cached.</p>
-                <div id="recent-archives-list" class="recent-archives-list"></div>
-              </details>
-              <p id="status" class="status">Waiting for a file.</p>
-              <progress id="progress" max="100" value="0" hidden></progress>
-            </section>
-          </div>
+          <p class="eyebrow">Reader Waiting</p>
+          <h2>Load an archive, then open a conversation from the browser page.</h2>
+          <p>
+            This page is for reading, not rummaging. Pick a chat from the main browser and it will open here.
+          </p>
         </section>
 
-        <article id="browser-view" class="browser-view" hidden>
-          <div class="list-header browser-header">
-            <h2 id="list-title">Conversations</h2>
-            <span id="result-caption" class="subtle">No export loaded yet.</span>
-          </div>
-          <div id="list-pager-top" class="list-pager" hidden>
-            <div class="list-pager-size-row">
-              <label class="list-page-size">
-                <span>Show</span>
-                <select id="list-page-size-top">
-                  <option value="10">10</option>
-                  <option value="25" selected>25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </label>
-              <form id="list-page-jump-top" class="list-page-jump">
-                <label>
-                  <span>Page</span>
-                  <input id="list-page-input-top" type="number" min="1" inputmode="numeric" value="1">
-                </label>
-                <button class="pager-button compact" type="submit">Go</button>
-              </form>
-            </div>
-            <div class="list-pager-nav-row">
-              <button id="prev-list-page-top" class="pager-button compact" type="button">Previous</button>
-              <span id="list-page-position-top" class="pager-position">0 of 0</span>
-              <button id="next-list-page-top" class="pager-button compact" type="button">Next</button>
-            </div>
-          </div>
-          <div id="conversation-list" class="conversation-browser-grid" aria-live="polite"></div>
-          <div id="list-pager-bottom" class="list-pager" hidden>
-            <div class="list-pager-size-row">
-              <label class="list-page-size">
-                <span>Show</span>
-                <select id="list-page-size-bottom">
-                  <option value="10">10</option>
-                  <option value="25" selected>25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </label>
-              <form id="list-page-jump-bottom" class="list-page-jump">
-                <label>
-                  <span>Page</span>
-                  <input id="list-page-input-bottom" type="number" min="1" inputmode="numeric" value="1">
-                </label>
-                <button class="pager-button compact" type="submit">Go</button>
-              </form>
-            </div>
-            <div class="list-pager-nav-row">
-              <button id="prev-list-page-bottom" class="pager-button compact" type="button">Previous</button>
-              <span id="list-page-position-bottom" class="pager-position">0 of 0</span>
-              <button id="next-list-page-bottom" class="pager-button compact" type="button">Next</button>
-            </div>
-          </div>
-        </article>
-
-        <article id="image-view" class="image-view" hidden>
-          <header class="conversation-header">
-            <div>
-              <p class="eyebrow">Image Browser</p>
-              <h2>Backup Images</h2>
-            </div>
-            <div class="conversation-meta">
-              <span id="image-count">0 visible images</span>
-            </div>
-          </header>
-
-          <section class="image-layout">
-            <div id="image-grid" class="image-grid">
-              <div class="empty-note">Load a backup folder to browse its images.</div>
-            </div>
-            <aside class="image-detail">
-              <div id="image-preview" class="image-preview">
-                <div class="empty-note">Pick an image to preview it here.</div>
-              </div>
-              <div class="image-copy">
-                <h3 id="image-preview-name">No image selected</h3>
-                <p id="image-preview-meta" class="subtle"></p>
-                <p id="image-preview-path" class="subtle"></p>
-              </div>
-            </aside>
-          </section>
-        </article>
-
-        <article id="conversation-view" class="conversation-view page-placeholder" hidden>
+        <article id="conversation-view" class="conversation-view" hidden>
           <div class="pager-bar top">
             <button id="prev-conversation-top" class="pager-button" type="button">Previous</button>
             <div id="conversation-position-top" class="pager-position pager-picker" aria-label="Conversation picker"></div>
@@ -270,6 +184,92 @@
             <div id="conversation-position-bottom" class="pager-position pager-picker" aria-label="Conversation picker"></div>
             <button id="next-conversation-bottom" class="pager-button" type="button">Next</button>
           </div>
+        </article>
+
+        <article id="browser-view" class="browser-view page-placeholder" hidden>
+          <div class="list-header browser-header">
+            <h2 id="list-title">Conversations</h2>
+            <span id="result-caption" class="subtle">No export loaded yet.</span>
+          </div>
+          <div id="list-pager-top" class="list-pager" hidden>
+            <div class="list-pager-size-row">
+              <label class="list-page-size">
+                <span>Show</span>
+                <select id="list-page-size-top">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+              <form id="list-page-jump-top" class="list-page-jump">
+                <label>
+                  <span>Page</span>
+                  <input id="list-page-input-top" type="number" min="1" inputmode="numeric" value="1">
+                </label>
+                <button class="pager-button compact" type="submit">Go</button>
+              </form>
+            </div>
+            <div class="list-pager-nav-row">
+              <button id="prev-list-page-top" class="pager-button compact" type="button">Previous</button>
+              <span id="list-page-position-top" class="pager-position">0 of 0</span>
+              <button id="next-list-page-top" class="pager-button compact" type="button">Next</button>
+            </div>
+          </div>
+          <div id="conversation-list" class="conversation-list" aria-live="polite"></div>
+          <div id="list-pager-bottom" class="list-pager" hidden>
+            <div class="list-pager-size-row">
+              <label class="list-page-size">
+                <span>Show</span>
+                <select id="list-page-size-bottom">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+              <form id="list-page-jump-bottom" class="list-page-jump">
+                <label>
+                  <span>Page</span>
+                  <input id="list-page-input-bottom" type="number" min="1" inputmode="numeric" value="1">
+                </label>
+                <button class="pager-button compact" type="submit">Go</button>
+              </form>
+            </div>
+            <div class="list-pager-nav-row">
+              <button id="prev-list-page-bottom" class="pager-button compact" type="button">Previous</button>
+              <span id="list-page-position-bottom" class="pager-position">0 of 0</span>
+              <button id="next-list-page-bottom" class="pager-button compact" type="button">Next</button>
+            </div>
+          </div>
+        </article>
+
+        <article id="image-view" class="image-view page-placeholder" hidden>
+          <header class="conversation-header">
+            <div>
+              <p class="eyebrow">Image Browser</p>
+              <h2>Backup Images</h2>
+            </div>
+            <div class="conversation-meta">
+              <span id="image-count">0 visible images</span>
+            </div>
+          </header>
+
+          <section class="image-layout">
+            <div id="image-grid" class="image-grid">
+              <div class="empty-note">Load a backup folder to browse its images.</div>
+            </div>
+            <aside class="image-detail">
+              <div id="image-preview" class="image-preview">
+                <div class="empty-note">Pick an image to preview it here.</div>
+              </div>
+              <div class="image-copy">
+                <h3 id="image-preview-name">No image selected</h3>
+                <p id="image-preview-meta" class="subtle"></p>
+                <p id="image-preview-path" class="subtle"></p>
+              </div>
+            </aside>
+          </section>
         </article>
       </main>
     </div>
