@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.34",
+  APP_VERSION: "0.5.35",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.35",
+      date: "April 20, 2026",
+      changes: [
+        "Brought the browser splash screen back as a proper top launcher and removed the old left sidebar from the main browser page.",
+        "Moved the importer, recent archives, status line, and welcome copy into the main browser canvas so the first-load experience feels intentional again.",
+        "Kept the backup stats card on the browser page, but hid it until an archive is actually loaded so the splash stays clean.",
+      ],
+    },
     {
       version: "0.5.34",
       date: "April 20, 2026",

@@ -68,6 +68,10 @@
     function renderActiveView() {
         const hasData = Boolean(state.index);
         elements.emptyState.hidden = hasData;
+        const statsPanel = document.getElementById("stats");
+        if (statsPanel) {
+            statsPanel.hidden = !hasData || state.pageType !== "browser";
+        }
         elements.browserView.hidden = !hasData || state.pageType !== "browser" || state.activeView !== "conversations";
         elements.conversationView.hidden = !hasData || state.pageType !== "conversation" || state.activeView !== "conversations";
         elements.imageView.hidden = !hasData || state.pageType === "conversation" || state.activeView !== "images";

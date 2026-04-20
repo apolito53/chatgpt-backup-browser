@@ -56,7 +56,7 @@ code {
 }
 
 .browser-shell {
-  grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .conversation-shell {
@@ -518,6 +518,45 @@ select {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.browser-content {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+}
+
+.browser-launcher {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(360px, 540px);
+  justify-content: space-between;
+  gap: 22px;
+  align-items: start;
+}
+
+.browser-brand {
+  min-height: 100%;
+}
+
+.browser-stats {
+  display: grid;
+}
+
+.browser-empty {
+  min-height: 0;
+  align-content: center;
+  justify-items: stretch;
+  padding: 28px 32px;
+}
+
+.empty-state-copy {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.empty-state-copy p,
+.empty-state-copy h2 {
+  margin: 0;
 }
 
 .browser-view {
@@ -1494,7 +1533,8 @@ progress {
   }
 
   .browser-toolbar-main,
-  .browser-filter-row {
+  .browser-filter-row,
+  .browser-launcher {
     grid-template-columns: 1fr;
   }
 
