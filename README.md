@@ -36,6 +36,11 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - The project vendors a local TypeScript compiler under `tools\typescript` because this environment does not have `npm` available.
 - The build script also creates a local `tools\node-runtime\node.exe` copy when Windows blocks the packaged `node.exe` inside `WindowsApps`.
 
+## Maintenance Notes
+
+- When a commit changes app behavior, workflow, setup, UX, or visible capabilities, update the in-app changelog and the README in the same slice of work if needed.
+- Keep feature/fix commits intentional and small enough that the matching changelog and documentation updates are obvious.
+
 The first migration batch covers the shared foundation files:
 
 - `src/changelog.ts`
