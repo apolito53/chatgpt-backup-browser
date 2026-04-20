@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.7",
+        APP_VERSION: "0.5.8",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.8",
+                date: "April 19, 2026",
+                changes: [
+                    "Added conversation id URL syncing so the selected chat can be reflected directly in the browser address bar.",
+                    "Hooked browser back and forward navigation into conversation selection so stepping through viewed chats feels natural.",
+                    "Kept URL selection recovery lightweight by restoring the requested conversation after the archive loads instead of inventing a heavier router.",
+                ],
+            },
             {
                 version: "0.5.7",
                 date: "April 19, 2026",

@@ -25,6 +25,8 @@ const {
   applyIndex,
   moveConversationSelection,
   loadSelectedConversationDetails,
+  getConversationIdFromLocation,
+  setSelectedConversation,
 } = window.ChatBrowser.render;
 
 function updateFolderDigestButton() {
@@ -382,7 +384,32 @@ if (uiState) {
   setSourceMode("folder");
 }
 
+const conversationIdFromUrl = getConversationIdFromLocation();
+if (conversationIdFromUrl) {
+  state.selectedConversationId = conversationIdFromUrl;
+}
+
 updateFolderDigestButton();
 renderChangelog();
 restoreFromPickerOrCache();
+
+window.addEventListener("popstate", () => {
+  if (!state.index?.conversations?.length) {
+    return;
+  }
+
+  const conversationId = getConversationIdFromLocation();
+  if (!conversationId) {
+    const fallbackConversationId = state.filteredConversations[0]?.id || state.index.conversations[0]?.id || null;
+    setSelectedConversation(fallbackConversationId, { history: "ignore" });
+  } else if (state.index.conversations.some((conversation) => conversation.id === conversationId)) {
+    setSelectedConversation(conversationId, { history: "ignore" });
+  } else {
+    return;
+  }
+
+  state.activeView = "conversations";
+  renderActiveView();
+  saveUiState();
+});
 })();

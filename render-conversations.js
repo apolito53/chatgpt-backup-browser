@@ -10,6 +10,65 @@ const { formatDate, escapeHtml } = window.ChatBrowser.ui;
 
 let loadingConversationDetailsId = null;
 const conversationDetailErrors = new Map();
+const CONVERSATION_URL_PARAM = "conversation";
+
+function getConversationIdFromLocation() {
+  try {
+    const url = new URL(window.location.href);
+    const conversationId = url.searchParams.get(CONVERSATION_URL_PARAM);
+    return conversationId ? conversationId.trim() : "";
+  } catch (error) {
+    console.warn("Failed to read the conversation id from the URL:", error);
+    return "";
+  }
+}
+
+function buildUrlForConversation(conversationId) {
+  const url = new URL(window.location.href);
+  if (conversationId) {
+    url.searchParams.set(CONVERSATION_URL_PARAM, conversationId);
+  } else {
+    url.searchParams.delete(CONVERSATION_URL_PARAM);
+  }
+  return url.toString();
+}
+
+function syncConversationUrl(conversationId, mode = "replace") {
+  if (!window.history?.replaceState || !window.history?.pushState) {
+    return;
+  }
+
+  const nextUrl = buildUrlForConversation(conversationId);
+  if (nextUrl === window.location.href) {
+    return;
+  }
+
+  const historyMode = mode === "push" ? "pushState" : "replaceState";
+  window.history[historyMode]({ conversationId: conversationId || null }, "", nextUrl);
+}
+
+function setSelectedConversation(conversationId, options = {}) {
+  if (!conversationId) {
+    state.selectedConversationId = null;
+    if (options.history !== "ignore") {
+      syncConversationUrl(null, options.history || "replace");
+    }
+    return false;
+  }
+
+  if (state.selectedConversationId === conversationId) {
+    if (options.history === "replace") {
+      syncConversationUrl(conversationId, "replace");
+    }
+    return false;
+  }
+
+  state.selectedConversationId = conversationId;
+  if (options.history !== "ignore") {
+    syncConversationUrl(conversationId, options.history || "replace");
+  }
+  return true;
+}
 
 function normalizeModelSlug(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -167,7 +226,7 @@ function moveConversationListPage(direction) {
   const start = state.conversationListPage * state.conversationListPageSize;
   const nextConversation = state.filteredConversations[start];
   if (nextConversation) {
-    state.selectedConversationId = nextConversation.id;
+    setSelectedConversation(nextConversation.id, { history: "push" });
   }
 
   renderConversationsView();
@@ -206,7 +265,7 @@ function jumpConversationListPage(value) {
   const start = state.conversationListPage * state.conversationListPageSize;
   const nextConversation = state.filteredConversations[start];
   if (nextConversation) {
-    state.selectedConversationId = nextConversation.id;
+    setSelectedConversation(nextConversation.id, { history: "push" });
   }
 
   renderConversationsView();
@@ -495,7 +554,7 @@ function moveConversationSelection(direction) {
   );
 
   if (currentIndex === -1) {
-    state.selectedConversationId = state.filteredConversations[0].id;
+    setSelectedConversation(state.filteredConversations[0].id, { history: "replace" });
     renderConversationsView();
     return;
   }
@@ -505,7 +564,7 @@ function moveConversationSelection(direction) {
     return;
   }
 
-  state.selectedConversationId = state.filteredConversations[nextIndex].id;
+  setSelectedConversation(state.filteredConversations[nextIndex].id, { history: "push" });
   ensureSelectedConversationPage();
   renderConversationsView();
 }
@@ -521,7 +580,7 @@ function jumpToConversationIndex(index) {
     return;
   }
 
-  state.selectedConversationId = conversation.id;
+  setSelectedConversation(conversation.id, { history: "push" });
   ensureSelectedConversationPage();
   renderConversationsView();
 }
@@ -653,13 +712,16 @@ function renderConversationsView() {
   if (!state.filteredConversations.length) {
     elements.conversationList.innerHTML = '<div class="empty-note">No conversation matches. Try a different search, role filter, or model filter.</div>';
     state.conversationListPage = 0;
+    setSelectedConversation(null, { history: "replace" });
     updateConversationListPager();
     renderConversation(null);
     return;
   }
 
   if (!state.filteredConversations.some((conversation) => conversation.id === state.selectedConversationId)) {
-    state.selectedConversationId = state.filteredConversations[0].id;
+    setSelectedConversation(state.filteredConversations[0].id, { history: "replace" });
+  } else {
+    syncConversationUrl(state.selectedConversationId, "replace");
   }
 
   ensureSelectedConversationPage();
@@ -686,7 +748,7 @@ function renderConversationsView() {
     `;
 
     button.addEventListener("click", () => {
-      state.selectedConversationId = conversation.id;
+      setSelectedConversation(conversation.id, { history: "push" });
       ensureSelectedConversationPage();
       renderConversationsView();
     });
@@ -709,5 +771,7 @@ window.ChatBrowser.conversationRender = {
   renderConversationsView,
   moveConversationSelection,
   loadSelectedConversationDetails,
+  getConversationIdFromLocation,
+  setSelectedConversation,
 };
 })();
