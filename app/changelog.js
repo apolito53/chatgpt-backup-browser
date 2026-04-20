@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.31",
+        APP_VERSION: "0.5.32",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.32",
+                date: "April 20, 2026",
+                changes: [
+                    "Added a local robust parsing fallback when the conversation parser worker crashes, so the browser can keep loading large exports instead of dying on the spot.",
+                    "Surfaced the fallback state in progress messaging so it is obvious when the app switched away from the worker and is still actively chewing through the archive.",
+                ],
+            },
             {
                 version: "0.5.31",
                 date: "April 20, 2026",

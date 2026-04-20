@@ -110,6 +110,41 @@
             rawConversationEntriesOmitted: true,
         };
     }
+    async function parseConversationsRobustLocally(rawText) {
+        postLocalProgress("Extracting conversation payload...", 10);
+        const payload = shared.extractConversationArray(rawText);
+        postLocalProgress("Parsing conversation JSON...", 30);
+        const rawData = JSON.parse(payload);
+        if (!Array.isArray(rawData)) {
+            throw new Error("Expected the export to contain a conversation array.");
+        }
+        postLocalProgress("Parser worker crashed. Falling back to local robust parsing...", 40);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        const conversations = [];
+        const rawConversationEntries = [];
+        const maxRawConversationEntries = 150;
+        let totalMessages = 0;
+        for (let index = 0; index < rawData.length; index += 1) {
+            const conversation = rawData[index];
+            const summary = shared.summarizeConversation(conversation, index);
+            conversations.push(summary);
+            totalMessages += summary.messageCount;
+            if (rawConversationEntries.length < maxRawConversationEntries) {
+                rawConversationEntries.push([summary.id, conversation]);
+            }
+            if (index > 0 && index % 25 === 0) {
+                const progress = Math.min(95, 45 + Math.round((index / rawData.length) * 50));
+                postLocalProgress(`Falling back to local robust parsing... ${index.toLocaleString()} / ${rawData.length.toLocaleString()}`, progress);
+                await new Promise((resolve) => setTimeout(resolve, 0));
+            }
+        }
+        return {
+            conversations,
+            totalMessages,
+            rawConversationMap: new Map(rawConversationEntries),
+            rawConversationEntriesOmitted: rawData.length > maxRawConversationEntries,
+        };
+    }
     function createInlineWorkerSource() {
         return `
 importScripts(${JSON.stringify(new URL("./parser-shared.js", window.location.href).toString())});
@@ -209,7 +244,11 @@ importScripts(${JSON.stringify(new URL("./parser-shared.js", window.location.hre
             });
             worker.addEventListener("error", (event) => {
                 cleanup();
-                reject(event.error || new Error("The parser worker crashed."));
+                void parseConversationsRobustLocally(rawText)
+                    .then(resolve)
+                    .catch((fallbackError) => {
+                    reject(fallbackError || event.error || new Error("The parser worker crashed."));
+                });
             });
             worker.postMessage({
                 type: "parse-conversations",
