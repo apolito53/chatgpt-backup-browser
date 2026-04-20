@@ -5,7 +5,7 @@
     const { state, elements, saveUiState } = window.ChatBrowser.stateModule;
     const { normalizeIndex } = window.ChatBrowser.storage;
     const { setStatus, setProgress } = window.ChatBrowser.ui;
-    const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, renderConversationsView, moveConversationSelection, loadSelectedConversationDetails, updateConversationListPager, getConversationIdFromLocation, getSessionKeyFromLocation, setSelectedConversation, } = window.ChatBrowser.conversationRender;
+    const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, renderConversationsView, moveConversationSelection, loadSelectedConversationDetails, updateConversationListPager, getConversationIdFromLocation, setSelectedConversation, } = window.ChatBrowser.conversationRender;
     const { renderImagesView } = window.ChatBrowser.imageRender;
     function getArchiveModelCount() {
         if (!state.index?.conversations?.length) {
@@ -146,7 +146,6 @@
         moveConversationSelection,
         loadSelectedConversationDetails,
         getConversationIdFromLocation,
-        getSessionKeyFromLocation,
         setSelectedConversation,
     };
 })();
