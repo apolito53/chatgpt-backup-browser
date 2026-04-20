@@ -19,6 +19,39 @@
     function browserSupportsDirectoryAccess() {
         return typeof window.showDirectoryPicker === "function";
     }
+    function updateReattachMessaging() {
+        const reattachCopy = elements.reattachFolderBanner.querySelector("p");
+        const reattachTitle = elements.reattachFolderBanner.querySelector("strong");
+        const imageReattachCopy = elements.imageReattachPrompt.querySelector("p");
+        const imageReattachTitle = elements.imageReattachPrompt.querySelector("strong");
+        const supportsDirectoryAccess = browserSupportsDirectoryAccess();
+        elements.reattachFolderButton.textContent = supportsDirectoryAccess
+            ? "Reconnect Backup Folder"
+            : "Select Backup Folder Again";
+        elements.imageReattachButton.textContent = supportsDirectoryAccess
+            ? "Reconnect Backup Folder"
+            : "Select Backup Folder Again";
+        if (reattachTitle) {
+            reattachTitle.textContent = supportsDirectoryAccess
+                ? "Live folder access is disconnected."
+                : "This browser cannot keep live folder access.";
+        }
+        if (reattachCopy) {
+            reattachCopy.textContent = supportsDirectoryAccess
+                ? "Cached conversations are here, but previews and inline attachments need the original backup folder."
+                : "Cached conversations are here, but this browser still needs you to select the backup folder again before previews and inline attachments can load.";
+        }
+        if (imageReattachTitle) {
+            imageReattachTitle.textContent = supportsDirectoryAccess
+                ? "Image previews need the original folder."
+                : "This browser needs the folder selected again.";
+        }
+        if (imageReattachCopy) {
+            imageReattachCopy.textContent = supportsDirectoryAccess
+                ? "The archive index is restored, but the browser needs you to reattach the backup folder before it can show the actual files again."
+                : "The archive index is restored, but this browser cannot remember folder access between sessions, so you need to select the backup folder again before the actual image files can load.";
+        }
+    }
     function promptFolderReattach() {
         setSourceMode("folder");
         if (browserSupportsDirectoryAccess()) {
@@ -298,7 +331,9 @@
     }
     function buildRestoreStatusMessage(sessionRecord) {
         return sessionRecord.sourceMode === "folder"
-            ? `Restored cached folder index for ${sessionRecord.sourceLabel}. If the browser did not keep live folder access, use the folder controls in the sidebar to reconnect image previews and lazy details.`
+            ? browserSupportsDirectoryAccess()
+                ? `Restored cached folder index for ${sessionRecord.sourceLabel}. If the browser did not keep live folder access, use the folder controls in the sidebar to reconnect image previews and lazy details.`
+                : `Restored cached folder index for ${sessionRecord.sourceLabel}. This browser cannot retain folder access, so you still need to select the backup folder again before image previews and lazy details can load.`
             : `Restored cached session for ${sessionRecord.sourceLabel}.`;
     }
     function applyStoredSession(sessionRecord) {
@@ -760,6 +795,7 @@
         state.selectedConversationId = conversationIdFromUrl;
     }
     updateFolderDigestButton();
+    updateReattachMessaging();
     void updateFolderAccessControls();
     renderChangelog();
     void refreshRecentArchives();
