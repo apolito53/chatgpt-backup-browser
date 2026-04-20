@@ -1,6 +1,7 @@
 # TODO
 
 This file tracks ideas, planned features, and bigger direction changes for the project so they do not vanish into chat history.
+Add new feature ideas, spitballed follow-ups, and agreed next steps here as they come up during development.
 
 ## Near Term
 
@@ -32,4 +33,3 @@ This file tracks ideas, planned features, and bigger direction changes for the p
 - Explore stronger persistence options if browser storage limits start getting in the way.
 - Consider a more database-like local index if the history-manager direction becomes the main product.
 - Keep the project lightweight until the real long-term shape becomes obvious.
-
