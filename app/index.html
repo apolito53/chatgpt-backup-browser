@@ -17,7 +17,7 @@
             and stop wrestling your archive like it insulted your family.
           </p>
           <div class="brand-actions">
-            <span id="app-version" class="version-pill">v0.5.29</span>
+            <span id="app-version" class="version-pill">v0.5.30</span>
             <button
               id="open-changelog"
               class="link-button"
@@ -109,112 +109,126 @@
 
         <article id="browser-view" class="browser-view" hidden>
           <section class="browser-controls">
-            <div class="browser-controls-top">
-              <div class="view-switch" role="tablist" aria-label="Archive view">
-                <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
-                <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
+            <div class="browser-toolbar">
+              <div class="browser-toolbar-main">
+                <div class="browser-view-pillbox view-switch" role="tablist" aria-label="Archive view">
+                  <button class="view-tab active" type="button" data-view="conversations" aria-pressed="true">Conversations</button>
+                  <button class="view-tab" type="button" data-view="images" aria-pressed="false">Images</button>
+                </div>
+
+                <label class="browser-search browser-search-wide">
+                  <span class="field-label">Search archive</span>
+                  <input id="search-input" type="search" placeholder="Search titles, messages, or both">
+                </label>
               </div>
 
-              <label class="browser-search">
-                <span class="field-label">Search</span>
-                <input id="search-input" type="search" placeholder="Search titles, messages, or both">
-              </label>
-            </div>
+              <div class="browser-filter-row">
+                <label class="browser-filter-card">
+                  <span>Sort</span>
+                  <select id="sort-select">
+                    <option value="updated-desc">Recently updated</option>
+                    <option value="updated-asc">Oldest updated</option>
+                    <option value="created-desc">Recently created</option>
+                    <option value="created-asc">Oldest created</option>
+                    <option value="title-asc">Title A-Z</option>
+                    <option value="message-count-desc">Most messages</option>
+                  </select>
+                </label>
 
-            <div class="filters browser-filters">
-              <label>
-                <span>Sort</span>
-                <select id="sort-select">
-                  <option value="updated-desc">Recently updated</option>
-                  <option value="updated-asc">Oldest updated</option>
-                  <option value="created-desc">Recently created</option>
-                  <option value="created-asc">Oldest created</option>
-                  <option value="title-asc">Title A-Z</option>
-                  <option value="message-count-desc">Most messages</option>
-                </select>
-              </label>
+                <label id="role-filter-wrap" class="browser-filter-card">
+                  <span>Role</span>
+                  <select id="role-select">
+                    <option value="all">All messages</option>
+                    <option value="user">User only</option>
+                    <option value="assistant">Assistant only</option>
+                    <option value="system">System only</option>
+                  </select>
+                </label>
 
-              <label id="role-filter-wrap">
-                <span>Role filter</span>
-                <select id="role-select">
-                  <option value="all">All messages</option>
-                  <option value="user">User only</option>
-                  <option value="assistant">Assistant only</option>
-                  <option value="system">System only</option>
-                </select>
-              </label>
-
-              <label id="model-filter-wrap">
-                <span>Model filter</span>
-                <select id="model-select">
-                  <option value="all">All models</option>
-                  <option value="unknown">Unknown model</option>
-                </select>
-              </label>
+                <label id="model-filter-wrap" class="browser-filter-card">
+                  <span>Model</span>
+                  <select id="model-select">
+                    <option value="all">All models</option>
+                    <option value="unknown">Unknown model</option>
+                  </select>
+                </label>
+              </div>
             </div>
           </section>
 
           <section id="reattach-folder-banner" class="restore-banner" hidden>
-            <div>
+            <div class="restore-banner-copy">
               <strong>Live folder access is disconnected.</strong>
-              <p>Cached conversations are restored, but image previews and inline attachments need the original backup folder reattached.</p>
+              <p>Cached conversations are here, but previews and inline attachments need the original backup folder.</p>
             </div>
             <button id="reattach-folder-button" class="ghost-button restore-banner-button" type="button">Reattach Backup Folder</button>
           </section>
 
-          <div class="list-header browser-header">
-            <h2 id="list-title">Conversations</h2>
-            <span id="result-caption" class="subtle">No export loaded yet.</span>
-          </div>
-          <div id="list-pager-top" class="list-pager" hidden>
-            <div class="list-pager-size-row">
-              <label class="list-page-size">
-                <span>Show</span>
-                <select id="list-page-size-top">
-                  <option value="10">10</option>
-                  <option value="25" selected>25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </label>
-              <label class="list-page-jump">
-                <span>Page</span>
-                <select id="list-page-input-top">
-                  <option value="1">1</option>
-                </select>
-              </label>
+          <section class="browser-results-shell">
+            <div class="list-header browser-header">
+              <div class="browser-header-copy">
+                <p class="eyebrow browser-section-label">Archive Browser</p>
+                <h2 id="list-title">Conversations</h2>
+              </div>
+              <div class="browser-header-meta">
+                <span id="result-caption" class="subtle">No export loaded yet.</span>
+              </div>
             </div>
-            <div class="list-pager-nav-row">
-              <button id="prev-list-page-top" class="pager-button compact" type="button">Previous</button>
-              <span id="list-page-position-top" class="pager-position">0 of 0</span>
-              <button id="next-list-page-top" class="pager-button compact" type="button">Next</button>
+
+          <div id="list-pager-top" class="list-pager" hidden>
+            <div class="list-pager-bar">
+              <div class="list-pager-group">
+                <label class="list-page-size">
+                  <span>Show</span>
+                  <select id="list-page-size-top">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                </label>
+                <span id="list-page-position-top" class="pager-position pager-position-pill">0 of 0</span>
+              </div>
+              <div class="list-pager-group list-pager-group-end">
+                <label class="list-page-jump">
+                  <span>Page</span>
+                  <select id="list-page-input-top">
+                    <option value="1">1</option>
+                  </select>
+                </label>
+                <button id="prev-list-page-top" class="pager-button compact" type="button">Previous</button>
+                <button id="next-list-page-top" class="pager-button compact" type="button">Next</button>
+              </div>
             </div>
           </div>
           <div id="conversation-list" class="conversation-browser-grid" aria-live="polite"></div>
           <div id="list-pager-bottom" class="list-pager" hidden>
-            <div class="list-pager-size-row">
-              <label class="list-page-size">
-                <span>Show</span>
-                <select id="list-page-size-bottom">
-                  <option value="10">10</option>
-                  <option value="25" selected>25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </label>
-              <label class="list-page-jump">
-                <span>Page</span>
-                <select id="list-page-input-bottom">
-                  <option value="1">1</option>
-                </select>
-              </label>
-            </div>
-            <div class="list-pager-nav-row">
-              <button id="prev-list-page-bottom" class="pager-button compact" type="button">Previous</button>
-              <span id="list-page-position-bottom" class="pager-position">0 of 0</span>
-              <button id="next-list-page-bottom" class="pager-button compact" type="button">Next</button>
+            <div class="list-pager-bar">
+              <div class="list-pager-group">
+                <label class="list-page-size">
+                  <span>Show</span>
+                  <select id="list-page-size-bottom">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                </label>
+                <span id="list-page-position-bottom" class="pager-position pager-position-pill">0 of 0</span>
+              </div>
+              <div class="list-pager-group list-pager-group-end">
+                <label class="list-page-jump">
+                  <span>Page</span>
+                  <select id="list-page-input-bottom">
+                    <option value="1">1</option>
+                  </select>
+                </label>
+                <button id="prev-list-page-bottom" class="pager-button compact" type="button">Previous</button>
+                <button id="next-list-page-bottom" class="pager-button compact" type="button">Next</button>
+              </div>
             </div>
           </div>
+          </section>
         </article>
 
         <article id="image-view" class="image-view" hidden>

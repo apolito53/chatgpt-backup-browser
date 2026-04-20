@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.29",
+        APP_VERSION: "0.5.30",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.30",
+                date: "April 20, 2026",
+                changes: [
+                    "Redesigned the main archive browser so the search, view toggle, filters, result count, and pagination sit in a tighter top layout instead of sprawling down the page.",
+                    "Slimmed the restored-folder warning into a less shouty inline reconnect banner that keeps the action visible without eating half the viewport.",
+                    "Restyled the browser controls into grouped cards and tighter pager bars so the conversation explorer feels intentional instead of vaguely assembled under pressure.",
+                ],
+            },
             {
                 version: "0.5.29",
                 date: "April 20, 2026",
