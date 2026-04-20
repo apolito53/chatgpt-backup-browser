@@ -521,20 +521,25 @@ select {
 }
 
 .browser-content {
-  width: min(1480px, 100%);
+  width: min(1180px, 100%);
   margin: 0 auto;
 }
 
 .browser-launcher {
   display: grid;
-  grid-template-columns: minmax(320px, 420px) minmax(360px, 540px);
-  justify-content: space-between;
-  gap: 22px;
+  grid-template-columns: minmax(320px, 420px) minmax(420px, 1fr);
+  max-width: 1080px;
+  margin: 0 auto;
+  gap: 32px;
   align-items: start;
 }
 
 .browser-brand {
   min-height: 100%;
+}
+
+.splash-import-panel {
+  width: 100%;
 }
 
 .browser-stats {
