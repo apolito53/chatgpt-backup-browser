@@ -17,7 +17,7 @@
             and stop wrestling your archive like it insulted your family.
           </p>
           <div class="brand-actions">
-            <span id="app-version" class="version-pill">v0.5.26</span>
+            <span id="app-version" class="version-pill">v0.5.27</span>
             <button
               id="open-changelog"
               class="link-button"
@@ -152,6 +152,14 @@
             </div>
           </section>
 
+          <section id="reattach-folder-banner" class="restore-banner" hidden>
+            <div>
+              <strong>Live folder access is disconnected.</strong>
+              <p>Cached conversations are restored, but image previews and inline attachments need the original backup folder reattached.</p>
+            </div>
+            <button id="reattach-folder-button" class="ghost-button restore-banner-button" type="button">Reattach Backup Folder</button>
+          </section>
+
           <div class="list-header browser-header">
             <h2 id="list-title">Conversations</h2>
             <span id="result-caption" class="subtle">No export loaded yet.</span>
@@ -221,6 +229,14 @@
               <span id="image-count">0 visible images</span>
             </div>
           </header>
+
+          <section id="image-reattach-prompt" class="restore-banner image-restore-banner" hidden>
+            <div>
+              <strong>Image previews need the original folder.</strong>
+              <p>The archive index is restored, but the browser needs you to reattach the backup folder before it can show the actual files again.</p>
+            </div>
+            <button id="image-reattach-button" class="ghost-button restore-banner-button" type="button">Reattach Backup Folder</button>
+          </section>
 
           <section class="image-layout">
             <div id="image-grid" class="image-grid">

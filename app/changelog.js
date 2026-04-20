@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.26",
+        APP_VERSION: "0.5.27",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.27",
+                date: "April 20, 2026",
+                changes: [
+                    "Added explicit Reattach Backup Folder actions in both the conversation browser and image browser when a cached folder session restores without live file access.",
+                    "Surfaced the missing-folder state as an inline banner so restored archives stop looking mysteriously broken when previews are unavailable.",
+                ],
+            },
             {
                 version: "0.5.26",
                 date: "April 20, 2026",

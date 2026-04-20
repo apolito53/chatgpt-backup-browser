@@ -7,6 +7,11 @@
     const { setStatus, setProgress } = window.ChatBrowser.ui;
     const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, renderConversationsView, moveConversationSelection, loadSelectedConversationDetails, updateConversationListPager, getConversationIdFromLocation, setSelectedConversation, } = window.ChatBrowser.conversationRender;
     const { renderImagesView } = window.ChatBrowser.imageRender;
+    function needsFolderReattach() {
+        return Boolean(state.cacheMode === "folder"
+            && state.index?.images?.length
+            && state.index.images.some((image) => !image.objectUrl));
+    }
     function setActiveView(view) {
         if (state.pageType === "conversation") {
             state.activeView = "conversations";
@@ -46,6 +51,8 @@
         elements.browserView.hidden = !hasData || state.pageType !== "browser" || state.activeView !== "conversations";
         elements.conversationView.hidden = !hasData || state.pageType !== "conversation" || state.activeView !== "conversations";
         elements.imageView.hidden = !hasData || state.pageType === "conversation" || state.activeView !== "images";
+        elements.reattachFolderBanner.hidden = !hasData || !needsFolderReattach() || state.pageType !== "browser";
+        elements.imageReattachPrompt.hidden = !hasData || !needsFolderReattach() || state.pageType === "conversation" || state.activeView !== "images";
         if (!hasData) {
             elements.resultCaption.textContent = "No export loaded yet.";
             elements.conversationList.innerHTML = "";

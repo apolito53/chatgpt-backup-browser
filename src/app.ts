@@ -40,6 +40,11 @@
     elements.digestFolderButton.disabled = !hasFolderSelection;
   }
 
+  function promptFolderReattach(): void {
+    setSourceMode("folder");
+    elements.folderInput.click();
+  }
+
   function hasLoadedArchive(): boolean {
     return Boolean(state.index && (state.index.conversations.length || state.index.images.length));
   }
@@ -453,6 +458,14 @@
     }
 
     void parseFolder(files);
+  });
+
+  elements.reattachFolderButton.addEventListener("click", () => {
+    promptFolderReattach();
+  });
+
+  elements.imageReattachButton.addEventListener("click", () => {
+    promptFolderReattach();
   });
 
   elements.openChangelog.addEventListener("click", () => {

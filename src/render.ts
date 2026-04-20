@@ -19,6 +19,14 @@ const {
 } = window.ChatBrowser.conversationRender!;
 const { renderImagesView } = window.ChatBrowser.imageRender!;
 
+function needsFolderReattach(): boolean {
+  return Boolean(
+    state.cacheMode === "folder"
+    && state.index?.images?.length
+    && state.index.images.some((image) => !image.objectUrl),
+  );
+}
+
 function setActiveView(view: ActiveView): void {
   if (state.pageType === "conversation") {
     state.activeView = "conversations";
@@ -62,6 +70,8 @@ function renderActiveView(): void {
   elements.browserView.hidden = !hasData || state.pageType !== "browser" || state.activeView !== "conversations";
   elements.conversationView.hidden = !hasData || state.pageType !== "conversation" || state.activeView !== "conversations";
   elements.imageView.hidden = !hasData || state.pageType === "conversation" || state.activeView !== "images";
+  elements.reattachFolderBanner.hidden = !hasData || !needsFolderReattach() || state.pageType !== "browser";
+  elements.imageReattachPrompt.hidden = !hasData || !needsFolderReattach() || state.pageType === "conversation" || state.activeView !== "images";
 
   if (!hasData) {
     elements.resultCaption.textContent = "No export loaded yet.";

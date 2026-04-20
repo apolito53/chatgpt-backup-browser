@@ -15,6 +15,10 @@
         const hasFolderSelection = Boolean(elements.folderInput.files && elements.folderInput.files.length);
         elements.digestFolderButton.disabled = !hasFolderSelection;
     }
+    function promptFolderReattach() {
+        setSourceMode("folder");
+        elements.folderInput.click();
+    }
     function hasLoadedArchive() {
         return Boolean(state.index && (state.index.conversations.length || state.index.images.length));
     }
@@ -366,6 +370,12 @@
             return;
         }
         void parseFolder(files);
+    });
+    elements.reattachFolderButton.addEventListener("click", () => {
+        promptFolderReattach();
+    });
+    elements.imageReattachButton.addEventListener("click", () => {
+        promptFolderReattach();
     });
     elements.openChangelog.addEventListener("click", () => {
         setChangelogOpen(true);

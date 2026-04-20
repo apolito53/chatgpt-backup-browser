@@ -189,6 +189,8 @@ interface ElementsRegistry {
   listPageInputBottom: HTMLSelectElement;
   resultCaption: HTMLElement;
   browserView: HTMLElement;
+  reattachFolderBanner: HTMLElement;
+  reattachFolderButton: HTMLButtonElement;
   statConversations: HTMLElement;
   statMessages: HTMLElement;
   statImages: HTMLElement;
@@ -213,6 +215,8 @@ interface ElementsRegistry {
   conversationPositionBottom: HTMLElement;
   imageView: HTMLElement;
   imageCount: HTMLElement;
+  imageReattachPrompt: HTMLElement;
+  imageReattachButton: HTMLButtonElement;
   imageGrid: HTMLElement;
   imagePreview: HTMLElement;
   imagePreviewName: HTMLElement;
