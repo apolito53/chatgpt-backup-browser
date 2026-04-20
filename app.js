@@ -53,7 +53,12 @@ async function parseSingleFile(file) {
     index.rawConversationMap = conversationData.rawConversationMap;
 
     saveIndex(index);
-    applyIndex(index, `Loaded ${file.name}.`);
+    applyIndex(
+      index,
+      conversationData.rawConversationEntriesOmitted
+        ? `Loaded ${file.name}. Raw conversation JSON was trimmed for this large archive so the parser worker doesn't fall over.`
+        : `Loaded ${file.name}.`,
+    );
     saveSessionRecord({
       sessionKey: state.currentSessionKey,
       sourceMode: "file",
@@ -115,7 +120,12 @@ async function parseFolder(fileList) {
     });
     index.rawConversationMap = conversationData.rawConversationMap;
 
-    applyIndex(index, `Loaded folder ${rootSegment}. Folder sessions are kept in this tab only.`);
+    applyIndex(
+      index,
+      conversationData.rawConversationEntriesOmitted
+        ? `Loaded folder ${rootSegment}. Raw conversation JSON was trimmed for this large archive so the parser worker stays upright. Folder sessions are kept in this tab only.`
+        : `Loaded folder ${rootSegment}. Folder sessions are kept in this tab only.`,
+    );
     saveSessionRecord({
       sessionKey: state.currentSessionKey,
       sourceMode: "folder",

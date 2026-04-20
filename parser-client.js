@@ -34,6 +34,7 @@ function parseConversationsInWorker(rawText) {
           conversations: Array.isArray(message.conversations) ? message.conversations : [],
           totalMessages: Number.isFinite(message.totalMessages) ? message.totalMessages : 0,
           rawConversationMap: new Map(Array.isArray(message.rawConversationEntries) ? message.rawConversationEntries : []),
+          rawConversationEntriesOmitted: Boolean(message.rawConversationEntriesOmitted),
         });
         return;
       }

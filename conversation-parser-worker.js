@@ -24,6 +24,7 @@ self.addEventListener("message", (event) => {
       conversations,
       totalMessages,
       rawConversationEntries,
+      rawConversationEntriesOmitted,
     });
   } catch (error) {
     self.postMessage({
@@ -242,6 +243,7 @@ function summarizeConversation(conversation, index) {
 function buildConversationIndex(rawData) {
   const conversations = [];
   const rawConversationEntries = [];
+  const maxRawConversationEntries = 150;
   let totalMessages = 0;
 
   for (let index = 0; index < rawData.length; index += 1) {
@@ -249,7 +251,9 @@ function buildConversationIndex(rawData) {
     const summary = summarizeConversation(conversation, index);
     conversations.push(summary);
     totalMessages += summary.messageCount;
-    rawConversationEntries.push([summary.id, conversation]);
+    if (rawConversationEntries.length < maxRawConversationEntries) {
+      rawConversationEntries.push([summary.id, conversation]);
+    }
 
     if (index > 0 && index % 200 === 0) {
       const progress = Math.min(95, 45 + Math.round((index / rawData.length) * 50));
@@ -264,5 +268,6 @@ function buildConversationIndex(rawData) {
     conversations,
     totalMessages,
     rawConversationEntries,
+    rawConversationEntriesOmitted: rawData.length > maxRawConversationEntries,
   };
 }
