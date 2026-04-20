@@ -644,6 +644,18 @@ function buildImagesIndex(files) {
 
 function buildBackupIndex({ conversations, images, source }) {
   const totalMessages = conversations.reduce((sum, conversation) => sum + conversation.messageCount, 0);
+  const messageAssetMap = buildMessageAssetMap(conversations, images);
+
+  // Attachment lookup only needs the raw message blobs during indexing.
+  // Drop them afterwards so large exports do not keep duplicate payloads alive in memory.
+  for (const conversation of conversations) {
+    for (const message of conversation.messages) {
+      delete message.rawContent;
+      delete message.rawMetadata;
+      delete message.contentType;
+    }
+  }
+
   return {
     loadedAt: Date.now(),
     source,
@@ -654,7 +666,7 @@ function buildBackupIndex({ conversations, images, source }) {
       messages: totalMessages,
       images: images.length,
     },
-    messageAssetMap: buildMessageAssetMap(conversations, images),
+    messageAssetMap,
   };
 }
 
