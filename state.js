@@ -44,6 +44,7 @@
         rawConversationMap: new Map(),
         messageAssetMap: new Map(),
         currentSessionKey: null,
+        parserMode: "robust",
     };
     const elements = {
         fileInput: query("#file-input"),
@@ -51,6 +52,7 @@
         sourceTabButtons: Array.from(document.querySelectorAll("[data-source]")),
         folderSourcePanel: query("#folder-source-panel"),
         fileSourcePanel: query("#file-source-panel"),
+        parserModeSelect: query("#parser-mode-select"),
         loadSample: query("#load-sample"),
         searchInput: query("#search-input"),
         sortSelect: query("#sort-select"),
@@ -119,6 +121,7 @@
             sourceMode: state.sourceMode,
             conversationListPage: state.conversationListPage,
             conversationListPageSize: state.conversationListPageSize,
+            parserMode: state.parserMode,
         };
         try {
             sessionStorage.setItem(UI_STATE_KEY, JSON.stringify(payload));
@@ -183,8 +186,12 @@
         if (uiState.sourceMode === "file" || uiState.sourceMode === "folder") {
             setSourceMode(uiState.sourceMode);
         }
+        if (uiState.parserMode === "lightweight" || uiState.parserMode === "robust") {
+            state.parserMode = uiState.parserMode;
+        }
         elements.listPageSizeTop.value = String(state.conversationListPageSize);
         elements.listPageSizeBottom.value = String(state.conversationListPageSize);
+        elements.parserModeSelect.value = state.parserMode;
     }
     window.ChatBrowser.stateModule = {
         STORAGE_KEY,

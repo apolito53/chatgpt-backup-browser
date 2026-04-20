@@ -1,6 +1,7 @@
 type ActiveView = "conversations" | "images";
 type SourceMode = "folder" | "file";
 type CacheMode = "single-file" | "folder";
+type ParserMode = "lightweight" | "robust";
 
 interface MessageRecord {
   id: string;
@@ -61,6 +62,7 @@ interface AppState {
   rawConversationMap: Map<string, unknown>;
   messageAssetMap: Map<string, unknown[]>;
   currentSessionKey: string | null;
+  parserMode: ParserMode;
 }
 
 interface ElementsRegistry {
@@ -69,6 +71,7 @@ interface ElementsRegistry {
   sourceTabButtons: HTMLButtonElement[];
   folderSourcePanel: HTMLElement;
   fileSourcePanel: HTMLElement;
+  parserModeSelect: HTMLSelectElement;
   loadSample: HTMLButtonElement;
   searchInput: HTMLInputElement;
   sortSelect: HTMLSelectElement;
@@ -137,6 +140,7 @@ interface UiStatePayload {
   sourceMode: SourceMode;
   conversationListPage: number;
   conversationListPageSize: number;
+  parserMode: ParserMode;
 }
 
 interface StateModule {

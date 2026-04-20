@@ -293,6 +293,11 @@ elements.listPageJumpBottom.addEventListener("submit", (event) => {
   jumpConversationListPage(elements.listPageInputBottom.value);
 });
 
+elements.parserModeSelect.addEventListener("change", (event) => {
+  state.parserMode = event.target.value === "lightweight" ? "lightweight" : "robust";
+  saveUiState();
+});
+
 elements.openChangelog.addEventListener("click", () => {
   setChangelogOpen(true);
 });

@@ -47,6 +47,7 @@ const state: AppState = {
   rawConversationMap: new Map(),
   messageAssetMap: new Map(),
   currentSessionKey: null,
+  parserMode: "robust",
 };
 
 const elements: ElementsRegistry = {
@@ -55,6 +56,7 @@ const elements: ElementsRegistry = {
   sourceTabButtons: Array.from(document.querySelectorAll<HTMLButtonElement>("[data-source]")),
   folderSourcePanel: query<HTMLElement>("#folder-source-panel"),
   fileSourcePanel: query<HTMLElement>("#file-source-panel"),
+  parserModeSelect: query<HTMLSelectElement>("#parser-mode-select"),
   loadSample: query<HTMLButtonElement>("#load-sample"),
   searchInput: query<HTMLInputElement>("#search-input"),
   sortSelect: query<HTMLSelectElement>("#sort-select"),
@@ -124,6 +126,7 @@ function saveUiState(): void {
     sourceMode: state.sourceMode,
     conversationListPage: state.conversationListPage,
     conversationListPageSize: state.conversationListPageSize,
+    parserMode: state.parserMode,
   };
 
   try {
@@ -195,9 +198,13 @@ function applyUiState(uiState: UiStatePayload | null): void {
   if (uiState.sourceMode === "file" || uiState.sourceMode === "folder") {
     setSourceMode(uiState.sourceMode);
   }
+  if (uiState.parserMode === "lightweight" || uiState.parserMode === "robust") {
+    state.parserMode = uiState.parserMode;
+  }
 
   elements.listPageSizeTop.value = String(state.conversationListPageSize);
   elements.listPageSizeBottom.value = String(state.conversationListPageSize);
+  elements.parserModeSelect.value = state.parserMode;
 }
 
 window.ChatBrowser.stateModule = {

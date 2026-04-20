@@ -49,6 +49,12 @@
             <input id="file-input" type="file" accept=".html,.json,text/html,application/json">
           </div>
 
+          <label class="field-label" for="parser-mode-select">Parser mode</label>
+          <select id="parser-mode-select">
+            <option value="lightweight">Lightweight</option>
+            <option value="robust" selected>Robust</option>
+          </select>
+
           <button id="load-sample" class="ghost-button" type="button">Use Last Loaded Session</button>
           <p id="status" class="status">Waiting for a file.</p>
           <progress id="progress" max="100" value="0" hidden></progress>
