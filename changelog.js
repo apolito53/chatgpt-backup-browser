@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.10",
+        APP_VERSION: "0.5.11",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.11",
+                date: "April 19, 2026",
+                changes: [
+                    "Fixed the image preview panel so it stays visible while you browse long image lists instead of drifting off-screen at the top.",
+                    "Made the image detail column stick in place on desktop layouts so selecting an image feels anchored to the current browsing context.",
+                ],
+            },
             {
                 version: "0.5.10",
                 date: "April 19, 2026",

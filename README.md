@@ -10,6 +10,7 @@ It is meant to be simple to run, easy to browse, and useful for reading old conv
 - Browse conversations and move through them with in-app pagination and browser back/forward history
 - Search, sort, and filter by role or model
 - Browse backup images and show matching images inline inside conversations
+- Keep the image preview panel in view while browsing long image lists
 - Inspect raw conversation JSON on demand when something looks odd
 - Restore cached sessions without reparsing the whole archive every time
 - See which model produced assistant turns when the export includes that metadata
