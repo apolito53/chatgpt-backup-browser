@@ -19,6 +19,103 @@
         setSourceMode("folder");
         elements.folderInput.click();
     }
+    function getFolderSessionInfo(fileList) {
+        const files = Array.from(fileList || []);
+        const conversationFile = files.find((file) => (file.webkitRelativePath || file.name).endsWith("conversations.json"))
+            || files.find((file) => (file.webkitRelativePath || file.name).endsWith("chat.html"))
+            || null;
+        if (!conversationFile) {
+            return {
+                files,
+                conversationFile: null,
+                rootSegment: "",
+                sessionKey: null,
+            };
+        }
+        const rootSegment = (conversationFile.webkitRelativePath || "").split("/")[0] || "backup folder";
+        const sessionKey = buildSessionKey({
+            sourceMode: "folder",
+            sourceName: rootSegment,
+            fingerprint: [buildFileFingerprint(conversationFile), files.length].join(":"),
+        });
+        return {
+            files,
+            conversationFile,
+            rootSegment,
+            sessionKey,
+        };
+    }
+    function shouldHydrateLightweightImages() {
+        return Boolean(state.cacheMode === "folder"
+            && state.parserMode === "lightweight"
+            && state.index
+            && !state.index.images.length);
+    }
+    async function attachImagesToCurrentFolderSession(fileList) {
+        const { files, sessionKey, rootSegment } = getFolderSessionInfo(fileList);
+        if (!files.length || !state.index) {
+            setStatus("Re-select the original backup folder first.");
+            setProgress(0, true);
+            return false;
+        }
+        if (!sessionKey || sessionKey !== state.currentSessionKey) {
+            setStatus("That folder does not match the archive currently loaded here. Digest it as a new backup instead.");
+            setProgress(0, true);
+            return false;
+        }
+        revokeObjectUrls();
+        setStatus(`Attaching image previews for ${rootSegment}...`);
+        setProgress(75, false);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        const images = buildImagesIndex(files);
+        const nextIndex = {
+            ...state.index,
+            images,
+            stats: {
+                conversations: state.index.stats.conversations,
+                messages: state.index.stats.messages,
+                images: images.length,
+            },
+        };
+        applyIndex(nextIndex, `Attached live image previews for ${rootSegment}.`);
+        await saveSessionRecord({
+            sessionKey: state.currentSessionKey,
+            sourceMode: "folder",
+            sourceLabel: rootSegment,
+            index: nextIndex,
+        });
+        await refreshRecentArchives();
+        return true;
+    }
+    async function ensureImagesReadyForLightweightMode() {
+        if (!shouldHydrateLightweightImages()) {
+            return true;
+        }
+        if (!elements.folderInput.files?.length) {
+            setStatus("Lightweight mode skipped image attachment work. Reattach the original backup folder, then open Images and I'll build the previews.");
+            promptFolderReattach();
+            return false;
+        }
+        const confirmed = await confirmAction({
+            title: "Build the image browser now?",
+            message: "Lightweight mode skipped image attachment work on the first pass. Opening Images will attach the backup folder's image files now and may take a moment.",
+            acceptLabel: "Build Images",
+            cancelLabel: "Stay in Conversations",
+        });
+        if (!confirmed) {
+            setStatus("Kept the lightweight conversation view.");
+            return false;
+        }
+        try {
+            return await attachImagesToCurrentFolderSession(elements.folderInput.files);
+        }
+        catch (error) {
+            console.error(error);
+            setStatus(error instanceof Error ? error.message : "Failed to attach image previews.");
+            setProgress(0, true);
+            return false;
+        }
+    }
     function hasLoadedArchive() {
         return Boolean(state.index && (state.index.conversations.length || state.index.images.length));
     }
@@ -141,8 +238,8 @@
             setProgress(0, true);
         }
     }
-    async function parseFolder(fileList) {
-        const files = Array.from(fileList || []);
+    async function parseFolder(fileList, options = {}) {
+        const { files, conversationFile, rootSegment, sessionKey } = getFolderSessionInfo(fileList);
         if (!files.length) {
             return;
         }
@@ -151,8 +248,6 @@
         revokeObjectUrls();
         setStatus("Scanning backup folder...");
         setProgress(10, false);
-        const conversationFile = files.find((file) => (file.webkitRelativePath || file.name).endsWith("conversations.json"))
-            || files.find((file) => (file.webkitRelativePath || file.name).endsWith("chat.html"));
         if (!conversationFile) {
             setStatus("Could not find conversations.json or chat.html inside that folder.");
             setProgress(0, true);
@@ -164,15 +259,11 @@
             setProgress(35, false);
             await new Promise((resolve) => setTimeout(resolve, 0));
             const conversationData = await parseConversationsInWorker(rawText);
-            setStatus("Indexing images...");
+            const shouldBuildImages = state.parserMode !== "lightweight" || options.forceImages;
+            setStatus(shouldBuildImages ? "Indexing images..." : "Skipping image attachment work for lightweight mode...");
             setProgress(70, false);
-            const images = buildImagesIndex(files);
-            const rootSegment = (conversationFile.webkitRelativePath || "").split("/")[0] || "backup folder";
-            state.currentSessionKey = buildSessionKey({
-                sourceMode: "folder",
-                sourceName: rootSegment,
-                fingerprint: [buildFileFingerprint(conversationFile), files.length].join(":"),
-            });
+            const images = shouldBuildImages ? buildImagesIndex(files) : [];
+            state.currentSessionKey = sessionKey;
             const index = await buildBackupIndex({
                 conversations: conversationData.conversations,
                 images,
@@ -181,7 +272,9 @@
             index.rawConversationMap = conversationData.rawConversationMap;
             applyIndex(index, conversationData.rawConversationEntriesOmitted
                 ? state.parserMode === "lightweight"
-                    ? `Loaded folder ${rootSegment} in lightweight mode. Raw conversation JSON and inline attachment metadata were skipped to keep the browser responsive. Folder sessions are kept in this tab only.`
+                    ? shouldBuildImages
+                        ? `Loaded folder ${rootSegment} in lightweight mode and attached image previews on demand.`
+                        : `Loaded folder ${rootSegment} in lightweight mode. Raw conversation JSON, inline attachment metadata, and image previews were skipped to keep the browser responsive. Open Images later if you want me to attach them.`
                     : `Loaded folder ${rootSegment}. Raw conversation JSON was trimmed for this large archive so the parser worker stays upright. Folder sessions are kept in this tab only.`
                 : `Loaded folder ${rootSegment}. Folder sessions are kept in this tab only.`);
             saveSessionRecord({
@@ -263,7 +356,20 @@
             updateFolderDigestButton();
             return;
         }
-        const folderLabel = files[0]?.webkitRelativePath?.split("/")[0] || "that backup folder";
+        const { rootSegment: folderLabel, sessionKey } = getFolderSessionInfo(files);
+        const isCurrentSessionFolder = Boolean(sessionKey && sessionKey === state.currentSessionKey);
+        if (isCurrentSessionFolder) {
+            updateFolderDigestButton();
+            setSourceMode("folder");
+            state.cacheMode = "folder";
+            if (state.parserMode === "lightweight") {
+                setStatus("Original folder reattached. Open Images when you're ready and I'll attach the previews then.");
+                setProgress(0, true);
+                return;
+            }
+            void parseFolder(files);
+            return;
+        }
         const confirmed = await confirmArchiveReplacement(folderLabel);
         if (!confirmed) {
             elements.folderInput.value = "";
@@ -389,9 +495,15 @@
         });
     }
     for (const button of elements.tabButtons) {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", async () => {
             if (button.disabled) {
                 return;
+            }
+            if (button.dataset.view === "images") {
+                const ready = await ensureImagesReadyForLightweightMode();
+                if (!ready) {
+                    return;
+                }
             }
             setActiveView(button.dataset.view);
         });

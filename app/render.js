@@ -12,6 +12,10 @@
             && state.index?.images?.length
             && state.index.images.some((image) => !image.objectUrl));
     }
+    function canOpenImagesWithoutHydration() {
+        return Boolean(state.index?.images?.length
+            || state.cacheMode === "folder");
+    }
     function setActiveView(view) {
         if (state.pageType === "conversation") {
             state.activeView = "conversations";
@@ -90,7 +94,7 @@
         }
         for (const button of elements.tabButtons) {
             const view = button.dataset.view;
-            const enabled = view !== "images" || safeIndex.images.length > 0;
+            const enabled = view !== "images" || canOpenImagesWithoutHydration();
             button.disabled = !enabled;
         }
         updateStats();

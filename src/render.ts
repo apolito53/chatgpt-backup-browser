@@ -27,6 +27,13 @@ function needsFolderReattach(): boolean {
   );
 }
 
+function canOpenImagesWithoutHydration(): boolean {
+  return Boolean(
+    state.index?.images?.length
+    || state.cacheMode === "folder",
+  );
+}
+
 function setActiveView(view: ActiveView): void {
   if (state.pageType === "conversation") {
     state.activeView = "conversations";
@@ -114,7 +121,7 @@ function applyIndex(index: unknown, sourceLabel: string): void {
 
   for (const button of elements.tabButtons) {
     const view = button.dataset.view;
-    const enabled = view !== "images" || safeIndex.images.length > 0;
+    const enabled = view !== "images" || canOpenImagesWithoutHydration();
     button.disabled = !enabled;
   }
 

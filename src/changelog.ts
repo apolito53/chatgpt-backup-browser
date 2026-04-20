@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.27",
+  APP_VERSION: "0.5.28",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.28",
+      date: "April 20, 2026",
+      changes: [
+        "Stopped same-session folder reattachments from showing the backup-switch confirmation when the selected folder matches the archive already open.",
+        "Changed lightweight folder mode so image previews are skipped on the first pass and only attached when you explicitly open Images and approve the extra attachment step.",
+        "Kept the Images tab available for folder sessions in lightweight mode so the app can warn before building previews instead of silently hiding the path forward.",
+      ],
+    },
     {
       version: "0.5.27",
       date: "April 20, 2026",
