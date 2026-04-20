@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.1",
+  APP_VERSION: "0.5.2",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.2",
+      date: "April 19, 2026",
+      changes: [
+        "Added an explicit Digest Selected Folder step so picking a folder no longer starts the heavy parse immediately.",
+        "Kept the digest button disabled until a folder is selected, which is a much less chaotic loading flow.",
+        "Left the parser mode toggle in place so you can still choose the lighter or more featureful path before digesting.",
+      ],
+    },
     {
       version: "0.5.1",
       date: "April 19, 2026",
