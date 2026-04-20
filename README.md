@@ -49,6 +49,7 @@ The first migration batch covers the shared foundation files:
 - The app also keeps a lightweight IndexedDB catalog of the parsed archive structure, raw conversation records, and attachment mappings.
 - Restored folder sessions can bring back the indexed metadata after refresh, but image previews still need the folder to be selected again because browsers do not persist the live file objects for you.
 - It reads the currently selected conversation branch from each exported conversation, which is usually what you want.
+- Project ideas and planned features live in [TODO.md](./TODO.md).
 
 ## Analysis Helper
 
