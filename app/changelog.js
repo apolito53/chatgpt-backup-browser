@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.38",
+        APP_VERSION: "0.5.39",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.39",
+                date: "April 20, 2026",
+                changes: [
+                    "Added a session-storage handoff between the browser and conversation reader so clicking into a chat works immediately even if IndexedDB is still catching up.",
+                    "Fixed a race where the reader could open on a blank waiting state because the chosen archive session had not finished persisting before navigation.",
+                ],
+            },
             {
                 version: "0.5.38",
                 date: "April 20, 2026",

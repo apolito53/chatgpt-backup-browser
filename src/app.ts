@@ -10,6 +10,7 @@
     loadRecentSessionRecords,
     loadSessionRecord,
     loadLatestSessionRecord,
+    loadSessionHandoff,
     saveFolderHandleRecord,
     loadFolderHandleRecord,
     saveIndex,
@@ -658,7 +659,9 @@
     try {
       const preferredSessionKey = getSessionKeyFromLocation();
       const storedSession = preferredSessionKey
-        ? (await loadSessionRecord(preferredSessionKey)) || await loadLatestSessionRecord()
+        ? loadSessionHandoff(preferredSessionKey)
+          || (await loadSessionRecord(preferredSessionKey))
+          || await loadLatestSessionRecord()
         : await loadLatestSessionRecord();
       if (storedSession) {
         if (storedSession.sourceMode === "folder" && !canRestoreFolderSessionsFromCache()) {

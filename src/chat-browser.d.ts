@@ -323,6 +323,8 @@ interface StorageModule {
   loadLatestSessionRecord(): Promise<SessionRecord | null>;
   saveFolderHandleRecord(record: { sessionKey: string; sourceLabel: string; handle: unknown }): Promise<void>;
   loadFolderHandleRecord(sessionKey: string): Promise<FolderHandleRecord | null>;
+  saveSessionHandoff(record: { sessionKey: string; sourceMode: SourceMode; sourceLabel: string; index: ArchiveIndex }): void;
+  loadSessionHandoff(sessionKey: string): SessionRecord | null;
   saveIndex(index: ArchiveIndex): void;
   loadSavedIndex(): ArchiveIndex | null;
   revokeObjectUrls(): void;

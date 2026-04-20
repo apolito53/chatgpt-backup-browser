@@ -1,7 +1,8 @@
 "use strict";
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
-    const { STORAGE_KEY, ARCHIVE_DB_NAME, ARCHIVE_DB_VERSION, ARCHIVE_SESSION_STORE, ARCHIVE_HANDLE_STORE, state, } = window.ChatBrowser.stateModule;
+    const { STORAGE_KEY, UI_STATE_KEY, ARCHIVE_DB_NAME, ARCHIVE_DB_VERSION, ARCHIVE_SESSION_STORE, ARCHIVE_HANDLE_STORE, state, } = window.ChatBrowser.stateModule;
+    const SESSION_HANDOFF_KEY = `${UI_STATE_KEY}:session-handoff`;
     let archiveDbPromise = null;
     function requestToPromise(request) {
         return new Promise((resolve, reject) => {
@@ -238,6 +239,49 @@
             handle: record.handle,
         };
     }
+    function saveSessionHandoff({ sessionKey, sourceMode, sourceLabel, index, }) {
+        try {
+            sessionStorage.setItem(SESSION_HANDOFF_KEY, JSON.stringify({
+                key: sessionKey,
+                sourceMode,
+                sourceLabel,
+                savedAt: Date.now(),
+                index: serializeIndexForStorage(index),
+                rawConversationEntries: Array.from((index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map()).entries()),
+            }));
+        }
+        catch (error) {
+            console.warn("Failed to save session handoff cache:", error);
+        }
+    }
+    function loadSessionHandoff(sessionKey) {
+        try {
+            const raw = sessionStorage.getItem(SESSION_HANDOFF_KEY);
+            if (!raw) {
+                return null;
+            }
+            const record = JSON.parse(raw);
+            if (!record || record.key !== sessionKey) {
+                return null;
+            }
+            const index = deserializeStoredIndex(record);
+            if (!index) {
+                return null;
+            }
+            return {
+                sessionKey: record.key,
+                sourceMode: record.sourceMode || "file",
+                sourceLabel: record.sourceLabel || index.source || "cached session",
+                savedAt: Number.isFinite(record.savedAt) ? record.savedAt : 0,
+                index,
+                stats: normalizeStats(index),
+            };
+        }
+        catch (error) {
+            console.warn("Failed to restore session handoff cache:", error);
+            return null;
+        }
+    }
     function saveIndex(index) {
         if (state.cacheMode !== "single-file") {
             return;
@@ -281,6 +325,8 @@
         loadLatestSessionRecord,
         saveFolderHandleRecord,
         loadFolderHandleRecord,
+        saveSessionHandoff,
+        loadSessionHandoff,
         saveIndex,
         loadSavedIndex,
         revokeObjectUrls,
