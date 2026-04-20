@@ -731,7 +731,6 @@
     if (!state.index) {
       elements.conversationList.innerHTML = "";
       elements.resultCaption.textContent = "No export loaded yet.";
-      elements.statResults.textContent = "0";
       state.conversationListPage = 0;
       updateConversationListPager();
       renderConversation(null);
@@ -747,7 +746,6 @@
       .sort((a, b) => compareConversations(a, b, sort));
 
     elements.resultCaption.textContent = `${state.filteredConversations.length} matching conversation${state.filteredConversations.length === 1 ? "" : "s"}`;
-    elements.statResults.textContent = String(state.filteredConversations.length);
 
     if (!state.filteredConversations.length) {
       elements.conversationList.innerHTML = '<div class="empty-note">No conversation matches. Try a different search, role filter, or model filter.</div>';

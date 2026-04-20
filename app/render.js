@@ -7,6 +7,21 @@
     const { setStatus, setProgress } = window.ChatBrowser.ui;
     const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, renderConversationsView, moveConversationSelection, loadSelectedConversationDetails, updateConversationListPager, getConversationIdFromLocation, setSelectedConversation, } = window.ChatBrowser.conversationRender;
     const { renderImagesView } = window.ChatBrowser.imageRender;
+    function getArchiveModelCount() {
+        if (!state.index?.conversations?.length) {
+            return 0;
+        }
+        const models = new Set();
+        for (const conversation of state.index.conversations) {
+            for (const candidate of [conversation.modelSlug, conversation.defaultModelSlug]) {
+                const normalized = typeof candidate === "string" ? candidate.trim() : "";
+                if (normalized) {
+                    models.add(normalized);
+                }
+            }
+        }
+        return models.size;
+    }
     function needsFolderReattach() {
         return Boolean(state.cacheMode === "folder"
             && state.index?.images?.length
@@ -48,6 +63,7 @@
         elements.statConversations.textContent = state.index.stats.conversations.toLocaleString();
         elements.statMessages.textContent = state.index.stats.messages.toLocaleString();
         elements.statImages.textContent = state.index.stats.images.toLocaleString();
+        elements.statResults.textContent = getArchiveModelCount().toLocaleString();
     }
     function renderActiveView() {
         const hasData = Boolean(state.index);
@@ -60,7 +76,6 @@
         if (!hasData) {
             elements.resultCaption.textContent = "No export loaded yet.";
             elements.conversationList.innerHTML = "";
-            elements.statResults.textContent = "0";
             updateConversationListPager();
             return;
         }
