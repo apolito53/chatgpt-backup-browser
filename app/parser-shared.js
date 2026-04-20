@@ -1,6 +1,49 @@
 "use strict";
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
+    function extractLeadingJsonValue(sourceText) {
+        const startIndex = sourceText.search(/[\[{]/);
+        if (startIndex === -1) {
+            throw new Error("Could not find JSON data in the selected export.");
+        }
+        const openingChar = sourceText[startIndex];
+        const closingChar = openingChar === "[" ? "]" : "}";
+        let depth = 0;
+        let inString = false;
+        let escaped = false;
+        for (let index = startIndex; index < sourceText.length; index += 1) {
+            const character = sourceText[index];
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+                if (character === "\\") {
+                    escaped = true;
+                    continue;
+                }
+                if (character === "\"") {
+                    inString = false;
+                }
+                continue;
+            }
+            if (character === "\"") {
+                inString = true;
+                continue;
+            }
+            if (character === openingChar) {
+                depth += 1;
+                continue;
+            }
+            if (character === closingChar) {
+                depth -= 1;
+                if (depth === 0) {
+                    return sourceText.slice(startIndex, index + 1).trim();
+                }
+            }
+        }
+        throw new Error("The export file looks incomplete. Could not isolate its JSON payload.");
+    }
     function extractJsonPayload(htmlText) {
         const marker = "var jsonData = ";
         const start = htmlText.indexOf(marker);
@@ -12,11 +55,7 @@
         if (scriptEnd === -1) {
             throw new Error("The export file looks incomplete. Missing closing <script> tag.");
         }
-        let payload = htmlText.slice(dataStart, scriptEnd).trim();
-        if (payload.endsWith(";")) {
-            payload = payload.slice(0, -1).trim();
-        }
-        return payload;
+        return extractLeadingJsonValue(htmlText.slice(dataStart, scriptEnd));
     }
     function extractConversationArray(rawText) {
         const trimmed = rawText.trim();

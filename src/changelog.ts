@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.35",
+  APP_VERSION: "0.5.36",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.36",
+      date: "April 20, 2026",
+      changes: [
+        "Hardened chat.html parsing so the browser now extracts just the embedded JSON payload instead of choking on extra script content after it.",
+        "Fixed a single-file import bug where some chat.html exports were accidentally being treated like malformed JSON.",
+      ],
+    },
     {
       version: "0.5.35",
       date: "April 20, 2026",
