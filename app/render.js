@@ -86,7 +86,9 @@
         elements.conversationView.hidden = !hasData || state.pageType !== "conversation" || state.activeView !== "conversations";
         elements.imageView.hidden = !hasData || state.pageType === "conversation" || state.activeView !== "images";
         elements.reattachFolderBanner.hidden = !hasData || !needsFolderReattach() || state.pageType !== "browser";
-        elements.imageReattachPrompt.hidden = !hasData || !needsFolderReattach() || state.pageType === "conversation" || state.activeView !== "images";
+        if (elements.imageReattachPrompt) {
+            elements.imageReattachPrompt.hidden = !hasData || !needsFolderReattach() || state.pageType === "conversation" || state.activeView !== "images";
+        }
         if (!hasData) {
             elements.resultCaption.textContent = "No export loaded yet.";
             elements.conversationList.innerHTML = "";

@@ -34,15 +34,17 @@
     function updateReattachMessaging() {
         const reattachCopy = elements.reattachFolderBanner.querySelector("p");
         const reattachTitle = elements.reattachFolderBanner.querySelector("strong");
-        const imageReattachCopy = elements.imageReattachPrompt.querySelector("p");
-        const imageReattachTitle = elements.imageReattachPrompt.querySelector("strong");
+        const imageReattachCopy = elements.imageReattachPrompt?.querySelector("p") || null;
+        const imageReattachTitle = elements.imageReattachPrompt?.querySelector("strong") || null;
         const supportsDirectoryAccess = browserSupportsDirectoryAccess();
         elements.reattachFolderButton.textContent = supportsDirectoryAccess
             ? "Reconnect Backup Folder"
             : "Select Backup Folder Again";
-        elements.imageReattachButton.textContent = supportsDirectoryAccess
-            ? "Reconnect Backup Folder"
-            : "Select Backup Folder Again";
+        if (elements.imageReattachButton) {
+            elements.imageReattachButton.textContent = supportsDirectoryAccess
+                ? "Reconnect Backup Folder"
+                : "Select Backup Folder Again";
+        }
         if (reattachTitle) {
             reattachTitle.textContent = supportsDirectoryAccess
                 ? "Live folder access is disconnected."
@@ -785,7 +787,7 @@
     elements.reattachFolderButton.addEventListener("click", () => {
         promptFolderReattach();
     });
-    elements.imageReattachButton.addEventListener("click", () => {
+    elements.imageReattachButton?.addEventListener("click", () => {
         promptFolderReattach();
     });
     elements.folderAccessButton.addEventListener("click", () => {

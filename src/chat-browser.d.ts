@@ -230,8 +230,8 @@ interface ElementsRegistry {
   conversationPositionBottom: HTMLElement;
   imageView: HTMLElement;
   imageCount: HTMLElement;
-  imageReattachPrompt: HTMLElement;
-  imageReattachButton: HTMLButtonElement;
+  imageReattachPrompt: HTMLElement | null;
+  imageReattachButton: HTMLButtonElement | null;
   imageGrid: HTMLElement;
   imagePreview: HTMLElement;
   imagePreviewName: HTMLElement;
