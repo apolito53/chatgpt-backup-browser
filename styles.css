@@ -325,6 +325,15 @@ select {
   flex-direction: column;
 }
 
+.list-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
 .list-header {
   display: flex;
   justify-content: space-between;
