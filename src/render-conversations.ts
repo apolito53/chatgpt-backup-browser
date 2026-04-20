@@ -2,7 +2,6 @@
   window.ChatBrowser = window.ChatBrowser || {};
 
   const { CONVERSATION_LIST_PAGE_SIZE_OPTIONS, state, elements, saveUiState } = window.ChatBrowser.stateModule!;
-  const { saveSessionHandoff } = window.ChatBrowser.storage!;
   const { getMessageAttachmentKey, resolveMessageImages } = window.ChatBrowser.attachments!;
   const { canLoadConversationDetails, loadConversationDetails } = window.ChatBrowser.parserClient!;
   const { formatDate, escapeHtml } = window.ChatBrowser.ui!;
@@ -805,14 +804,6 @@
 
       button.addEventListener("click", () => {
         if (state.pageType === "browser") {
-          if (state.index && state.currentSessionKey) {
-            saveSessionHandoff({
-              sessionKey: state.currentSessionKey,
-              sourceMode: state.cacheMode === "folder" ? "folder" : "file",
-              sourceLabel: state.index.source || "cached session",
-              index: state.index,
-            });
-          }
           window.location.href = buildUrlForConversation(conversation.id);
           return;
         }
