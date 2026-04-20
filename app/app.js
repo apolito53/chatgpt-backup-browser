@@ -3,7 +3,7 @@
     window.ChatBrowser = window.ChatBrowser || {};
     const { state, elements, saveUiState, loadUiState, applyUiState, setSourceMode } = window.ChatBrowser.stateModule;
     const { setStatus, setProgress, renderChangelog, setChangelogOpen, confirmAction } = window.ChatBrowser.ui;
-    const { buildFileFingerprint, buildSessionKey, saveSessionRecord, loadRecentSessionRecords, loadSessionRecord, loadLatestSessionRecord, loadSessionHandoff, loadWindowSessionHandoff, saveFolderHandleRecord, loadFolderHandleRecord, saveIndex, loadSavedIndex, revokeObjectUrls, } = window.ChatBrowser.storage;
+    const { buildFileFingerprint, buildSessionKey, saveSessionRecord, loadRecentSessionRecords, loadSessionRecord, loadLatestSessionRecord, loadSessionHandoff, saveFolderHandleRecord, loadFolderHandleRecord, saveIndex, loadSavedIndex, revokeObjectUrls, } = window.ChatBrowser.storage;
     const { parseConversationsInWorker, buildImagesIndex, buildBackupIndex } = window.ChatBrowser.parserClient;
     const { moveConversationListPage, setConversationListPageSize, jumpConversationListPage, setActiveView, setBrowserControlsCollapsed, updateStats, renderActiveView, applyIndex, moveConversationSelection, loadSelectedConversationDetails, getConversationIdFromLocation, getSessionKeyFromLocation, setSelectedConversation, } = window.ChatBrowser.render;
     if (state.pageType === "conversation") {
@@ -544,8 +544,7 @@
         try {
             const preferredSessionKey = getSessionKeyFromLocation();
             const storedSession = preferredSessionKey
-                ? loadWindowSessionHandoff(preferredSessionKey)
-                    || loadSessionHandoff(preferredSessionKey)
+                ? loadSessionHandoff(preferredSessionKey)
                     || (await loadSessionRecord(preferredSessionKey))
                     || await loadLatestSessionRecord()
                 : await loadLatestSessionRecord();

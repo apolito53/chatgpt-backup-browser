@@ -11,7 +11,6 @@
     loadSessionRecord,
     loadLatestSessionRecord,
     loadSessionHandoff,
-    loadWindowSessionHandoff,
     saveFolderHandleRecord,
     loadFolderHandleRecord,
     saveIndex,
@@ -662,8 +661,7 @@
     try {
       const preferredSessionKey = getSessionKeyFromLocation();
       const storedSession = preferredSessionKey
-        ? loadWindowSessionHandoff(preferredSessionKey)
-          || loadSessionHandoff(preferredSessionKey)
+        ? loadSessionHandoff(preferredSessionKey)
           || (await loadSessionRecord(preferredSessionKey))
           || await loadLatestSessionRecord()
         : await loadLatestSessionRecord();
