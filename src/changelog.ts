@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.24",
+  APP_VERSION: "0.5.25",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.25",
+      date: "April 20, 2026",
+      changes: [
+        "Fixed the browser page getting stuck in image view by adding a matching conversations/images switch inside the image browser header.",
+        "Kept the view toggle visible in both archive views so switching to images is no longer a one-way trip.",
+      ],
+    },
     {
       version: "0.5.24",
       date: "April 19, 2026",

@@ -426,6 +426,11 @@ select {
   margin-bottom: 14px;
 }
 
+.image-view-switch {
+  width: min(320px, 100%);
+  margin-bottom: 6px;
+}
+
 .view-tab {
   border-radius: 14px;
   border: 1px solid var(--line-strong);
@@ -1269,6 +1274,10 @@ progress {
 
   .conversation-meta {
     align-items: flex-start;
+  }
+
+  .image-view-switch {
+    width: 100%;
   }
 
   .image-layout {
