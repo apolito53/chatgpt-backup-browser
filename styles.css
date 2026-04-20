@@ -325,20 +325,29 @@ select {
 
 .recent-archives {
   margin-top: 10px;
-  padding: 14px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(255, 248, 239, 0.82);
+  overflow: hidden;
+}
+
+.recent-archives summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  background: rgba(255, 244, 229, 0.88);
 }
 
 .recent-archives-copy {
-  margin: 0 0 12px;
+  margin: 0 14px 12px;
   line-height: 1.45;
 }
 
 .recent-archives-list {
   display: grid;
   gap: 10px;
+  padding: 0 14px 14px;
 }
 
 .recent-archive-button {
@@ -652,23 +661,46 @@ select {
 }
 
 .splash-stack {
-  width: min(920px, 100%);
+  width: min(640px, 100%);
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .splash-copy {
   display: grid;
-  gap: 8px;
+  gap: 6px;
+  text-align: center;
 }
 
 .splash-copy p {
   margin: 0;
 }
 
+.splash-copy h2 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+}
+
 .splash-import-panel {
   width: 100%;
   text-align: left;
+  padding: 18px;
+}
+
+.splash-import-panel .source-switch {
+  margin-bottom: 12px;
+}
+
+.splash-import-panel .upload {
+  padding: 14px;
+}
+
+.splash-import-panel .ghost-button {
+  margin-top: 12px;
+}
+
+.splash-import-panel .digest-help {
+  margin-top: 8px;
 }
 
 .conversation-view {

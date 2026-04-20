@@ -93,12 +93,9 @@
         <section id="empty-state" class="empty-state">
           <div class="splash-stack">
             <div class="splash-copy">
-              <p class="eyebrow">Ready When You Are</p>
-              <h2>Load your export to browse it like a civilized person.</h2>
-              <p>
-                Once loaded, you can browse conversations, search message text, and now
-                flip into an image gallery for the media sitting in the backup folder.
-              </p>
+              <p class="eyebrow">ChatGPT Backup Browser</p>
+              <h2>Load your export.</h2>
+              <p>Pick a full backup folder or a single conversation file to get started.</p>
             </div>
 
             <section class="panel splash-import-panel">
@@ -139,11 +136,11 @@
 
               <button id="digest-folder" class="ghost-button" type="button" disabled>Digest Selected Folder</button>
 
-              <section id="recent-archives-panel" class="recent-archives" hidden>
-                <span class="field-label">Recent archives</span>
+              <details id="recent-archives-panel" class="recent-archives" hidden>
+                <summary>Recent archives</summary>
                 <p class="subtle recent-archives-copy">Reopen one of the backups this browser has already cached.</p>
                 <div id="recent-archives-list" class="recent-archives-list"></div>
-              </section>
+              </details>
               <p id="status" class="status">Waiting for a file.</p>
               <progress id="progress" max="100" value="0" hidden></progress>
             </section>

@@ -26,15 +26,30 @@ if (-not (Test-Path $localNode)) {
 $arguments = @($serverScript)
 $serverProcess = Start-Process -FilePath $localNode -ArgumentList $arguments -WorkingDirectory $projectRoot -PassThru -WindowStyle Hidden
 
-Start-Sleep -Milliseconds 900
-
 $resolvedPort = $defaultPort
 try {
-  $connection = Get-NetTCPConnection -State Listen -OwningProcess $serverProcess.Id -ErrorAction Stop |
-    Sort-Object LocalPort |
-    Select-Object -First 1
-  if ($connection) {
-    $resolvedPort = $connection.LocalPort
+  for ($attempt = 0; $attempt -lt 40; $attempt += 1) {
+    $connections = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
+      Where-Object { $_.LocalAddress -eq "127.0.0.1" -or $_.LocalAddress -eq "::1" } |
+      Sort-Object LocalPort
+
+    foreach ($connection in $connections) {
+      try {
+        $response = Invoke-WebRequest -Uri "http://127.0.0.1:$($connection.LocalPort)/$startPage" -UseBasicParsing -TimeoutSec 1
+        if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 400) {
+          $resolvedPort = $connection.LocalPort
+          break
+        }
+      } catch {
+        # Keep probing until the server is actually ready.
+      }
+    }
+
+    if ($resolvedPort -ne $defaultPort) {
+      break
+    }
+
+    Start-Sleep -Milliseconds 250
   }
 } catch {
   # If port detection fails, fall back to the requested port and let the user know below.
