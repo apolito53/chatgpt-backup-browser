@@ -11,6 +11,9 @@
         setProgress(progress, false);
     }
     function getSelectedConversationSourceFile() {
+        if (state.attachedFolderFiles.length) {
+            return state.attachedFolderFiles.find((file) => (file.webkitRelativePath || file.name).endsWith("conversations.json")) || state.attachedFolderFiles.find((file) => (file.webkitRelativePath || file.name).endsWith("chat.html")) || null;
+        }
         if (elements.fileInput.files?.length) {
             return elements.fileInput.files[0];
         }

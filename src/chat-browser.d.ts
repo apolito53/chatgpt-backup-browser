@@ -56,6 +56,13 @@ interface SessionRecordSummary {
   stats: ArchiveStats;
 }
 
+interface FolderHandleRecord {
+  sessionKey: string;
+  sourceLabel: string;
+  savedAt: number;
+  handle: unknown;
+}
+
 interface ArchiveIndex {
   loadedAt?: number;
   source?: string;
@@ -74,6 +81,7 @@ interface AppState {
   selectedImageId: string | null;
   activeView: ActiveView;
   objectUrls: string[];
+  attachedFolderFiles: File[];
   cacheMode: CacheMode;
   sourceMode: SourceMode;
   conversationListPage: number;
@@ -160,6 +168,8 @@ interface ElementsRegistry {
   sourceTabButtons: HTMLButtonElement[];
   folderSourcePanel: HTMLElement;
   fileSourcePanel: HTMLElement;
+  folderAccessButton: HTMLButtonElement;
+  folderAccessStatus: HTMLElement;
   parserModeSelect: HTMLSelectElement;
   digestFolderButton: HTMLButtonElement;
   recentArchivesPanel: HTMLElement;
@@ -257,6 +267,7 @@ interface StateModule {
   ARCHIVE_DB_NAME: string;
   ARCHIVE_DB_VERSION: number;
   ARCHIVE_SESSION_STORE: string;
+  ARCHIVE_HANDLE_STORE: string;
   HIDDEN_MESSAGE_FLAGS: string[];
   DEFAULT_CONVERSATION_LIST_PAGE_SIZE: number;
   CONVERSATION_LIST_PAGE_SIZE_OPTIONS: Set<number>;
@@ -304,6 +315,8 @@ interface StorageModule {
   loadRecentSessionRecords(limit?: number): Promise<SessionRecordSummary[]>;
   loadSessionRecord(sessionKey: string): Promise<SessionRecord | null>;
   loadLatestSessionRecord(): Promise<SessionRecord | null>;
+  saveFolderHandleRecord(record: { sessionKey: string; sourceLabel: string; handle: unknown }): Promise<void>;
+  loadFolderHandleRecord(sessionKey: string): Promise<FolderHandleRecord | null>;
   saveIndex(index: ArchiveIndex): void;
   loadSavedIndex(): ArchiveIndex | null;
   revokeObjectUrls(): void;

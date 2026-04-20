@@ -10,6 +10,8 @@
     loadRecentSessionRecords,
     loadSessionRecord,
     loadLatestSessionRecord,
+    saveFolderHandleRecord,
+    loadFolderHandleRecord,
     saveIndex,
     loadSavedIndex,
     revokeObjectUrls,
@@ -36,13 +38,204 @@
   }
 
   function updateFolderDigestButton(): void {
-    const hasFolderSelection = Boolean(elements.folderInput.files && elements.folderInput.files.length);
+    const hasFolderSelection = Boolean(
+      (elements.folderInput.files && elements.folderInput.files.length)
+      || state.attachedFolderFiles.length,
+    );
     elements.digestFolderButton.disabled = !hasFolderSelection;
+  }
+
+  function browserSupportsDirectoryAccess(): boolean {
+    return typeof (window as any).showDirectoryPicker === "function";
   }
 
   function promptFolderReattach(): void {
     setSourceMode("folder");
+    if (browserSupportsDirectoryAccess()) {
+      void reconnectCurrentFolderAccess({ promptIfNeeded: true });
+      return;
+    }
     elements.folderInput.click();
+  }
+
+  function assignRelativePath(file: File, relativePath: string): File {
+    try {
+      Object.defineProperty(file, "webkitRelativePath", {
+        value: relativePath,
+        configurable: true,
+      });
+    } catch (error) {
+      console.warn("Failed to assign relative path to file:", error);
+    }
+    return file;
+  }
+
+  async function collectFilesFromDirectoryHandle(handle: any, prefix = handle.name): Promise<File[]> {
+    const files: File[] = [];
+
+    for await (const entry of handle.values()) {
+      if (entry.kind === "file") {
+        const file = await entry.getFile();
+        files.push(assignRelativePath(file, `${prefix}/${entry.name}`));
+        continue;
+      }
+
+      if (entry.kind === "directory") {
+        files.push(...await collectFilesFromDirectoryHandle(entry, `${prefix}/${entry.name}`));
+      }
+    }
+
+    return files;
+  }
+
+  async function ensureDirectoryPermission(handle: any): Promise<boolean> {
+    if (!handle?.queryPermission || !handle?.requestPermission) {
+      return true;
+    }
+
+    const options = { mode: "read" };
+    const currentPermission = await handle.queryPermission(options);
+    if (currentPermission === "granted") {
+      return true;
+    }
+
+    const requestedPermission = await handle.requestPermission(options);
+    return requestedPermission === "granted";
+  }
+
+  async function hasDirectoryPermission(handle: any): Promise<boolean> {
+    if (!handle?.queryPermission) {
+      return true;
+    }
+
+    return (await handle.queryPermission({ mode: "read" })) === "granted";
+  }
+
+  async function updateFolderAccessControls(): Promise<void> {
+    if (!browserSupportsDirectoryAccess()) {
+      elements.folderAccessButton.hidden = true;
+      elements.folderAccessStatus.hidden = true;
+      return;
+    }
+
+    elements.folderAccessButton.hidden = false;
+    elements.folderAccessStatus.hidden = false;
+
+    const sessionKey = state.currentSessionKey;
+    if (!sessionKey) {
+      elements.folderAccessButton.textContent = "Grant Folder Access";
+      elements.folderAccessStatus.textContent = "Use the browser's folder permission flow so reconnecting later can be a one-click thing.";
+      return;
+    }
+
+    const record = await loadFolderHandleRecord(sessionKey);
+    if (record) {
+      elements.folderAccessButton.textContent = state.attachedFolderFiles.length
+        ? "Refresh Saved Folder"
+        : "Reconnect Saved Folder";
+      elements.folderAccessStatus.textContent = state.attachedFolderFiles.length
+        ? `Live folder access is attached for ${record.sourceLabel || "this backup"}. If anything looks stale, refresh it from here.`
+        : `Saved access is available for ${record.sourceLabel || "this backup"}. Click once to reconnect without browsing again.`;
+      return;
+    }
+
+    elements.folderAccessButton.textContent = "Grant Folder Access";
+    elements.folderAccessStatus.textContent = "Grant directory access once and later reconnects can use a permission prompt instead of manual browsing.";
+  }
+
+  async function connectDirectoryHandle(handle: any): Promise<File[]> {
+    const hasPermission = await ensureDirectoryPermission(handle);
+    if (!hasPermission) {
+      throw new Error("Folder access was not granted.");
+    }
+
+    const files = await collectFilesFromDirectoryHandle(handle);
+    state.attachedFolderFiles = files;
+    updateFolderDigestButton();
+    return files;
+  }
+
+  async function reconnectCurrentFolderAccess(
+    options: { hydrateImages?: boolean; promptIfNeeded?: boolean } = {},
+  ): Promise<boolean> {
+    if (!browserSupportsDirectoryAccess()) {
+      return false;
+    }
+
+    const { hydrateImages = state.cacheMode === "folder" && state.parserMode !== "lightweight", promptIfNeeded = false } = options;
+    const sessionKey = state.currentSessionKey;
+    if (!sessionKey) {
+      if (promptIfNeeded) {
+        await chooseFolderWithDirectoryAccess();
+      }
+      return false;
+    }
+
+    const record = await loadFolderHandleRecord(sessionKey);
+    if (!record?.handle) {
+      if (promptIfNeeded) {
+        await chooseFolderWithDirectoryAccess();
+      }
+      return false;
+    }
+
+    try {
+      const canRead = promptIfNeeded
+        ? await ensureDirectoryPermission(record.handle)
+        : await hasDirectoryPermission(record.handle);
+      if (!canRead) {
+        return false;
+      }
+
+      const files = await connectDirectoryHandle(record.handle);
+      if (state.index && state.cacheMode === "folder" && hydrateImages) {
+        await attachImagesToCurrentFolderSession(files);
+        setStatus(`Reconnected saved folder access for ${record.sourceLabel}.`);
+        setProgress(0, true);
+      } else if (state.index && state.cacheMode === "folder") {
+        setStatus(`Reconnected saved folder access for ${record.sourceLabel}. Image previews can stay lazy until you open them.`);
+        setProgress(0, true);
+      }
+      await updateFolderAccessControls();
+      return true;
+    } catch (error) {
+      console.warn("Saved folder reconnect failed:", error);
+      if (promptIfNeeded) {
+        await chooseFolderWithDirectoryAccess();
+      }
+      return false;
+    }
+  }
+
+  async function chooseFolderWithDirectoryAccess(): Promise<void> {
+    if (!browserSupportsDirectoryAccess()) {
+      elements.folderInput.click();
+      return;
+    }
+
+    try {
+      const handle = await (window as any).showDirectoryPicker({
+        mode: "read",
+      });
+      const files = await connectDirectoryHandle(handle);
+      const { rootSegment, sessionKey } = getFolderSessionInfo(files);
+      if (sessionKey) {
+        await saveFolderHandleRecord({
+          sessionKey,
+          sourceLabel: rootSegment,
+          handle,
+        });
+      }
+      await handleFolderSelection(files, { handle });
+      await updateFolderAccessControls();
+    } catch (error) {
+      if ((error as Error)?.name === "AbortError") {
+        return;
+      }
+      console.error(error);
+      setStatus(error instanceof Error ? error.message : "Couldn't open that folder.");
+      setProgress(0, true);
+    }
   }
 
   function getFolderSessionInfo(fileList: FileList | File[] | null | undefined): {
@@ -135,12 +328,6 @@
       return true;
     }
 
-    if (!elements.folderInput.files?.length) {
-      setStatus("Lightweight mode skipped image attachment work. Reattach the original backup folder, then open Images and I'll build the previews.");
-      promptFolderReattach();
-      return false;
-    }
-
     const confirmed = await confirmAction({
       title: "Build the image browser now?",
       message: "Lightweight mode skipped image attachment work on the first pass. Opening Images will attach the backup folder's image files now and may take a moment.",
@@ -154,7 +341,15 @@
     }
 
     try {
-      return await attachImagesToCurrentFolderSession(elements.folderInput.files);
+      if (!state.attachedFolderFiles.length) {
+        const reconnected = await reconnectCurrentFolderAccess();
+        if (!reconnected || !state.attachedFolderFiles.length) {
+          setStatus("Lightweight mode skipped image attachment work. Reconnect the original backup folder, then open Images again and I'll build the previews.");
+          return false;
+        }
+      }
+
+      return await attachImagesToCurrentFolderSession(state.attachedFolderFiles);
     } catch (error) {
       console.error(error);
       setStatus(error instanceof Error ? error.message : "Failed to attach image previews.");
@@ -180,16 +375,18 @@
 
   function buildRestoreStatusMessage(sessionRecord: SessionRecordSummary): string {
     return sessionRecord.sourceMode === "folder"
-      ? `Restored cached folder index for ${sessionRecord.sourceLabel}. This is not lightweight mode being weird. Browser refreshes cannot keep live folder access, so re-select the backup folder in the sidebar to reattach image previews.`
+      ? `Restored cached folder index for ${sessionRecord.sourceLabel}. If the browser did not keep live folder access, use the folder controls in the sidebar to reconnect image previews and lazy details.`
       : `Restored cached session for ${sessionRecord.sourceLabel}.`;
   }
 
   function applyStoredSession(sessionRecord: SessionRecord): void {
     state.cacheMode = sessionRecord.sourceMode === "folder" ? "folder" : "single-file";
     state.currentSessionKey = sessionRecord.sessionKey;
+    state.attachedFolderFiles = [];
     setSourceMode(sessionRecord.sourceMode);
     revokeObjectUrls();
     applyIndex(sessionRecord.index, buildRestoreStatusMessage(sessionRecord));
+    updateFolderDigestButton();
   }
 
   async function refreshRecentArchives(): Promise<void> {
@@ -255,6 +452,7 @@
 
   async function parseSingleFile(file: File): Promise<void> {
     setSourceMode("file");
+    state.attachedFolderFiles = [];
     state.cacheMode = "single-file";
     state.currentSessionKey = buildSessionKey({
       sourceMode: "file",
@@ -262,6 +460,7 @@
       fingerprint: buildFileFingerprint(file),
     });
     revokeObjectUrls();
+    updateFolderDigestButton();
     setStatus(`Loading ${file.name}...`);
     setProgress(5, false);
 
@@ -298,6 +497,9 @@
       });
       refreshRecentArchives().catch((error) => {
         console.warn("Failed to refresh recent archives after single-file parse:", error);
+      });
+      updateFolderAccessControls().catch((handleError) => {
+        console.warn("Failed to refresh folder access controls after single-file parse:", handleError);
       });
     } catch (error) {
       console.error(error);
@@ -336,6 +538,7 @@
       setProgress(70, false);
 
       const images = shouldBuildImages ? buildImagesIndex(files) : [];
+      state.attachedFolderFiles = files;
       state.currentSessionKey = sessionKey;
 
       const index = await buildBackupIndex({
@@ -366,6 +569,9 @@
       refreshRecentArchives().catch((error) => {
         console.warn("Failed to refresh recent archives after folder parse:", error);
       });
+      updateFolderAccessControls().catch((handleError) => {
+        console.warn("Failed to refresh folder access controls after folder parse:", handleError);
+      });
     } catch (error) {
       console.error(error);
       setStatus(error instanceof Error ? error.message : "Failed to parse backup folder.");
@@ -392,6 +598,18 @@
       const storedSession = await loadLatestSessionRecord();
       if (storedSession) {
         applyStoredSession(storedSession);
+        if (storedSession.sourceMode === "folder") {
+          const restoredAccess = await reconnectCurrentFolderAccess({
+            hydrateImages: state.parserMode !== "lightweight",
+            promptIfNeeded: false,
+          });
+          if (!restoredAccess) {
+            setStatus(buildRestoreStatusMessage(storedSession));
+          }
+        }
+        updateFolderAccessControls().catch((handleError) => {
+          console.warn("Failed to refresh folder access controls after restore:", handleError);
+        });
         refreshRecentArchives().catch((error) => {
           console.warn("Failed to refresh recent archives after restore:", error);
         });
@@ -415,6 +633,59 @@
     }
   }
 
+  async function handleFolderSelection(
+    fileList: FileList | File[],
+    options: { handle?: unknown } = {},
+  ): Promise<void> {
+    const files = Array.from(fileList || []);
+    if (!files.length) {
+      updateFolderDigestButton();
+      return;
+    }
+
+    state.attachedFolderFiles = files;
+    const { rootSegment: folderLabel, sessionKey } = getFolderSessionInfo(files);
+    const isCurrentSessionFolder = Boolean(sessionKey && sessionKey === state.currentSessionKey);
+
+    if (options.handle && sessionKey) {
+      await saveFolderHandleRecord({
+        sessionKey,
+        sourceLabel: folderLabel,
+        handle: options.handle,
+      });
+    }
+
+    if (isCurrentSessionFolder) {
+      updateFolderDigestButton();
+      setSourceMode("folder");
+      state.cacheMode = "folder";
+
+      if (state.parserMode === "lightweight") {
+        setStatus("Original folder reattached. Open Images when you're ready and I'll attach the previews then.");
+        setProgress(0, true);
+        return;
+      }
+
+      void parseFolder(files);
+      return;
+    }
+
+    const confirmed = await confirmArchiveReplacement(folderLabel);
+    if (!confirmed) {
+      elements.folderInput.value = "";
+      state.attachedFolderFiles = [];
+      updateFolderDigestButton();
+      setStatus("Kept the current archive.");
+      return;
+    }
+
+    updateFolderDigestButton();
+    setSourceMode("folder");
+    state.cacheMode = "folder";
+    setStatus("Folder selected. Choose a parser mode and click Digest Selected Folder.");
+    setProgress(0, true);
+  }
+
   elements.fileInput.addEventListener("change", async (event) => {
     const input = event.target as HTMLInputElement;
     const [file] = input.files || [];
@@ -435,42 +706,7 @@
   elements.folderInput.addEventListener("change", async (event) => {
     const input = event.target as HTMLInputElement;
     const files = input.files || [];
-    if (!files.length) {
-      updateFolderDigestButton();
-      return;
-    }
-
-    const { rootSegment: folderLabel, sessionKey } = getFolderSessionInfo(files);
-    const isCurrentSessionFolder = Boolean(sessionKey && sessionKey === state.currentSessionKey);
-
-    if (isCurrentSessionFolder) {
-      updateFolderDigestButton();
-      setSourceMode("folder");
-      state.cacheMode = "folder";
-
-      if (state.parserMode === "lightweight") {
-        setStatus("Original folder reattached. Open Images when you're ready and I'll attach the previews then.");
-        setProgress(0, true);
-        return;
-      }
-
-      void parseFolder(files);
-      return;
-    }
-
-    const confirmed = await confirmArchiveReplacement(folderLabel);
-    if (!confirmed) {
-      elements.folderInput.value = "";
-      updateFolderDigestButton();
-      setStatus("Kept the current archive.");
-      return;
-    }
-
-    updateFolderDigestButton();
-    setSourceMode("folder");
-    state.cacheMode = "folder";
-    setStatus("Folder selected. Choose a parser mode and click Digest Selected Folder.");
-    setProgress(0, true);
+    await handleFolderSelection(files);
   });
 
   elements.recentArchivesList.addEventListener("click", async (event) => {
@@ -581,7 +817,9 @@
   });
 
   elements.digestFolderButton.addEventListener("click", () => {
-    const files = elements.folderInput.files || [];
+    const files = (elements.folderInput.files && elements.folderInput.files.length)
+      ? elements.folderInput.files
+      : state.attachedFolderFiles;
     if (!files.length) {
       setStatus("Select a backup folder first.");
       return;
@@ -596,6 +834,10 @@
 
   elements.imageReattachButton.addEventListener("click", () => {
     promptFolderReattach();
+  });
+
+  elements.folderAccessButton.addEventListener("click", () => {
+    void reconnectCurrentFolderAccess({ promptIfNeeded: true });
   });
 
   elements.openChangelog.addEventListener("click", () => {
@@ -661,6 +903,7 @@
   }
 
   updateFolderDigestButton();
+  void updateFolderAccessControls();
   renderChangelog();
   void refreshRecentArchives();
   void restoreFromPickerOrCache();

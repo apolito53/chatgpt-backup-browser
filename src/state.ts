@@ -14,8 +14,9 @@ const query = <T extends Element>(selector: string): T => {
 const STORAGE_KEY = "chatgpt-backup-browser:index";
 const UI_STATE_KEY = "chatgpt-backup-browser:ui-state";
 const ARCHIVE_DB_NAME = "chatgpt-backup-browser";
-const ARCHIVE_DB_VERSION = 1;
+const ARCHIVE_DB_VERSION = 2;
 const ARCHIVE_SESSION_STORE = "sessions";
+const ARCHIVE_HANDLE_STORE = "folderHandles";
 const HIDDEN_MESSAGE_FLAGS = [
   "is_visually_hidden_from_conversation",
   "is_user_system_message",
@@ -40,6 +41,7 @@ const state: AppState = {
   selectedImageId: null,
   activeView: "conversations",
   objectUrls: [],
+  attachedFolderFiles: [],
   cacheMode: "single-file",
   sourceMode: "folder",
   conversationListPage: 0,
@@ -58,6 +60,8 @@ const elements: ElementsRegistry = {
   sourceTabButtons: Array.from(document.querySelectorAll<HTMLButtonElement>("[data-source]")),
   folderSourcePanel: query<HTMLElement>("#folder-source-panel"),
   fileSourcePanel: query<HTMLElement>("#file-source-panel"),
+  folderAccessButton: query<HTMLButtonElement>("#folder-access-button"),
+  folderAccessStatus: query<HTMLElement>("#folder-access-status"),
   parserModeSelect: query<HTMLSelectElement>("#parser-mode-select"),
   digestFolderButton: query<HTMLButtonElement>("#digest-folder"),
   recentArchivesPanel: query<HTMLElement>("#recent-archives-panel"),
@@ -238,6 +242,7 @@ window.ChatBrowser.stateModule = {
   ARCHIVE_DB_NAME,
   ARCHIVE_DB_VERSION,
   ARCHIVE_SESSION_STORE,
+  ARCHIVE_HANDLE_STORE,
   HIDDEN_MESSAGE_FLAGS,
   DEFAULT_CONVERSATION_LIST_PAGE_SIZE,
   CONVERSATION_LIST_PAGE_SIZE_OPTIONS,

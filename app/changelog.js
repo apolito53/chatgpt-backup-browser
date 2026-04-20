@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.28",
+        APP_VERSION: "0.5.29",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.29",
+                date: "April 20, 2026",
+                changes: [
+                    "Added browser-native saved folder access using directory handles where supported, so reconnecting a known backup can happen from a button click instead of browsing all over again.",
+                    "Stored the active folder handle separately from the archive index and reused it for reattach flows, lightweight image hydration, and lazy detail loading after reconnect.",
+                    "Kept the classic folder picker in place as a fallback for browsers that do not support the newer directory access API.",
+                ],
+            },
             {
                 version: "0.5.28",
                 date: "April 20, 2026",

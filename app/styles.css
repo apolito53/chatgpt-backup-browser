@@ -318,6 +318,15 @@ select {
   margin-top: 12px;
 }
 
+.folder-access-button {
+  margin-top: 12px;
+}
+
+.folder-access-status {
+  margin: 10px 2px 0;
+  line-height: 1.5;
+}
+
 #folder-input {
   width: 100%;
   margin-top: 12px;

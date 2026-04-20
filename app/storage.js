@@ -1,7 +1,7 @@
 "use strict";
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
-    const { STORAGE_KEY, ARCHIVE_DB_NAME, ARCHIVE_DB_VERSION, ARCHIVE_SESSION_STORE, state, } = window.ChatBrowser.stateModule;
+    const { STORAGE_KEY, ARCHIVE_DB_NAME, ARCHIVE_DB_VERSION, ARCHIVE_SESSION_STORE, ARCHIVE_HANDLE_STORE, state, } = window.ChatBrowser.stateModule;
     let archiveDbPromise = null;
     function requestToPromise(request) {
         return new Promise((resolve, reject) => {
@@ -27,6 +27,9 @@
                     const database = request.result;
                     if (!database.objectStoreNames.contains(ARCHIVE_SESSION_STORE)) {
                         database.createObjectStore(ARCHIVE_SESSION_STORE, { keyPath: "key" });
+                    }
+                    if (!database.objectStoreNames.contains(ARCHIVE_HANDLE_STORE)) {
+                        database.createObjectStore(ARCHIVE_HANDLE_STORE, { keyPath: "sessionKey" });
                     }
                 });
                 request.addEventListener("success", () => resolve(request.result));
@@ -201,6 +204,40 @@
         }
         return loadSessionRecord(recent[0].sessionKey);
     }
+    async function saveFolderHandleRecord({ sessionKey, sourceLabel, handle, }) {
+        const database = await openArchiveDatabase();
+        if (!database) {
+            return;
+        }
+        const transaction = database.transaction(ARCHIVE_HANDLE_STORE, "readwrite");
+        const store = transaction.objectStore(ARCHIVE_HANDLE_STORE);
+        store.put({
+            sessionKey,
+            sourceLabel,
+            savedAt: Date.now(),
+            handle,
+        });
+        await transactionToPromise(transaction);
+    }
+    async function loadFolderHandleRecord(sessionKey) {
+        const database = await openArchiveDatabase();
+        if (!database) {
+            return null;
+        }
+        const transaction = database.transaction(ARCHIVE_HANDLE_STORE, "readonly");
+        const store = transaction.objectStore(ARCHIVE_HANDLE_STORE);
+        const record = await requestToPromise(store.get(sessionKey));
+        await transactionToPromise(transaction);
+        if (!record?.handle) {
+            return null;
+        }
+        return {
+            sessionKey: record.sessionKey,
+            sourceLabel: record.sourceLabel || "",
+            savedAt: Number.isFinite(record.savedAt) ? record.savedAt : 0,
+            handle: record.handle,
+        };
+    }
     function saveIndex(index) {
         if (state.cacheMode !== "single-file") {
             return;
@@ -242,6 +279,8 @@
         loadRecentSessionRecords,
         loadSessionRecord,
         loadLatestSessionRecord,
+        saveFolderHandleRecord,
+        loadFolderHandleRecord,
         saveIndex,
         loadSavedIndex,
         revokeObjectUrls,

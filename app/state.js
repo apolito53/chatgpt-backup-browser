@@ -12,8 +12,9 @@
     const STORAGE_KEY = "chatgpt-backup-browser:index";
     const UI_STATE_KEY = "chatgpt-backup-browser:ui-state";
     const ARCHIVE_DB_NAME = "chatgpt-backup-browser";
-    const ARCHIVE_DB_VERSION = 1;
+    const ARCHIVE_DB_VERSION = 2;
     const ARCHIVE_SESSION_STORE = "sessions";
+    const ARCHIVE_HANDLE_STORE = "folderHandles";
     const HIDDEN_MESSAGE_FLAGS = [
         "is_visually_hidden_from_conversation",
         "is_user_system_message",
@@ -37,6 +38,7 @@
         selectedImageId: null,
         activeView: "conversations",
         objectUrls: [],
+        attachedFolderFiles: [],
         cacheMode: "single-file",
         sourceMode: "folder",
         conversationListPage: 0,
@@ -54,6 +56,8 @@
         sourceTabButtons: Array.from(document.querySelectorAll("[data-source]")),
         folderSourcePanel: query("#folder-source-panel"),
         fileSourcePanel: query("#file-source-panel"),
+        folderAccessButton: query("#folder-access-button"),
+        folderAccessStatus: query("#folder-access-status"),
         parserModeSelect: query("#parser-mode-select"),
         digestFolderButton: query("#digest-folder"),
         recentArchivesPanel: query("#recent-archives-panel"),
@@ -224,6 +228,7 @@
         ARCHIVE_DB_NAME,
         ARCHIVE_DB_VERSION,
         ARCHIVE_SESSION_STORE,
+        ARCHIVE_HANDLE_STORE,
         HIDDEN_MESSAGE_FLAGS,
         DEFAULT_CONVERSATION_LIST_PAGE_SIZE,
         CONVERSATION_LIST_PAGE_SIZE_OPTIONS,
