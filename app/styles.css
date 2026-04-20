@@ -631,18 +631,12 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-}
-
-.list-page-jump label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   color: var(--muted);
   font-size: 0.88rem;
 }
 
-.list-page-jump input {
-  width: 72px;
+.list-page-jump select {
+  min-width: 92px;
 }
 
 .conversation-item {

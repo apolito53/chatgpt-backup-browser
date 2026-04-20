@@ -8,7 +8,34 @@ $serverScript = Join-Path $PSScriptRoot "serve.mjs"
 $defaultPort = if ($env:CHATGPT_BROWSER_PORT) { $env:CHATGPT_BROWSER_PORT } else { "4173" }
 $startPage = if ($env:CHATGPT_BROWSER_PAGE) { $env:CHATGPT_BROWSER_PAGE } else { "app/index.html" }
 
-if (Test-Path $buildScript) {
+function Test-BuildRequired {
+  if (-not (Test-Path $buildScript)) {
+    return $false
+  }
+
+  $sourceFiles = @(
+    Get-ChildItem -Path (Join-Path $projectRoot 'src') -Recurse -File -Include *.ts,*.d.ts -ErrorAction SilentlyContinue
+  ) + @(
+    Get-Item -LiteralPath (Join-Path $projectRoot 'tsconfig.json') -ErrorAction SilentlyContinue
+  ) + @(
+    Get-Item -LiteralPath (Join-Path $projectRoot 'jsconfig.json') -ErrorAction SilentlyContinue
+  ) | Where-Object { $_ }
+
+  if (-not $sourceFiles.Count) {
+    return $false
+  }
+
+  $builtFiles = Get-ChildItem -Path (Join-Path $projectRoot 'app') -Recurse -File -Filter *.js -ErrorAction SilentlyContinue
+  if (-not $builtFiles.Count) {
+    return $true
+  }
+
+  $latestSource = ($sourceFiles | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1).LastWriteTimeUtc
+  $latestBuild = ($builtFiles | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1).LastWriteTimeUtc
+  return $latestSource -gt $latestBuild
+}
+
+if (Test-BuildRequired) {
   & powershell -ExecutionPolicy Bypass -File $buildScript
 }
 
@@ -27,6 +54,7 @@ $arguments = @($serverScript)
 $serverProcess = Start-Process -FilePath $localNode -ArgumentList $arguments -WorkingDirectory $projectRoot -PassThru -WindowStyle Hidden
 
 $resolvedPort = $defaultPort
+$serverReady = $false
 try {
   for ($attempt = 0; $attempt -lt 40; $attempt += 1) {
     $connections = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
@@ -38,6 +66,7 @@ try {
         $response = Invoke-WebRequest -Uri "http://127.0.0.1:$($connection.LocalPort)/$startPage" -UseBasicParsing -TimeoutSec 1
         if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 400) {
           $resolvedPort = $connection.LocalPort
+          $serverReady = $true
           break
         }
       } catch {
@@ -45,7 +74,7 @@ try {
       }
     }
 
-    if ($resolvedPort -ne $defaultPort) {
+    if ($serverReady) {
       break
     }
 

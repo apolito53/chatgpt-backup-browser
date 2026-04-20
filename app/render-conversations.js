@@ -218,6 +218,12 @@ function updateConversationListPager() {
   const totalPages = getConversationListPageCount();
   const currentPage = state.conversationListPage + 1;
   const label = `${currentPage} of ${totalPages}`;
+  const pageOptions = Array.from({ length: totalPages }, (_, index) => {
+    const option = document.createElement("option");
+    option.value = String(index + 1);
+    option.textContent = String(index + 1);
+    return option;
+  });
 
   elements.listPagerTop.hidden = !isVisible;
   elements.listPagerBottom.hidden = !isVisible;
@@ -225,10 +231,10 @@ function updateConversationListPager() {
   elements.listPagePositionBottom.textContent = label;
   elements.listPageSizeTop.value = String(state.conversationListPageSize);
   elements.listPageSizeBottom.value = String(state.conversationListPageSize);
+  elements.listPageInputTop.replaceChildren(...pageOptions.map((option) => option.cloneNode(true)));
+  elements.listPageInputBottom.replaceChildren(...pageOptions);
   elements.listPageInputTop.value = String(currentPage);
   elements.listPageInputBottom.value = String(currentPage);
-  elements.listPageInputTop.max = String(totalPages);
-  elements.listPageInputBottom.max = String(totalPages);
 
   const disablePrev = state.conversationListPage <= 0;
   const disableNext = state.conversationListPage >= totalPages - 1;

@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.22",
+  APP_VERSION: "0.5.23",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.23",
+      date: "April 19, 2026",
+      changes: [
+        "Speeded up the launcher by skipping the TypeScript rebuild on startup when the compiled browser files are already current.",
+        "Replaced the list pager's manual page number box and Go button with a page dropdown selector that jumps immediately on change.",
+      ],
+    },
     {
       version: "0.5.22",
       date: "April 19, 2026",

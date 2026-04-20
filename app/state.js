@@ -79,8 +79,6 @@
         listPagePositionBottom: query("#list-page-position-bottom"),
         listPageSizeTop: query("#list-page-size-top"),
         listPageSizeBottom: query("#list-page-size-bottom"),
-        listPageJumpTop: query("#list-page-jump-top"),
-        listPageJumpBottom: query("#list-page-jump-bottom"),
         listPageInputTop: query("#list-page-input-top"),
         listPageInputBottom: query("#list-page-input-bottom"),
         resultCaption: query("#result-caption"),

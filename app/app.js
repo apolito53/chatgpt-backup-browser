@@ -427,13 +427,11 @@ elements.listPageSizeBottom.addEventListener("change", (event) => {
   setConversationListPageSize(event.target.value);
 });
 
-elements.listPageJumpTop.addEventListener("submit", (event) => {
-  event.preventDefault();
+elements.listPageInputTop.addEventListener("change", () => {
   jumpConversationListPage(elements.listPageInputTop.value);
 });
 
-elements.listPageJumpBottom.addEventListener("submit", (event) => {
-  event.preventDefault();
+elements.listPageInputBottom.addEventListener("change", () => {
   jumpConversationListPage(elements.listPageInputBottom.value);
 });
 

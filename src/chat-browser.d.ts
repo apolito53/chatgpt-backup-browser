@@ -111,10 +111,8 @@ interface ElementsRegistry {
   listPagePositionBottom: HTMLElement;
   listPageSizeTop: HTMLSelectElement;
   listPageSizeBottom: HTMLSelectElement;
-  listPageJumpTop: HTMLFormElement;
-  listPageJumpBottom: HTMLFormElement;
-  listPageInputTop: HTMLInputElement;
-  listPageInputBottom: HTMLInputElement;
+  listPageInputTop: HTMLSelectElement;
+  listPageInputBottom: HTMLSelectElement;
   resultCaption: HTMLElement;
   browserView: HTMLElement;
   statConversations: HTMLElement;
