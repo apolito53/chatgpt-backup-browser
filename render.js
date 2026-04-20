@@ -15,6 +15,7 @@
             button.setAttribute("aria-pressed", String(isActive));
         }
         elements.roleWrap.hidden = view !== "conversations";
+        elements.modelWrap.hidden = view !== "conversations";
         elements.searchInput.placeholder = view === "images"
             ? "Search image filenames or paths"
             : "Search titles, messages, or both";

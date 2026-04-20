@@ -259,6 +259,12 @@ elements.roleSelect.addEventListener("change", () => {
   saveUiState();
 });
 
+elements.modelSelect.addEventListener("change", () => {
+  state.modelFilter = elements.modelSelect.value || "all";
+  renderActiveView();
+  saveUiState();
+});
+
 elements.prevConversationTop.addEventListener("click", () => {
   moveConversationSelection(-1);
 });

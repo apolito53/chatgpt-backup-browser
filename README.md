@@ -12,6 +12,7 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - Precomputes message-to-image attachment mappings instead of re-scanning the archive on every render
 - Includes a small in-app changelog modal so the tool can show versioned changes without taking over the UI
 - Lets you filter by role (`user`, `assistant`, `system`)
+- Lets you filter conversations by model when the export includes `model_slug` or `default_model_slug`
 - Sorts by update time, create time, title, or message count
 - Shows a clean reading view for the currently selected conversation
 - Includes an image gallery plus preview panel when you load the folder

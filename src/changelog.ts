@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.2",
+  APP_VERSION: "0.5.3",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.3",
+      date: "April 19, 2026",
+      changes: [
+        "Added model-aware conversation filtering so you can narrow the archive by model_slug or default_model_slug.",
+        "Surfaced the selected conversation model in the list and conversation header for faster scanning.",
+        "Made model filtering part of the saved UI state so refreshes keep the same model view.",
+      ],
+    },
     {
       version: "0.5.2",
       date: "April 19, 2026",

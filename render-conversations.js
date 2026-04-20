@@ -7,6 +7,81 @@ const { CONVERSATION_LIST_PAGE_SIZE_OPTIONS, state, elements, saveUiState } = wi
 const { resolveMessageImages } = window.ChatBrowser.attachments;
 const { formatDate, escapeHtml } = window.ChatBrowser.ui;
 
+function normalizeModelSlug(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getConversationModelCandidates(conversation) {
+  const candidates = [];
+
+  for (const value of [conversation?.modelSlug, conversation?.defaultModelSlug]) {
+    const normalized = normalizeModelSlug(value);
+    if (normalized && !candidates.includes(normalized)) {
+      candidates.push(normalized);
+    }
+  }
+
+  return candidates;
+}
+
+function formatConversationModel(conversation) {
+  const candidates = getConversationModelCandidates(conversation);
+  if (!candidates.length) {
+    return "Unknown model";
+  }
+
+  if (candidates.length === 1 || candidates[0] === candidates[1]) {
+    return candidates[0];
+  }
+
+  return `${candidates[0]} (default ${candidates[1]})`;
+}
+
+function createModelOption(label, value) {
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = label;
+  return option;
+}
+
+function syncModelFilterOptions() {
+  if (!state.index) {
+    return;
+  }
+
+  const currentValue = state.modelFilter || "all";
+  const modelValues = new Set();
+  let hasUnknown = false;
+
+  for (const conversation of state.index.conversations) {
+    const candidates = getConversationModelCandidates(conversation);
+    if (!candidates.length) {
+      hasUnknown = true;
+      continue;
+    }
+
+    for (const candidate of candidates) {
+      modelValues.add(candidate);
+    }
+  }
+
+  const nextOptions = [createModelOption("All models", "all")];
+
+  if (hasUnknown) {
+    nextOptions.push(createModelOption("Unknown model", "unknown"));
+  }
+
+  for (const model of Array.from(modelValues).sort((a, b) => a.localeCompare(b))) {
+    nextOptions.push(createModelOption(model, model));
+  }
+
+  elements.modelSelect.replaceChildren(...nextOptions);
+
+  const optionValues = new Set(nextOptions.map((option) => option.value));
+  state.modelFilter = optionValues.has(currentValue) ? currentValue : "all";
+  elements.modelSelect.value = state.modelFilter;
+}
+
 function getRoleLabel(message) {
   if (message.authorName) {
     return `${message.role} (${message.authorName})`;
@@ -140,12 +215,29 @@ function roleFilterMatches(conversation, role) {
   return conversation.messages.some((message) => message.role === role);
 }
 
+function modelFilterMatches(conversation, modelFilter) {
+  if (modelFilter === "all") {
+    return true;
+  }
+
+  const candidates = getConversationModelCandidates(conversation);
+  if (modelFilter === "unknown") {
+    return candidates.length === 0;
+  }
+
+  return candidates.includes(modelFilter);
+}
+
 function searchMatchesConversation(conversation, query, role) {
   if (!query) {
     return true;
   }
 
   const lowerQuery = query.toLowerCase();
+  if (getConversationModelCandidates(conversation).some((candidate) => candidate.toLowerCase().includes(lowerQuery))) {
+    return true;
+  }
+
   if (role === "all") {
     return conversation.searchBlob.includes(lowerQuery);
   }
@@ -172,6 +264,7 @@ function renderConversation(conversation) {
     elements.conversationView.hidden = true;
     elements.conversationRawDetails.open = false;
     elements.conversationRawOutput.textContent = "No conversation selected.";
+    elements.conversationModel.textContent = "";
     updateConversationPager();
     updateConversationListPager();
     return;
@@ -181,6 +274,7 @@ function renderConversation(conversation) {
   elements.conversationView.hidden = false;
   elements.conversationTitle.textContent = conversation.title;
   elements.conversationDates.textContent = `Created ${formatDate(conversation.createdAt)} | Updated ${formatDate(conversation.updatedAt)}`;
+  elements.conversationModel.textContent = `Model ${formatConversationModel(conversation)}`;
   elements.conversationCount.textContent = `${visibleMessages.length} visible message${visibleMessages.length === 1 ? "" : "s"}`;
 
   if (!visibleMessages.length) {
@@ -421,8 +515,11 @@ function renderConversationsView() {
     return;
   }
 
+  syncModelFilterOptions();
+
   state.filteredConversations = state.index.conversations
     .filter((conversation) => roleFilterMatches(conversation, role))
+    .filter((conversation) => modelFilterMatches(conversation, state.modelFilter))
     .filter((conversation) => searchMatchesConversation(conversation, query, role))
     .sort((a, b) => compareConversations(a, b, sort));
 
@@ -430,7 +527,7 @@ function renderConversationsView() {
   elements.statResults.textContent = String(state.filteredConversations.length);
 
   if (!state.filteredConversations.length) {
-    elements.conversationList.innerHTML = '<div class="empty-note">No conversation matches. Try a different search or role filter.</div>';
+    elements.conversationList.innerHTML = '<div class="empty-note">No conversation matches. Try a different search, role filter, or model filter.</div>';
     state.conversationListPage = 0;
     updateConversationListPager();
     renderConversation(null);
@@ -460,6 +557,7 @@ function renderConversationsView() {
       <div class="conversation-item-meta">
         <span>${conversation.messageCount} messages</span>
         <span>${escapeHtml(formatDate(conversation.updatedAt))}</span>
+        <span>${escapeHtml(formatConversationModel(conversation))}</span>
       </div>
     `;
 

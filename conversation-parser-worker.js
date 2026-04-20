@@ -159,6 +159,29 @@ function hasStructuredMessageContent(message) {
   return contentCandidates.length > 0 || metadataCandidates.length > 0;
 }
 
+function normalizeModelSlug(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getConversationModelInfo(conversation) {
+  const metadata = conversation?.metadata && typeof conversation.metadata === "object" ? conversation.metadata : {};
+  const candidates = [
+    conversation?.model_slug,
+    conversation?.default_model_slug,
+    metadata.model_slug,
+    metadata.default_model_slug,
+  ];
+
+  const normalized = candidates.map(normalizeModelSlug).filter(Boolean);
+  const modelSlug = normalized[0] || "";
+  const defaultModelSlug = normalized[1] || "";
+
+  return {
+    modelSlug,
+    defaultModelSlug,
+  };
+}
+
 function isVisibleMessage(message) {
   if (!message) {
     return false;
@@ -193,6 +216,7 @@ function summarizeConversation(conversation, index) {
   const orderedIds = lineageForConversation(conversation);
   const conversationId = conversation.conversation_id || conversation.id || `conversation-${index}`;
   const messages = [];
+  const { modelSlug, defaultModelSlug } = getConversationModelInfo(conversation);
 
   for (const id of orderedIds) {
     const node = conversation.mapping?.[id];
@@ -226,13 +250,15 @@ function summarizeConversation(conversation, index) {
     ? previewSource.text.replace(/\s+/g, " ").slice(0, 180)
     : "No visible message content in the selected branch.";
 
-  const searchBlob = `${title}\n${messages.map((message) => `${message.role}\n${message.text}`).join("\n")}`.toLowerCase();
+  const searchBlob = `${title}\n${modelSlug}\n${defaultModelSlug}\n${messages.map((message) => `${message.role}\n${message.text}`).join("\n")}`.toLowerCase();
 
   return {
     id: conversationId,
     title,
     createdAt: conversation.create_time || null,
     updatedAt: conversation.update_time || null,
+    modelSlug,
+    defaultModelSlug,
     preview,
     messageCount: messages.length,
     messages,

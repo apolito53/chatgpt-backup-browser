@@ -41,6 +41,7 @@
         sourceMode: "folder",
         conversationListPage: 0,
         conversationListPageSize: DEFAULT_CONVERSATION_LIST_PAGE_SIZE,
+        modelFilter: "all",
         rawConversationMap: new Map(),
         messageAssetMap: new Map(),
         currentSessionKey: null,
@@ -59,6 +60,8 @@
         sortSelect: query("#sort-select"),
         roleWrap: query("#role-filter-wrap"),
         roleSelect: query("#role-select"),
+        modelWrap: query("#model-filter-wrap"),
+        modelSelect: query("#model-select"),
         status: query("#status"),
         progress: query("#progress"),
         tabButtons: Array.from(document.querySelectorAll("[data-view]")),
@@ -88,6 +91,7 @@
         conversationTitle: query("#conversation-title"),
         conversationDates: query("#conversation-dates"),
         conversationCount: query("#conversation-count"),
+        conversationModel: query("#conversation-model"),
         conversationMessages: query("#conversation-messages"),
         conversationRawDetails: query("#conversation-raw-details"),
         conversationRawOutput: query("#conversation-raw-output"),
@@ -122,6 +126,7 @@
             sourceMode: state.sourceMode,
             conversationListPage: state.conversationListPage,
             conversationListPageSize: state.conversationListPageSize,
+            modelFilter: state.modelFilter,
             parserMode: state.parserMode,
         };
         try {
@@ -187,11 +192,15 @@
         if (uiState.sourceMode === "file" || uiState.sourceMode === "folder") {
             setSourceMode(uiState.sourceMode);
         }
+        if (typeof uiState.modelFilter === "string") {
+            state.modelFilter = uiState.modelFilter;
+        }
         if (uiState.parserMode === "lightweight" || uiState.parserMode === "robust") {
             state.parserMode = uiState.parserMode;
         }
         elements.listPageSizeTop.value = String(state.conversationListPageSize);
         elements.listPageSizeBottom.value = String(state.conversationListPageSize);
+        elements.modelSelect.value = state.modelFilter;
         elements.parserModeSelect.value = state.parserMode;
     }
     window.ChatBrowser.stateModule = {

@@ -17,7 +17,7 @@
             and stop wrestling your archive like it insulted your family.
           </p>
           <div class="brand-actions">
-            <span id="app-version" class="version-pill">v0.5.2</span>
+            <span id="app-version" class="version-pill">v0.5.3</span>
             <button
               id="open-changelog"
               class="link-button"
@@ -113,6 +113,14 @@
                   <option value="system">System only</option>
                 </select>
               </label>
+
+              <label id="model-filter-wrap">
+                <span>Model filter</span>
+                <select id="model-select">
+                  <option value="all">All models</option>
+                  <option value="unknown">Unknown model</option>
+                </select>
+              </label>
             </div>
           </div>
 
@@ -198,6 +206,7 @@
             </div>
             <div class="conversation-meta">
               <span id="conversation-dates"></span>
+              <span id="conversation-model"></span>
               <span id="conversation-count"></span>
             </div>
           </header>

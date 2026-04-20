@@ -17,6 +17,8 @@ interface ConversationRecord {
   title: string;
   createdAt?: number | null;
   updatedAt?: number | null;
+  modelSlug?: string | null;
+  defaultModelSlug?: string | null;
   preview: string;
   searchBlob: string;
   messageCount: number;
@@ -59,6 +61,7 @@ interface AppState {
   sourceMode: SourceMode;
   conversationListPage: number;
   conversationListPageSize: number;
+  modelFilter: string;
   rawConversationMap: Map<string, unknown>;
   messageAssetMap: Map<string, unknown[]>;
   currentSessionKey: string | null;
@@ -78,6 +81,8 @@ interface ElementsRegistry {
   sortSelect: HTMLSelectElement;
   roleWrap: HTMLElement;
   roleSelect: HTMLSelectElement;
+  modelWrap: HTMLElement;
+  modelSelect: HTMLSelectElement;
   status: HTMLElement;
   progress: HTMLProgressElement;
   tabButtons: HTMLButtonElement[];
@@ -107,6 +112,7 @@ interface ElementsRegistry {
   conversationTitle: HTMLElement;
   conversationDates: HTMLElement;
   conversationCount: HTMLElement;
+  conversationModel: HTMLElement;
   conversationMessages: HTMLElement;
   conversationRawDetails: HTMLDetailsElement;
   conversationRawOutput: HTMLElement;
@@ -141,6 +147,7 @@ interface UiStatePayload {
   sourceMode: SourceMode;
   conversationListPage: number;
   conversationListPageSize: number;
+  modelFilter: string;
   parserMode: ParserMode;
 }
 

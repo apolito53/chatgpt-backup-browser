@@ -44,6 +44,7 @@ const state: AppState = {
   sourceMode: "folder",
   conversationListPage: 0,
   conversationListPageSize: DEFAULT_CONVERSATION_LIST_PAGE_SIZE,
+  modelFilter: "all",
   rawConversationMap: new Map(),
   messageAssetMap: new Map(),
   currentSessionKey: null,
@@ -63,6 +64,8 @@ const elements: ElementsRegistry = {
   sortSelect: query<HTMLSelectElement>("#sort-select"),
   roleWrap: query<HTMLElement>("#role-filter-wrap"),
   roleSelect: query<HTMLSelectElement>("#role-select"),
+  modelWrap: query<HTMLElement>("#model-filter-wrap"),
+  modelSelect: query<HTMLSelectElement>("#model-select"),
   status: query<HTMLElement>("#status"),
   progress: query<HTMLProgressElement>("#progress"),
   tabButtons: Array.from(document.querySelectorAll<HTMLButtonElement>("[data-view]")),
@@ -92,6 +95,7 @@ const elements: ElementsRegistry = {
   conversationTitle: query<HTMLElement>("#conversation-title"),
   conversationDates: query<HTMLElement>("#conversation-dates"),
   conversationCount: query<HTMLElement>("#conversation-count"),
+  conversationModel: query<HTMLElement>("#conversation-model"),
   conversationMessages: query<HTMLElement>("#conversation-messages"),
   conversationRawDetails: query<HTMLDetailsElement>("#conversation-raw-details"),
   conversationRawOutput: query<HTMLElement>("#conversation-raw-output"),
@@ -127,6 +131,7 @@ function saveUiState(): void {
     sourceMode: state.sourceMode,
     conversationListPage: state.conversationListPage,
     conversationListPageSize: state.conversationListPageSize,
+    modelFilter: state.modelFilter,
     parserMode: state.parserMode,
   };
 
@@ -199,12 +204,16 @@ function applyUiState(uiState: UiStatePayload | null): void {
   if (uiState.sourceMode === "file" || uiState.sourceMode === "folder") {
     setSourceMode(uiState.sourceMode);
   }
+  if (typeof uiState.modelFilter === "string") {
+    state.modelFilter = uiState.modelFilter;
+  }
   if (uiState.parserMode === "lightweight" || uiState.parserMode === "robust") {
     state.parserMode = uiState.parserMode;
   }
 
   elements.listPageSizeTop.value = String(state.conversationListPageSize);
   elements.listPageSizeBottom.value = String(state.conversationListPageSize);
+  elements.modelSelect.value = state.modelFilter;
   elements.parserModeSelect.value = state.parserMode;
 }
 
