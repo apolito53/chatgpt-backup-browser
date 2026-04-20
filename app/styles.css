@@ -437,7 +437,13 @@ select {
 
 .image-view-switch {
   width: min(320px, 100%);
-  margin-bottom: 6px;
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+.image-header-copy {
+  display: flex;
+  flex-direction: column;
 }
 
 .view-tab {
@@ -1476,6 +1482,7 @@ progress {
 
   .image-view-switch {
     width: 100%;
+    margin-top: 12px;
   }
 
   .image-layout {
