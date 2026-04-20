@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.19",
+  APP_VERSION: "0.5.20",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.20",
+      date: "April 19, 2026",
+      changes: [
+        "Renamed the quiet Explorer launcher to START_BROWSER.vbs so the obvious thing to click is finally the obvious thing to click.",
+        "Left the older launcher filenames in place as thin forwarding wrappers so existing shortcuts and habits do not immediately break.",
+      ],
+    },
     {
       version: "0.5.19",
       date: "April 19, 2026",
