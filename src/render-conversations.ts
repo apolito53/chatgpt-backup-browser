@@ -819,7 +819,8 @@
               sessionKey: state.currentSessionKey,
               sourceMode,
               sourceLabel,
-              index: state.index,
+              stats: state.index.stats,
+              selectedConversation: conversation,
             });
 
             try {

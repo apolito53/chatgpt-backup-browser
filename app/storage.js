@@ -283,15 +283,15 @@
             return null;
         }
     }
-    function saveWindowSessionHandoff({ sessionKey, sourceMode, sourceLabel, index, }) {
+    function saveWindowSessionHandoff({ sessionKey, sourceMode, sourceLabel, stats, selectedConversation, }) {
         try {
             window.name = `${WINDOW_SESSION_HANDOFF_PREFIX}${JSON.stringify({
                 key: sessionKey,
                 sourceMode,
                 sourceLabel,
                 savedAt: Date.now(),
-                index: serializeIndexForStorage(index),
-                rawConversationEntries: Array.from((index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map()).entries()),
+                stats,
+                selectedConversation,
             })}`;
         }
         catch (error) {
@@ -307,7 +307,18 @@
             if (!record || record.key !== sessionKey) {
                 return null;
             }
-            const index = deserializeStoredIndex(record);
+            const selectedConversation = record.selectedConversation && typeof record.selectedConversation === "object"
+                ? record.selectedConversation
+                : null;
+            const conversations = selectedConversation ? [selectedConversation] : [];
+            const index = normalizeIndex({
+                source: record.sourceLabel || "cached session",
+                conversations,
+                images: [],
+                stats: record.stats,
+                rawConversationMap: new Map(),
+                messageAssetMap: new Map(),
+            });
             if (!index) {
                 return null;
             }

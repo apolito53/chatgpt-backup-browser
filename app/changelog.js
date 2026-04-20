@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.41",
+        APP_VERSION: "0.5.42",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.42",
+                date: "April 20, 2026",
+                changes: [
+                    "Slimmed the window handoff down to a minimal reader snapshot instead of trying to carry the whole archive through same-tab navigation.",
+                    "The conversation reader can now at least restore the selected conversation and archive stats immediately, even if the full archive restore is still catching up or unavailable.",
+                ],
+            },
             {
                 version: "0.5.41",
                 date: "April 20, 2026",

@@ -376,12 +376,14 @@
     sessionKey,
     sourceMode,
     sourceLabel,
-    index,
+    stats,
+    selectedConversation,
   }: {
     sessionKey: string;
     sourceMode: SourceMode;
     sourceLabel: string;
-    index: ArchiveIndex;
+    stats: ArchiveStats;
+    selectedConversation: ConversationRecord | null;
   }): void {
     try {
       window.name = `${WINDOW_SESSION_HANDOFF_PREFIX}${JSON.stringify({
@@ -389,10 +391,8 @@
         sourceMode,
         sourceLabel,
         savedAt: Date.now(),
-        index: serializeIndexForStorage(index),
-        rawConversationEntries: Array.from(
-          (index.rawConversationMap instanceof Map ? index.rawConversationMap : new Map()).entries(),
-        ),
+        stats,
+        selectedConversation,
       })}`;
     } catch (error) {
       console.warn("Failed to save window session handoff cache:", error);
@@ -410,7 +410,18 @@
         return null;
       }
 
-      const index = deserializeStoredIndex(record);
+      const selectedConversation = record.selectedConversation && typeof record.selectedConversation === "object"
+        ? record.selectedConversation as ConversationRecord
+        : null;
+      const conversations = selectedConversation ? [selectedConversation] : [];
+      const index = normalizeIndex({
+        source: record.sourceLabel || "cached session",
+        conversations,
+        images: [],
+        stats: record.stats,
+        rawConversationMap: new Map(),
+        messageAssetMap: new Map(),
+      });
       if (!index) {
         return null;
       }
