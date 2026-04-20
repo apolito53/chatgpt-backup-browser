@@ -29,12 +29,13 @@
     }
     function buildRestoreStatusMessage(sessionRecord) {
         return sessionRecord.sourceMode === "folder"
-            ? `Restored cached folder index for ${sessionRecord.sourceLabel}. Re-select the backup folder to reattach live image previews.`
+            ? `Restored cached folder index for ${sessionRecord.sourceLabel}. This is not lightweight mode being weird. Browser refreshes cannot keep live folder access, so re-select the backup folder in the sidebar to reattach image previews.`
             : `Restored cached session for ${sessionRecord.sourceLabel}.`;
     }
     function applyStoredSession(sessionRecord) {
         state.cacheMode = sessionRecord.sourceMode === "folder" ? "folder" : "single-file";
         state.currentSessionKey = sessionRecord.sessionKey;
+        setSourceMode(sessionRecord.sourceMode);
         revokeObjectUrls();
         applyIndex(sessionRecord.index, buildRestoreStatusMessage(sessionRecord));
     }

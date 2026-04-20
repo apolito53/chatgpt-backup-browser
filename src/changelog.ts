@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.25",
+  APP_VERSION: "0.5.26",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.26",
+      date: "April 20, 2026",
+      changes: [
+        "Moved the backup loader controls into the browser sidebar so switching or reattaching a backup stays available even after an archive auto-restores.",
+        "Clarified the restored-folder status message so missing image previews are explained as a browser refresh limitation, not the wrong digest mode.",
+        "Synced the source tabs to the restored session type so cached folder and file sessions reopen with the right loader visible.",
+      ],
+    },
     {
       version: "0.5.25",
       date: "April 20, 2026",

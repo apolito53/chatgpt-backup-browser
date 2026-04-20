@@ -493,6 +493,11 @@ select {
   flex-direction: column;
 }
 
+.sidebar-import-panel {
+  display: flex;
+  flex-direction: column;
+}
+
 .browser-content,
 .conversation-content {
   display: flex;
