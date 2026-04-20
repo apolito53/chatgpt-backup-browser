@@ -121,6 +121,13 @@ const elements: ElementsRegistry = {
   changelogModal: query<HTMLElement>("#changelog-modal"),
   changelogList: query<HTMLElement>("#changelog-list"),
   changelogCloseTargets: Array.from(document.querySelectorAll<HTMLElement>("[data-close-changelog]")),
+  confirmModal: query<HTMLElement>("#confirm-modal"),
+  confirmBackdrop: query<HTMLElement>("#confirm-backdrop"),
+  confirmTitle: query<HTMLElement>("#confirm-title"),
+  confirmMessage: query<HTMLElement>("#confirm-message"),
+  confirmCancelTop: query<HTMLButtonElement>("#confirm-cancel-top"),
+  confirmCancel: query<HTMLButtonElement>("#confirm-cancel"),
+  confirmAccept: query<HTMLButtonElement>("#confirm-accept"),
 };
 
 function saveUiState(): void {

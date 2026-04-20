@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.8",
+  APP_VERSION: "0.5.9",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.9",
+      date: "April 19, 2026",
+      changes: [
+        "Replaced the upload replacement browser prompt with a custom in-app confirmation modal.",
+        "Only show the replacement confirmation when a new file or folder would actually displace an archive already loaded in the viewer.",
+        "Kept the existing upload flow fast for first-time loads while giving replacement uploads a more consistent UI.",
+      ],
+    },
     {
       version: "0.5.8",
       date: "April 19, 2026",

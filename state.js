@@ -117,6 +117,13 @@
         changelogModal: query("#changelog-modal"),
         changelogList: query("#changelog-list"),
         changelogCloseTargets: Array.from(document.querySelectorAll("[data-close-changelog]")),
+        confirmModal: query("#confirm-modal"),
+        confirmBackdrop: query("#confirm-backdrop"),
+        confirmTitle: query("#confirm-title"),
+        confirmMessage: query("#confirm-message"),
+        confirmCancelTop: query("#confirm-cancel-top"),
+        confirmCancel: query("#confirm-cancel"),
+        confirmAccept: query("#confirm-accept"),
     };
     function saveUiState() {
         const payload = {

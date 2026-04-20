@@ -138,6 +138,13 @@ interface ElementsRegistry {
   changelogModal: HTMLElement;
   changelogList: HTMLElement;
   changelogCloseTargets: HTMLElement[];
+  confirmModal: HTMLElement;
+  confirmBackdrop: HTMLElement;
+  confirmTitle: HTMLElement;
+  confirmMessage: HTMLElement;
+  confirmCancelTop: HTMLButtonElement;
+  confirmCancel: HTMLButtonElement;
+  confirmAccept: HTMLButtonElement;
 }
 
 interface UiStatePayload {
@@ -191,6 +198,7 @@ interface UiModule {
   escapeHtml(value: string): string;
   renderChangelog(): void;
   setChangelogOpen(isOpen: boolean): void;
+  confirmAction(options?: { title?: string; message?: string; acceptLabel?: string; cancelLabel?: string }): Promise<boolean>;
 }
 
 interface ChatBrowserNamespace {

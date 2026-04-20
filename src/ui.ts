@@ -5,6 +5,7 @@ window.ChatBrowser = window.ChatBrowser || {};
 
 const { APP_VERSION, CHANGELOG_ENTRIES } = window.ChatBrowser.changelog!;
 const { elements } = window.ChatBrowser.stateModule!;
+let pendingConfirmResolver: ((value: boolean) => void) | null = null;
 
 function setStatus(message: string): void {
   elements.status.textContent = message;
@@ -90,6 +91,60 @@ function setChangelogOpen(isOpen: boolean): void {
   document.body.classList.toggle("modal-open", isOpen);
 }
 
+function closeConfirmModal(result: boolean): void {
+  elements.confirmModal.hidden = true;
+  if (pendingConfirmResolver) {
+    const resolve = pendingConfirmResolver;
+    pendingConfirmResolver = null;
+    resolve(result);
+  }
+
+  if (elements.changelogModal.hidden) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+function confirmAction(options: {
+  title?: string;
+  message?: string;
+  acceptLabel?: string;
+  cancelLabel?: string;
+} = {}): Promise<boolean> {
+  if (pendingConfirmResolver) {
+    pendingConfirmResolver(false);
+    pendingConfirmResolver = null;
+  }
+
+  elements.confirmTitle.textContent = options.title || "Are you sure?";
+  elements.confirmMessage.textContent = options.message || "Please confirm before continuing.";
+  const cancelLabel = options.cancelLabel || "Cancel";
+  elements.confirmCancelTop.textContent = cancelLabel;
+  elements.confirmCancel.textContent = cancelLabel;
+  elements.confirmAccept.textContent = options.acceptLabel || "Continue";
+  elements.confirmModal.hidden = false;
+  document.body.classList.add("modal-open");
+
+  return new Promise((resolve) => {
+    pendingConfirmResolver = resolve;
+  });
+}
+
+elements.confirmBackdrop.addEventListener("click", () => {
+  closeConfirmModal(false);
+});
+
+elements.confirmCancelTop.addEventListener("click", () => {
+  closeConfirmModal(false);
+});
+
+elements.confirmCancel.addEventListener("click", () => {
+  closeConfirmModal(false);
+});
+
+elements.confirmAccept.addEventListener("click", () => {
+  closeConfirmModal(true);
+});
+
 window.ChatBrowser.ui = {
   setStatus,
   setProgress,
@@ -98,5 +153,6 @@ window.ChatBrowser.ui = {
   escapeHtml,
   renderChangelog,
   setChangelogOpen,
+  confirmAction,
 };
 })();

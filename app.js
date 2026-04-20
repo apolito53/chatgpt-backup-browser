@@ -4,7 +4,7 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 const { state, elements, saveUiState, loadUiState, applyUiState, setSourceMode } = window.ChatBrowser.stateModule;
-const { setStatus, setProgress, renderChangelog, setChangelogOpen } = window.ChatBrowser.ui;
+const { setStatus, setProgress, renderChangelog, setChangelogOpen, confirmAction } = window.ChatBrowser.ui;
 const {
   buildFileFingerprint,
   buildSessionKey,
@@ -32,6 +32,23 @@ const {
 function updateFolderDigestButton() {
   const hasFolderSelection = Boolean(elements.folderInput.files && elements.folderInput.files.length);
   elements.digestFolderButton.disabled = !hasFolderSelection;
+}
+
+function hasLoadedArchive() {
+  return Boolean(state.index && (state.index.conversations.length || state.index.images.length));
+}
+
+async function confirmArchiveReplacement(nextSourceLabel) {
+  if (!hasLoadedArchive()) {
+    return true;
+  }
+
+  return confirmAction({
+    title: "Load a different backup?",
+    message: `Loading ${nextSourceLabel} will replace the archive currently shown in the app. Your saved session cache will still be available, but this view will switch to the new upload.`,
+    acceptLabel: "Replace Archive",
+    cancelLabel: "Keep Current Archive",
+  });
 }
 
 async function parseSingleFile(file) {
@@ -196,23 +213,43 @@ async function restoreFromPickerOrCache() {
   }
 }
 
-elements.fileInput.addEventListener("change", (event) => {
+elements.fileInput.addEventListener("change", async (event) => {
   const [file] = event.target.files || [];
   if (!file) {
     return;
   }
+
+  const confirmed = await confirmArchiveReplacement(file.name || "this file");
+  if (!confirmed) {
+    elements.fileInput.value = "";
+    setStatus("Kept the current archive.");
+    return;
+  }
+
   parseSingleFile(file);
 });
 
-elements.folderInput.addEventListener("change", (event) => {
+elements.folderInput.addEventListener("change", async (event) => {
   const files = event.target.files || [];
-  updateFolderDigestButton();
-  if (files.length) {
-    setSourceMode("folder");
-    state.cacheMode = "folder";
-    setStatus("Folder selected. Choose a parser mode and click Digest Selected Folder.");
-    setProgress(0, true);
+  if (!files.length) {
+    updateFolderDigestButton();
+    return;
   }
+
+  const folderLabel = files[0]?.webkitRelativePath?.split("/")[0] || "that backup folder";
+  const confirmed = await confirmArchiveReplacement(folderLabel);
+  if (!confirmed) {
+    elements.folderInput.value = "";
+    updateFolderDigestButton();
+    setStatus("Kept the current archive.");
+    return;
+  }
+
+  updateFolderDigestButton();
+  setSourceMode("folder");
+  state.cacheMode = "folder";
+  setStatus("Folder selected. Choose a parser mode and click Digest Selected Folder.");
+  setProgress(0, true);
 });
 
 elements.loadSample.addEventListener("click", async () => {
@@ -372,6 +409,11 @@ window.addEventListener("beforeunload", () => {
 });
 
 window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !elements.confirmModal.hidden) {
+    elements.confirmCancel.click();
+    return;
+  }
+
   if (event.key === "Escape" && !elements.changelogModal.hidden) {
     setChangelogOpen(false);
   }

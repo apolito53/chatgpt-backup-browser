@@ -13,6 +13,7 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - Lets you lazy-load full raw JSON and attachment metadata for an individual conversation when you need to inspect it more closely
 - Shows inline conversation images using explicit backup attachment references instead of broad fuzzy matching
 - Mirrors the selected conversation id into the URL so browser back/forward navigation can follow your place inside the archive
+- Uses an in-app replacement confirm modal when you pick a new upload while another archive is already loaded
 - Includes a small in-app changelog modal so the tool can show versioned changes without taking over the UI
 - Lets you filter by role (`user`, `assistant`, `system`)
 - Lets you filter conversations by model when the export includes `model_slug` or `default_model_slug`

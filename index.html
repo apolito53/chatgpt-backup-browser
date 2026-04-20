@@ -17,7 +17,7 @@
             and stop wrestling your archive like it insulted your family.
           </p>
           <div class="brand-actions">
-            <span id="app-version" class="version-pill">v0.5.7</span>
+            <span id="app-version" class="version-pill">v0.5.9</span>
             <button
               id="open-changelog"
               class="link-button"
@@ -283,6 +283,36 @@
         </div>
         <div class="modal-body">
           <div id="changelog-list" class="changelog-list"></div>
+        </div>
+      </section>
+    </div>
+
+    <div id="confirm-modal" class="modal-shell" hidden>
+      <div
+        id="confirm-backdrop"
+        class="modal-backdrop"
+      ></div>
+      <section class="modal-card confirm-modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Replace Current Archive</p>
+            <h2 id="confirm-title">Load a different backup?</h2>
+          </div>
+          <button
+            id="confirm-cancel-top"
+            class="modal-close"
+            type="button"
+            aria-label="Cancel replacement"
+          >Cancel</button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-message" class="confirm-message">
+            Loading a new file or folder will replace the archive currently shown in the app.
+          </p>
+          <div class="confirm-actions">
+            <button id="confirm-cancel" class="ghost-button confirm-secondary" type="button">Keep Current Archive</button>
+            <button id="confirm-accept" class="ghost-button confirm-primary" type="button">Replace It</button>
+          </div>
         </div>
       </section>
     </div>
