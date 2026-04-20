@@ -146,6 +146,10 @@ function syncModelFilterOptions() {
 }
 
 function getRoleLabel(message) {
+  if (message.role === "assistant" && message.speakerModelSlug) {
+    return message.speakerModelSlug;
+  }
+
   if (message.authorName) {
     return `${message.role} (${message.authorName})`;
   }

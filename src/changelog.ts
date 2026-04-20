@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.9",
+  APP_VERSION: "0.5.10",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.10",
+      date: "April 19, 2026",
+      changes: [
+        "Switched assistant message headers to show the speaking model when the export includes per-message model metadata.",
+        "Pulled resolved_model_slug and related model fields through both worker and local parsing paths so hydrated conversations stay consistent.",
+        "Left a graceful fallback to the plain assistant label when older exports do not expose message-level model info.",
+      ],
+    },
     {
       version: "0.5.9",
       date: "April 19, 2026",

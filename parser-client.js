@@ -189,6 +189,23 @@ function getConversationModelInfo(conversation) {
   };
 }
 
+function getMessageModelInfo(message, conversationModelInfo) {
+  const metadata = message?.metadata && typeof message.metadata === "object" ? message.metadata : {};
+  const candidates = [
+    metadata.resolved_model_slug,
+    metadata.model_slug,
+    metadata.default_model_slug,
+    conversationModelInfo?.modelSlug,
+    conversationModelInfo?.defaultModelSlug,
+  ];
+  const normalized = candidates.map(normalizeModelSlug).filter(Boolean);
+
+  return {
+    speakerModelSlug: normalized[0] || "",
+    speakerDefaultModelSlug: normalized[1] || "",
+  };
+}
+
 function isVisibleMessage(message) {
   if (!message) {
     return false;
@@ -223,7 +240,8 @@ function summarizeConversation(conversation, index) {
   const orderedIds = lineageForConversation(conversation);
   const conversationId = conversation.conversation_id || conversation.id || `conversation-${index}`;
   const messages = [];
-  const { modelSlug, defaultModelSlug } = getConversationModelInfo(conversation);
+  const conversationModelInfo = getConversationModelInfo(conversation);
+  const { modelSlug, defaultModelSlug } = conversationModelInfo;
 
   for (const id of orderedIds) {
     const node = conversation.mapping?.[id];
@@ -237,11 +255,15 @@ function summarizeConversation(conversation, index) {
       continue;
     }
 
+    const { speakerModelSlug, speakerDefaultModelSlug } = getMessageModelInfo(message, conversationModelInfo);
+
     messages.push({
       id: message.id || id,
       conversationId,
       role: message.author?.role || "unknown",
       authorName: message.author?.name || null,
+      speakerModelSlug,
+      speakerDefaultModelSlug,
       createTime: message.create_time || null,
       updateTime: message.update_time || null,
       text,
@@ -333,6 +355,7 @@ function summarizeConversationLightweight(conversation, index) {
   const orderedIds = lineageForConversation(conversation);
   const conversationId = conversation.conversation_id || conversation.id || `conversation-${index}`;
   const messages = [];
+  const conversationModelInfo = getConversationModelInfo(conversation);
 
   for (const id of orderedIds) {
     const node = conversation.mapping?.[id];
@@ -351,11 +374,15 @@ function summarizeConversationLightweight(conversation, index) {
       continue;
     }
 
+    const { speakerModelSlug, speakerDefaultModelSlug } = getMessageModelInfo(message, conversationModelInfo);
+
     messages.push({
       id: message.id || id,
       conversationId,
       role: message.author?.role || "unknown",
       authorName: message.author?.name || null,
+      speakerModelSlug,
+      speakerDefaultModelSlug,
       createTime: message.create_time || null,
       updateTime: message.update_time || null,
       text,

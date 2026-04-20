@@ -10,6 +10,8 @@ interface MessageRecord {
   createTime?: number | null;
   updateTime?: number | null;
   authorName?: string | null;
+  speakerModelSlug?: string | null;
+  speakerDefaultModelSlug?: string | null;
 }
 
 interface ConversationRecord {
