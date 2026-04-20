@@ -10,6 +10,8 @@ This is a tiny local browser app for exploring a ChatGPT backup without loading 
 - Indexes image files from the full backup folder
 - Persists a lightweight archive catalog in IndexedDB so the parsed backup structure can be restored without reparsing
 - Resolves message-to-image attachment mappings lazily and caches them after first use
+- Lets you lazy-load full raw JSON and attachment metadata for an individual conversation when you need to inspect it more closely
+- Shows inline conversation images using explicit backup attachment references instead of broad fuzzy matching
 - Includes a small in-app changelog modal so the tool can show versioned changes without taking over the UI
 - Lets you filter by role (`user`, `assistant`, `system`)
 - Lets you filter conversations by model when the export includes `model_slug` or `default_model_slug`
@@ -48,6 +50,7 @@ The first migration batch covers the shared foundation files:
 - The last parsed single-file session is cached in browser storage so you can reload the tool without choosing the file again.
 - The app also keeps a lightweight IndexedDB catalog of the parsed archive structure, raw conversation records, and attachment mappings.
 - Restored folder sessions can bring back the indexed metadata after refresh, but image previews still need the folder to be selected again because browsers do not persist the live file objects for you.
+- Conversations restored from cache can fetch their full raw JSON and attachment metadata later if the original file or folder is still re-selected in the browser.
 - It reads the currently selected conversation branch from each exported conversation, which is usually what you want.
 - Project ideas and planned features live in [TODO.md](./TODO.md).
 
