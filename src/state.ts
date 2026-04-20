@@ -57,6 +57,7 @@ const elements: ElementsRegistry = {
   folderSourcePanel: query<HTMLElement>("#folder-source-panel"),
   fileSourcePanel: query<HTMLElement>("#file-source-panel"),
   parserModeSelect: query<HTMLSelectElement>("#parser-mode-select"),
+  digestFolderButton: query<HTMLButtonElement>("#digest-folder"),
   loadSample: query<HTMLButtonElement>("#load-sample"),
   searchInput: query<HTMLInputElement>("#search-input"),
   sortSelect: query<HTMLSelectElement>("#sort-select"),

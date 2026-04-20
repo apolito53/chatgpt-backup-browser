@@ -26,6 +26,11 @@ const {
   moveConversationSelection,
 } = window.ChatBrowser.render;
 
+function updateFolderDigestButton() {
+  const hasFolderSelection = Boolean(elements.folderInput.files && elements.folderInput.files.length);
+  elements.digestFolderButton.disabled = !hasFolderSelection;
+}
+
 async function parseSingleFile(file) {
   setSourceMode("file");
   state.cacheMode = "single-file";
@@ -147,7 +152,11 @@ async function parseFolder(fileList) {
 
 async function restoreFromPickerOrCache() {
   if (elements.folderInput.files && elements.folderInput.files.length) {
-    await parseFolder(elements.folderInput.files);
+    updateFolderDigestButton();
+    setSourceMode("folder");
+    state.cacheMode = "folder";
+    setStatus("Folder selected. Choose a parser mode and click Digest Selected Folder.");
+    setProgress(0, true);
     return;
   }
 
@@ -194,10 +203,13 @@ elements.fileInput.addEventListener("change", (event) => {
 
 elements.folderInput.addEventListener("change", (event) => {
   const files = event.target.files || [];
-  if (!files.length) {
-    return;
+  updateFolderDigestButton();
+  if (files.length) {
+    setSourceMode("folder");
+    state.cacheMode = "folder";
+    setStatus("Folder selected. Choose a parser mode and click Digest Selected Folder.");
+    setProgress(0, true);
   }
-  parseFolder(files);
 });
 
 elements.loadSample.addEventListener("click", async () => {
@@ -300,6 +312,17 @@ elements.listPageJumpBottom.addEventListener("submit", (event) => {
 elements.parserModeSelect.addEventListener("change", (event) => {
   state.parserMode = event.target.value === "lightweight" ? "lightweight" : "robust";
   saveUiState();
+  updateFolderDigestButton();
+});
+
+elements.digestFolderButton.addEventListener("click", () => {
+  const files = elements.folderInput.files || [];
+  if (!files.length) {
+    setStatus("Select a backup folder first.");
+    return;
+  }
+
+  parseFolder(files);
 });
 
 elements.openChangelog.addEventListener("click", () => {
@@ -348,6 +371,7 @@ if (uiState) {
   setSourceMode("folder");
 }
 
+updateFolderDigestButton();
 renderChangelog();
 restoreFromPickerOrCache();
 })();

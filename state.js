@@ -53,6 +53,7 @@
         folderSourcePanel: query("#folder-source-panel"),
         fileSourcePanel: query("#file-source-panel"),
         parserModeSelect: query("#parser-mode-select"),
+        digestFolderButton: query("#digest-folder"),
         loadSample: query("#load-sample"),
         searchInput: query("#search-input"),
         sortSelect: query("#sort-select"),

@@ -72,6 +72,7 @@ interface ElementsRegistry {
   folderSourcePanel: HTMLElement;
   fileSourcePanel: HTMLElement;
   parserModeSelect: HTMLSelectElement;
+  digestFolderButton: HTMLButtonElement;
   loadSample: HTMLButtonElement;
   searchInput: HTMLInputElement;
   sortSelect: HTMLSelectElement;
