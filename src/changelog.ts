@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.37",
+  APP_VERSION: "0.5.43",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.43",
+      date: "April 20, 2026",
+      changes: [
+        "Rolled back the speculative reader handoff experiments after they turned out not to be the real problem.",
+        "Fixed the actual conversation-page startup bug by making browser-only image reconnect elements optional on conversation.html, so the reader can boot and restore archive data normally.",
+      ],
+    },
     {
       version: "0.5.37",
       date: "April 20, 2026",
