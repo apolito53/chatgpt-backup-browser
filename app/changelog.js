@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.30",
+        APP_VERSION: "0.5.31",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.31",
+                date: "April 20, 2026",
+                changes: [
+                    "Stopped same-archive folder reconnects from re-running the full conversation digest in robust mode when all the app really needed was to reattach live previews.",
+                    "Added an in-page status banner so parser crashes, permission failures, and reconnect problems are visible in the main workspace instead of hiding in the sidebar status line.",
+                ],
+            },
             {
                 version: "0.5.30",
                 date: "April 20, 2026",
