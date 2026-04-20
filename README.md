@@ -7,6 +7,7 @@ It is meant to be simple to run, easy to browse, and useful for reading old conv
 ## Highlights
 
 - Open either `chat.html`, `conversations.json`, or an entire backup folder
+- Choose between a clearly explained `Robust` or `Lightweight` digest method for folder imports
 - Browse conversations and move through them with in-app pagination and browser back/forward history
 - Search, sort, and filter by role or model
 - Browse backup images and show matching images inline inside conversations

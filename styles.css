@@ -254,6 +254,33 @@ select {
   border-color: var(--accent);
 }
 
+.digest-help {
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 248, 239, 0.92);
+  overflow: hidden;
+}
+
+.digest-help summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  background: rgba(255, 244, 229, 0.88);
+}
+
+.digest-help-copy {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.digest-help-copy p {
+  margin: 0;
+  line-height: 1.55;
+}
+
 .folder-upload {
   margin-top: 12px;
 }

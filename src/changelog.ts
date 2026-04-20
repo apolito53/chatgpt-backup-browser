@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.11",
+  APP_VERSION: "0.5.12",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.12",
+      date: "April 19, 2026",
+      changes: [
+        "Renamed the folder parser picker to Digest method so it reads like a user choice instead of internal jargon.",
+        "Added inline help text explaining when to choose Robust versus Lightweight mode in plain English.",
+        "Updated the option labels so the picker itself now hints at the tradeoff instead of making users guess.",
+      ],
+    },
     {
       version: "0.5.11",
       date: "April 19, 2026",

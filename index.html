@@ -17,7 +17,7 @@
             and stop wrestling your archive like it insulted your family.
           </p>
           <div class="brand-actions">
-            <span id="app-version" class="version-pill">v0.5.11</span>
+            <span id="app-version" class="version-pill">v0.5.12</span>
             <button
               id="open-changelog"
               class="link-button"
@@ -49,11 +49,19 @@
             <input id="file-input" type="file" accept=".html,.json,text/html,application/json">
           </div>
 
-          <label class="field-label" for="parser-mode-select">Parser mode</label>
+          <label class="field-label" for="parser-mode-select">Digest method</label>
           <select id="parser-mode-select">
-            <option value="lightweight">Lightweight</option>
-            <option value="robust" selected>Robust</option>
+            <option value="lightweight">Lightweight: faster, less detail</option>
+            <option value="robust" selected>Robust: fuller data, recommended</option>
           </select>
+          <details class="digest-help">
+            <summary>What do these mean?</summary>
+            <div class="digest-help-copy">
+              <p><strong>Robust</strong> is the better default. It keeps more metadata available, handles attachments more completely, and is what you want unless a huge archive is making the browser struggle.</p>
+              <p><strong>Lightweight</strong> skips some heavier detail during the first pass so very large exports load more easily, but you give up some richness until you load more details later.</p>
+              <p class="subtle">Rule of thumb: start with <strong>Robust</strong>. Switch to <strong>Lightweight</strong> only if the browser starts acting dramatic.</p>
+            </div>
+          </details>
 
           <button id="digest-folder" class="ghost-button" type="button" disabled>Digest Selected Folder</button>
 
