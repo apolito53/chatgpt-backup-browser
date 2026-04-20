@@ -5,6 +5,10 @@ window.ChatBrowser = window.ChatBrowser || {};
 
 const { state } = window.ChatBrowser.stateModule;
 
+let cachedImagesReference = null;
+let cachedImageLookup = new Map();
+let cachedImageById = new Map();
+
 function getMessageAttachmentKey(message) {
   return `${message.conversationId || "conversation"}::${message.id || "message"}`;
 }
@@ -102,17 +106,39 @@ function matchesImageCandidate(image, candidate) {
   );
 }
 
+function getImageLookupContext() {
+  const images = state.index?.images || [];
+  if (cachedImagesReference !== images) {
+    cachedImagesReference = images;
+    cachedImageLookup = buildImageLookup(images);
+    cachedImageById = new Map(images.map((image) => [image.id, image]));
+  }
+
+  return {
+    images,
+    imageLookup: cachedImageLookup,
+    imageById: cachedImageById,
+  };
+}
+
+function clearMessagePayload(message) {
+  delete message.rawContent;
+  delete message.rawMetadata;
+  delete message.contentType;
+}
+
 function resolveMessageImages(message) {
   if (!state.index?.images?.length) {
     return [];
   }
 
-  const storedAttachments = state.messageAssetMap.get(getMessageAttachmentKey(message));
-  if (storedAttachments?.length) {
-    const imagesById = new Map(state.index.images.map((image) => [image.id, image]));
+  const attachmentKey = getMessageAttachmentKey(message);
+  if (state.messageAssetMap instanceof Map && state.messageAssetMap.has(attachmentKey)) {
+    const storedAttachments = state.messageAssetMap.get(attachmentKey) || [];
+    const { imageById } = getImageLookupContext();
     return storedAttachments
       .map((attachment) => ({
-        image: imagesById.get(attachment.imageId),
+        image: imageById.get(attachment.imageId),
         reference: attachment.reference,
       }))
       .filter((attachment) => attachment.image);
@@ -128,42 +154,30 @@ function resolveMessageImages(message) {
     references.push({ source: "metadata", value: message.rawMetadata });
   }
 
+  if (!references.length) {
+    if (state.messageAssetMap instanceof Map) {
+      state.messageAssetMap.set(attachmentKey, []);
+    }
+    clearMessagePayload(message);
+    return [];
+  }
+
   const resolved = [];
   const usedImageIds = new Set();
-  const candidateMap = new Map();
-
-  for (const image of state.index.images) {
-    const keys = new Set();
-    keys.add(image.name.toLowerCase());
-    keys.add(image.relativePath.toLowerCase());
-
-    const fileServiceMatch = image.name.toLowerCase().match(/(file-[a-z0-9]+)/);
-    if (fileServiceMatch) {
-      keys.add(fileServiceMatch[1]);
-    }
-
-    const sedimentMatch = image.name.toLowerCase().match(/(file_[a-z0-9]+)/);
-    if (sedimentMatch) {
-      keys.add(sedimentMatch[1]);
-    }
-
-    for (const key of keys) {
-      if (!candidateMap.has(key)) {
-        candidateMap.set(key, image);
-      }
-    }
-  }
+  const cachedAttachments = [];
+  const { images, imageLookup, imageById } = getImageLookupContext();
 
   for (const reference of references) {
     const candidates = collectImageReferenceCandidates(reference.value, []);
     for (const candidate of candidates) {
       const pointerKey = extractPointerKey(candidate);
-      let image = candidateMap.get(pointerKey) || null;
+      const matchingIds = imageLookup.get(pointerKey) || [];
+      let image = matchingIds
+        .map((imageId) => imageById.get(imageId))
+        .find((item) => item && !usedImageIds.has(item.id));
 
-      if ((!image || usedImageIds.has(image.id))) {
-        image = state.index.images.find(
-          (item) => !usedImageIds.has(item.id) && matchesImageCandidate(item, candidate),
-        );
+      if (!image) {
+        image = images.find((item) => !usedImageIds.has(item.id) && matchesImageCandidate(item, candidate));
       }
 
       if (!image) {
@@ -171,12 +185,23 @@ function resolveMessageImages(message) {
       }
 
       usedImageIds.add(image.id);
+      cachedAttachments.push({
+        imageId: image.id,
+        candidate,
+        referenceSource: reference.source,
+        reference: reference.value,
+      });
       resolved.push({
         image,
         reference: reference.value,
       });
     }
   }
+
+  if (state.messageAssetMap instanceof Map) {
+    state.messageAssetMap.set(attachmentKey, cachedAttachments);
+  }
+  clearMessagePayload(message);
 
   return resolved;
 }

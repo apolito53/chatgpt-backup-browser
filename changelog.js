@@ -3,8 +3,17 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.4",
+        APP_VERSION: "0.5.5",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.5",
+                date: "April 19, 2026",
+                changes: [
+                    "Switched robust mode back to lazy attachment resolution so large backups finish loading quickly again.",
+                    "Cached attachment lookups per message after the first render instead of precomputing the entire archive at load time.",
+                    "Trimmed heavy raw attachment payloads out of stored sessions so refresh caching stays lighter.",
+                ],
+            },
             {
                 version: "0.5.4",
                 date: "April 19, 2026",

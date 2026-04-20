@@ -75,6 +75,16 @@ function deserializeMessageAssetMap(entries) {
   return new Map(entries);
 }
 
+function serializeConversationsForStorage(conversations) {
+  return (conversations || []).map((conversation) => ({
+    ...conversation,
+    messages: (conversation.messages || []).map((message) => {
+      const { rawContent, rawMetadata, contentType, ...safeMessage } = message || {};
+      return safeMessage;
+    }),
+  }));
+}
+
 function normalizeStats(index) {
   const conversations = Array.isArray(index?.conversations) ? index.conversations : [];
   const images = Array.isArray(index?.images) ? index.images : [];
@@ -117,6 +127,7 @@ function normalizeIndex(index) {
 function serializeIndexForStorage(index) {
   return {
     ...index,
+    conversations: serializeConversationsForStorage(index.conversations),
     images: (index.images || []).map(({ objectUrl, ...image }) => ({
       ...image,
       objectUrl: null,
@@ -200,11 +211,9 @@ function saveIndex(index) {
   }
 
   try {
-    const cacheableIndex = {
-      ...index,
-      rawConversationMap: undefined,
-      messageAssetMap: undefined,
-    };
+    const cacheableIndex = serializeIndexForStorage(index);
+    cacheableIndex.rawConversationMap = undefined;
+    cacheableIndex.messageAssetMap = undefined;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheableIndex));
   } catch (error) {
     console.warn("Failed to save session cache:", error);

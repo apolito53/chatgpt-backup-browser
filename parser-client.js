@@ -5,7 +5,6 @@ window.ChatBrowser = window.ChatBrowser || {};
 
 const { IMAGE_EXTENSIONS, state } = window.ChatBrowser.stateModule;
 const { setStatus, setProgress } = window.ChatBrowser.ui;
-const { buildMessageAssetMapIncremental } = window.ChatBrowser.attachments;
 
 function postLocalProgress(status, progress) {
   setStatus(status);
@@ -737,41 +736,8 @@ function buildImagesIndex(files) {
   return images;
 }
 
-async function buildBackupIndex({ conversations, images, source }) {
+function buildBackupIndex({ conversations, images, source }) {
   const totalMessages = conversations.reduce((sum, conversation) => sum + conversation.messageCount, 0);
-  let messageAssetMap = new Map();
-
-  if (state.parserMode !== "lightweight") {
-    setStatus("Linking attachments in robust mode...");
-    setProgress(images.length ? 72 : 90, false);
-
-    messageAssetMap = await buildMessageAssetMapIncremental(conversations, images, {
-      chunkSize: 150,
-      onProgress({ processedMessages, totalMessages: attachmentTotalMessages, progress }) {
-        const safeTotalMessages = attachmentTotalMessages || totalMessages || 0;
-        const ratio = safeTotalMessages ? progress / 100 : 1;
-        const uiProgress = 72 + Math.round(ratio * 23);
-        setStatus(
-          safeTotalMessages
-            ? `Linking attachments in robust mode... ${processedMessages.toLocaleString()} / ${safeTotalMessages.toLocaleString()} messages`
-            : "Linking attachments in robust mode...",
-        );
-        setProgress(Math.min(95, uiProgress), false);
-      },
-    });
-  }
-
-  // Attachment lookup only needs the raw message blobs during indexing.
-  // Drop them afterwards so large exports do not keep duplicate payloads alive in memory.
-  if (state.parserMode !== "lightweight") {
-    for (const conversation of conversations) {
-      for (const message of conversation.messages) {
-        delete message.rawContent;
-        delete message.rawMetadata;
-        delete message.contentType;
-      }
-    }
-  }
 
   return {
     loadedAt: Date.now(),
@@ -783,7 +749,9 @@ async function buildBackupIndex({ conversations, images, source }) {
       messages: totalMessages,
       images: images.length,
     },
-    messageAssetMap,
+    // Robust mode now resolves attachments lazily for the active conversation
+    // so large archives can finish loading without a full eager precompute pass.
+    messageAssetMap: new Map(),
   };
 }
 
