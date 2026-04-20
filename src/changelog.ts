@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.32",
+  APP_VERSION: "0.5.33",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.33",
+      date: "April 20, 2026",
+      changes: [
+        "Added a Firefox-specific folder-access note in the sidebar so the reconnect area now tells the truth about manual folder selection still being required there.",
+        "Kept the generic manual-reattach note for other browsers without directory-handle support instead of leaving the reconnect slot mysteriously blank.",
+      ],
+    },
     {
       version: "0.5.32",
       date: "April 20, 2026",

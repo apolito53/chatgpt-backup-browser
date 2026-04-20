@@ -19,6 +19,10 @@
     function browserSupportsDirectoryAccess() {
         return typeof window.showDirectoryPicker === "function";
     }
+    function browserIsFirefox() {
+        const userAgent = typeof navigator?.userAgent === "string" ? navigator.userAgent : "";
+        return /firefox/i.test(userAgent) && !/seamonkey/i.test(userAgent);
+    }
     function updateReattachMessaging() {
         const reattachCopy = elements.reattachFolderBanner.querySelector("p");
         const reattachTitle = elements.reattachFolderBanner.querySelector("strong");
@@ -107,7 +111,10 @@
     async function updateFolderAccessControls() {
         if (!browserSupportsDirectoryAccess()) {
             elements.folderAccessButton.hidden = true;
-            elements.folderAccessStatus.hidden = true;
+            elements.folderAccessStatus.hidden = false;
+            elements.folderAccessStatus.textContent = browserIsFirefox()
+                ? "Firefox note: saved folder reconnect is not supported here yet, so you will still need to select the backup folder again each session."
+                : "This browser does not support saved folder reconnects, so you will need to select the backup folder again when you want live previews and lazy details.";
             return;
         }
         elements.folderAccessButton.hidden = false;
