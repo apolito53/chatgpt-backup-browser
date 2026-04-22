@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.55",
+        APP_VERSION: "0.5.56",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.56",
+                date: "April 21, 2026",
+                changes: [
+                    "Hid the conversation reader import panel once an archive is loaded.",
+                    "Kept the reader importer available only as an empty-state fallback before session data is restored.",
+                ],
+            },
             {
                 version: "0.5.55",
                 date: "April 21, 2026",

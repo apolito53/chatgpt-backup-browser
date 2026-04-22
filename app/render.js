@@ -78,6 +78,7 @@
     function renderActiveView() {
         const hasData = Boolean(state.index);
         elements.emptyState.hidden = hasData;
+        document.querySelector(".reader-import-panel")?.toggleAttribute("hidden", state.pageType === "conversation" && hasData);
         const statsPanel = document.getElementById("stats");
         if (statsPanel) {
             statsPanel.hidden = !hasData || state.pageType !== "browser";
