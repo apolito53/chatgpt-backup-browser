@@ -498,7 +498,8 @@
     try {
       const recentSessions = await loadRecentSessionRecords(6);
       const restorableSessions = recentSessions.filter((session) => (
-        session.sourceMode !== "folder" || canRestoreFolderSessionsFromCache()
+        session.sessionKey !== state.currentSessionKey
+        && (session.sourceMode !== "folder" || canRestoreFolderSessionsFromCache())
       ));
       elements.recentArchivesList.textContent = "";
 

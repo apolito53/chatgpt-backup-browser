@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.54",
+        APP_VERSION: "0.5.55",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.55",
+                date: "April 21, 2026",
+                changes: [
+                    "Stopped showing the current archive inside Recent archives.",
+                    "Hid the Recent archives panel when there are no alternate restorable archives to open.",
+                ],
+            },
             {
                 version: "0.5.54",
                 date: "April 21, 2026",

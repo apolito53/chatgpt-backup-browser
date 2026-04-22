@@ -403,7 +403,8 @@
     async function refreshRecentArchives() {
         try {
             const recentSessions = await loadRecentSessionRecords(6);
-            const restorableSessions = recentSessions.filter((session) => (session.sourceMode !== "folder" || canRestoreFolderSessionsFromCache()));
+            const restorableSessions = recentSessions.filter((session) => (session.sessionKey !== state.currentSessionKey
+                && (session.sourceMode !== "folder" || canRestoreFolderSessionsFromCache())));
             elements.recentArchivesList.textContent = "";
             if (!restorableSessions.length) {
                 elements.recentArchivesPanel.hidden = true;
