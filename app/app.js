@@ -224,11 +224,9 @@
             const files = await connectDirectoryHandle(record.handle);
             if (state.index && state.cacheMode === "folder" && hydrateImages) {
                 await attachImagesToCurrentFolderSession(files);
-                setStatus(`Reconnected saved folder access for ${record.sourceLabel}.`);
                 setProgress(0, true);
             }
             else if (state.index && state.cacheMode === "folder") {
-                setStatus(`Reconnected saved folder access for ${record.sourceLabel}. Image previews can stay lazy until you open them.`);
                 setProgress(0, true);
             }
             await updateFolderAccessControls();

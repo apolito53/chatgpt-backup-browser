@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.56",
+  APP_VERSION: "0.5.57",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.57",
+      date: "April 21, 2026",
+      changes: [
+        "Stopped showing a status message for successful automatic saved-folder reconnects.",
+        "Kept reconnect failures and explicit load progress visible while letting background folder access stay quiet.",
+      ],
+    },
     {
       version: "0.5.56",
       date: "April 21, 2026",
