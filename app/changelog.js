@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.59",
+        APP_VERSION: "0.5.60",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.60",
+                date: "April 22, 2026",
+                changes: [
+                    "Changed the restored-folder warning to a clickable reconnect prompt instead of pointing at the removed sidebar.",
+                    "Added keyboard support and visual affordance for the restored-folder reconnect banner.",
+                ],
+            },
             {
                 version: "0.5.59",
                 date: "April 21, 2026",

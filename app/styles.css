@@ -838,6 +838,21 @@ select {
   color: var(--accent-strong);
 }
 
+.status-banner.action {
+  cursor: pointer;
+  border-color: rgba(189, 93, 56, 0.28);
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.status-banner.action:hover,
+.status-banner.action:focus-visible {
+  background: linear-gradient(135deg, rgba(255, 244, 229, 0.96), rgba(255, 250, 244, 0.98));
+  border-color: rgba(159, 67, 34, 0.42);
+}
+
 .image-restore-banner {
   margin: 20px 20px 0;
 }

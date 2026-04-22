@@ -12,6 +12,7 @@ function setStatus(message: string): void {
   elements.statusBanner.textContent = message;
 
   const normalized = (message || "").trim().toLowerCase();
+  const isActionable = normalized.includes("click here");
   const shouldHighlight = Boolean(normalized) && (
     normalized.includes("failed")
     || normalized.includes("error")
@@ -23,6 +24,14 @@ function setStatus(message: string): void {
   );
 
   elements.statusBanner.hidden = !message;
+  elements.statusBanner.classList.toggle("action", isActionable);
+  if (isActionable) {
+    elements.statusBanner.tabIndex = 0;
+    elements.statusBanner.setAttribute("role", "button");
+  } else {
+    elements.statusBanner.removeAttribute("tabindex");
+    elements.statusBanner.removeAttribute("role");
+  }
   elements.statusBanner.classList.toggle("error", shouldHighlight);
 }
 

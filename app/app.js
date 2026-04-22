@@ -384,8 +384,8 @@
     function buildRestoreStatusMessage(sessionRecord) {
         return sessionRecord.sourceMode === "folder"
             ? browserSupportsDirectoryAccess()
-                ? `Restored cached folder index for ${sessionRecord.sourceLabel}. If the browser did not keep live folder access, use the folder controls in the sidebar to reconnect image previews and lazy details.`
-                : `Restored cached folder index for ${sessionRecord.sourceLabel}. This browser cannot retain folder access, so you still need to select the backup folder again before image previews and lazy details can load.`
+                ? `Restored cached folder index for ${sessionRecord.sourceLabel}. Click here to reconnect image previews and lazy details if they are missing.`
+                : `Restored cached folder index for ${sessionRecord.sourceLabel}. Click here to select the backup folder again before image previews and lazy details can load.`
             : `Restored cached session for ${sessionRecord.sourceLabel}.`;
     }
     function applyStoredSession(sessionRecord) {
@@ -854,6 +854,18 @@
     });
     elements.folderAccessButton.addEventListener("click", () => {
         void reconnectCurrentFolderAccess({ promptIfNeeded: true });
+    });
+    elements.statusBanner.addEventListener("click", () => {
+        if (elements.statusBanner.classList.contains("action")) {
+            promptFolderReattach();
+        }
+    });
+    elements.statusBanner.addEventListener("keydown", (event) => {
+        if (elements.statusBanner.classList.contains("action")
+            && (event.key === "Enter" || event.key === " ")) {
+            event.preventDefault();
+            promptFolderReattach();
+        }
     });
     elements.openChangelog.addEventListener("click", () => {
         setChangelogOpen(true);
