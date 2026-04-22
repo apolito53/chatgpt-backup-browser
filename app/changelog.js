@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.50",
+        APP_VERSION: "0.5.51",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.51",
+                date: "April 21, 2026",
+                changes: [
+                    "Stopped showing cached folder archives in browsers that cannot reopen them, so Firefox no longer advertises a dead-end restore button.",
+                    "Kept recent archive restore entries for sources the current browser can actually reopen.",
+                ],
+            },
             {
                 version: "0.5.50",
                 date: "April 21, 2026",

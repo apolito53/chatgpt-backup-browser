@@ -491,16 +491,19 @@
   async function refreshRecentArchives(): Promise<void> {
     try {
       const recentSessions = await loadRecentSessionRecords(6);
+      const restorableSessions = recentSessions.filter((session) => (
+        session.sourceMode !== "folder" || canRestoreFolderSessionsFromCache()
+      ));
       elements.recentArchivesList.textContent = "";
 
-      if (!recentSessions.length) {
+      if (!restorableSessions.length) {
         elements.recentArchivesPanel.hidden = true;
         return;
       }
 
       elements.recentArchivesPanel.hidden = false;
 
-      for (const session of recentSessions) {
+      for (const session of restorableSessions) {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "ghost-button recent-archive-button";
