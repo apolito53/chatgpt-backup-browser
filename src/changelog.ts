@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.58",
+  APP_VERSION: "0.5.59",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.59",
+      date: "April 21, 2026",
+      changes: [
+        "Stopped showing the Attached live image previews success banner after background image hydration.",
+        "Kept image attach errors visible while letting successful preview refreshes stay quiet.",
+      ],
+    },
     {
       version: "0.5.58",
       date: "April 21, 2026",

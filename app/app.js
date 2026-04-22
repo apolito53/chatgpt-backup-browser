@@ -328,7 +328,7 @@
                 images: images.length,
             },
         };
-        applyIndex(nextIndex, `Attached live image previews for ${rootSegment}.`);
+        applyIndex(nextIndex, "");
         await saveSessionRecord({
             sessionKey: state.currentSessionKey,
             sourceMode: "folder",
