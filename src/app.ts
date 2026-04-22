@@ -65,6 +65,16 @@
       : `This browser cannot reopen cached folder indexes by itself. Select the ${sourceLabel} backup folder again, then digest it to reload the archive.`;
   }
 
+  function getSessionKeyFromLocation(): string {
+    try {
+      const url = new URL(window.location.href);
+      return (url.searchParams.get("session") || "").trim();
+    } catch (error) {
+      console.warn("Failed to read the session key from the URL:", error);
+      return "";
+    }
+  }
+
   function updateReattachMessaging(): void {
     const reattachCopy = elements.reattachFolderBanner?.querySelector("p") || null;
     const reattachTitle = elements.reattachFolderBanner?.querySelector("strong") || null;
@@ -543,6 +553,14 @@
       index.rawConversationMap = conversationData.rawConversationMap;
 
       saveIndex(index);
+      setStatus("Saving session for reader navigation...");
+      setProgress(85, false);
+      await saveSessionRecord({
+        sessionKey: state.currentSessionKey,
+        sourceMode: "file",
+        sourceLabel: file.name,
+        index,
+      });
       applyIndex(
         index,
         conversationData.rawConversationEntriesOmitted
@@ -551,14 +569,6 @@
             : `Loaded ${file.name}. Raw conversation JSON was trimmed for this large archive so the parser worker doesn't fall over.`
           : `Loaded ${file.name}.`,
       );
-      saveSessionRecord({
-        sessionKey: state.currentSessionKey,
-        sourceMode: "file",
-        sourceLabel: file.name,
-        index,
-      }).catch((error) => {
-        console.warn("Failed to persist single-file session:", error);
-      });
       refreshRecentArchives().catch((error) => {
         console.warn("Failed to refresh recent archives after single-file parse:", error);
       });
@@ -612,6 +622,14 @@
       });
       index.rawConversationMap = conversationData.rawConversationMap;
 
+      setStatus("Saving session for reader navigation...");
+      setProgress(85, false);
+      await saveSessionRecord({
+        sessionKey: state.currentSessionKey,
+        sourceMode: "folder",
+        sourceLabel: rootSegment,
+        index,
+      });
       applyIndex(
         index,
         conversationData.rawConversationEntriesOmitted
@@ -622,14 +640,6 @@
             : `Loaded folder ${rootSegment}. Raw conversation JSON was trimmed for this large archive so the parser worker stays upright. Folder sessions are kept in this tab only.`
           : `Loaded folder ${rootSegment}. Folder sessions are kept in this tab only.`,
       );
-      saveSessionRecord({
-        sessionKey: state.currentSessionKey,
-        sourceMode: "folder",
-        sourceLabel: rootSegment,
-        index,
-      }).catch((error) => {
-        console.warn("Failed to persist folder session:", error);
-      });
       refreshRecentArchives().catch((error) => {
         console.warn("Failed to refresh recent archives after folder parse:", error);
       });
@@ -659,6 +669,33 @@
     }
 
     try {
+      const requestedSessionKey = getSessionKeyFromLocation();
+      if (requestedSessionKey) {
+        const requestedSession = await loadSessionRecord(requestedSessionKey);
+        if (requestedSession) {
+          applyStoredSession(requestedSession);
+          if (requestedSession.sourceMode === "folder") {
+            const restoredAccess = await reconnectCurrentFolderAccess({
+              hydrateImages: state.parserMode !== "lightweight",
+              promptIfNeeded: false,
+            });
+            if (!restoredAccess) {
+              setStatus(buildRestoreStatusMessage(requestedSession));
+            }
+          }
+          updateFolderAccessControls().catch((handleError) => {
+            console.warn("Failed to refresh folder access controls after requested-session restore:", handleError);
+          });
+          refreshRecentArchives().catch((error) => {
+            console.warn("Failed to refresh recent archives after requested-session restore:", error);
+          });
+          return;
+        }
+
+        setStatus("That conversation points at a cached archive session this browser no longer has. Reload the original backup source and try again.");
+        setProgress(0, true);
+      }
+
       const storedSession = await loadLatestSessionRecord();
       if (storedSession) {
         if (storedSession.sourceMode === "folder" && !canRestoreFolderSessionsFromCache()) {

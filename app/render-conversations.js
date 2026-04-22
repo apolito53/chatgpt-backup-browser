@@ -8,6 +8,7 @@
     let loadingConversationDetailsId = null;
     const conversationDetailErrors = new Map();
     const CONVERSATION_URL_PARAM = "conversation";
+    const SESSION_URL_PARAM = "session";
     const CONVERSATION_PAGE_NAME = "conversation.html";
     function getConversationIdFromLocation() {
         try {
@@ -29,6 +30,9 @@
         }
         else {
             url.searchParams.delete(CONVERSATION_URL_PARAM);
+        }
+        if (state.currentSessionKey) {
+            url.searchParams.set(SESSION_URL_PARAM, state.currentSessionKey);
         }
         return url.toString();
     }

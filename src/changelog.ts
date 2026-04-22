@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.46",
+  APP_VERSION: "0.5.47",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.47",
+      date: "April 21, 2026",
+      changes: [
+        "Fixed conversation-page restores so opened chats carry their archive session key in the URL.",
+        "Made the reader load the exact referenced cached archive before falling back to the latest saved session.",
+      ],
+    },
     {
       version: "0.5.46",
       date: "April 21, 2026",
