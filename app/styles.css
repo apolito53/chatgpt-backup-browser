@@ -259,6 +259,68 @@ code {
   font-size: 0.94rem;
 }
 
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.field-label-row .field-label {
+  margin-bottom: 0;
+}
+
+.tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tooltip-trigger {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 244, 229, 0.94);
+  color: var(--accent-strong);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+
+.digest-tooltip {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  z-index: 20;
+  width: min(340px, 78vw);
+  padding: 14px;
+  border: 1px solid rgba(159, 67, 34, 0.22);
+  border-radius: 16px;
+  background: rgba(47, 36, 24, 0.96);
+  color: #fff8ef;
+  box-shadow: 0 18px 42px rgba(47, 36, 24, 0.24);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.digest-tooltip strong {
+  color: #ffd9bd;
+}
+
+.tooltip-wrap:hover .digest-tooltip,
+.tooltip-trigger:focus-visible + .digest-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 #file-input {
   width: 100%;
   margin-top: 12px;
@@ -285,33 +347,6 @@ select {
 .ghost-button:hover {
   transform: translateY(-1px);
   border-color: var(--accent);
-}
-
-.digest-help {
-  margin-top: 10px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: rgba(255, 248, 239, 0.92);
-  overflow: hidden;
-}
-
-.digest-help summary {
-  cursor: pointer;
-  padding: 12px 14px;
-  font-weight: 700;
-  color: var(--accent-strong);
-  background: rgba(255, 244, 229, 0.88);
-}
-
-.digest-help-copy {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
-}
-
-.digest-help-copy p {
-  margin: 0;
-  line-height: 1.55;
 }
 
 .folder-upload {
@@ -1011,10 +1046,6 @@ select {
 
 .splash-import-panel .ghost-button {
   margin-top: 12px;
-}
-
-.splash-import-panel .digest-help {
-  margin-top: 8px;
 }
 
 .conversation-view {

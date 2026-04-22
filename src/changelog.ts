@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.44",
+  APP_VERSION: "0.5.45",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.45",
+      date: "April 21, 2026",
+      changes: [
+        "Moved the Digest method explanation out of the splash layout and into a compact hover/focus tooltip.",
+        "Trimmed the launcher pane so the importer feels less crowded while keeping the robust versus lightweight guidance nearby.",
+      ],
+    },
     {
       version: "0.5.44",
       date: "April 20, 2026",
