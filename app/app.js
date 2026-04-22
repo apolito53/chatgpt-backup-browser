@@ -41,6 +41,23 @@
             return "";
         }
     }
+    function syncBrowserSessionUrl(mode = "replace") {
+        if (state.pageType !== "browser" || !window.history?.replaceState || !window.history?.pushState) {
+            return;
+        }
+        const url = new URL(window.location.href);
+        if (state.currentSessionKey) {
+            url.searchParams.set("session", state.currentSessionKey);
+        }
+        else {
+            url.searchParams.delete("session");
+        }
+        if (url.toString() === window.location.href) {
+            return;
+        }
+        const historyMode = mode === "push" ? "pushState" : "replaceState";
+        window.history[historyMode]({ sessionKey: state.currentSessionKey || null }, "", url);
+    }
     function updateReattachMessaging() {
         const reattachCopy = elements.reattachFolderBanner?.querySelector("p") || null;
         const reattachTitle = elements.reattachFolderBanner?.querySelector("strong") || null;
@@ -371,6 +388,7 @@
         state.attachedFolderFiles = [];
         setSourceMode(sessionRecord.sourceMode);
         revokeObjectUrls();
+        syncBrowserSessionUrl("replace");
         applyIndex(sessionRecord.index, buildRestoreStatusMessage(sessionRecord));
         updateFolderDigestButton();
     }
@@ -461,6 +479,7 @@
                 sourceLabel: file.name,
                 index,
             });
+            syncBrowserSessionUrl("replace");
             applyIndex(index, conversationData.rawConversationEntriesOmitted
                 ? state.parserMode === "lightweight"
                     ? `Loaded ${file.name} in lightweight mode. Raw conversation JSON and inline attachment metadata were skipped to keep the browser responsive.`
@@ -520,6 +539,7 @@
                 sourceLabel: rootSegment,
                 index,
             });
+            syncBrowserSessionUrl("replace");
             applyIndex(index, conversationData.rawConversationEntriesOmitted
                 ? state.parserMode === "lightweight"
                     ? shouldBuildImages
@@ -883,6 +903,10 @@
     void refreshRecentArchives();
     void restoreFromPickerOrCache();
     window.addEventListener("popstate", () => {
+        if (state.pageType === "browser") {
+            void restoreFromPickerOrCache();
+            return;
+        }
         if (state.pageType !== "conversation") {
             return;
         }

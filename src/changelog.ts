@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.47",
+  APP_VERSION: "0.5.48",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.48",
+      date: "April 21, 2026",
+      changes: [
+        "Kept the browser page URL synced to the active archive session so browser Back returns with context intact.",
+        "Made browser-page popstate restore the requested session instead of falling back to a stale or empty archive view.",
+      ],
+    },
     {
       version: "0.5.47",
       date: "April 21, 2026",
