@@ -205,36 +205,38 @@
   async function updateFolderAccessControls(): Promise<void> {
     if (!browserSupportsDirectoryAccess()) {
       elements.folderAccessButton.hidden = true;
-      elements.folderAccessStatus.hidden = false;
-      elements.folderAccessStatus.textContent = browserIsFirefox()
-        ? "Firefox note: saved folder reconnect is not supported here yet, so you will still need to select the backup folder again each session."
-        : "This browser does not support saved folder reconnects, so you will need to select the backup folder again when you want live previews and lazy details.";
+      elements.folderAccessStatus.hidden = true;
+      elements.folderAccessStatus.textContent = "";
       return;
     }
 
-    elements.folderAccessButton.hidden = false;
-    elements.folderAccessStatus.hidden = false;
-
     const sessionKey = state.currentSessionKey;
     if (!sessionKey) {
-      elements.folderAccessButton.textContent = "Grant Folder Access";
-      elements.folderAccessStatus.textContent = "Use the browser's folder permission flow so reconnecting later can be a one-click thing.";
+      elements.folderAccessButton.hidden = true;
+      elements.folderAccessStatus.hidden = true;
+      elements.folderAccessStatus.textContent = "";
       return;
     }
 
     const record = await loadFolderHandleRecord(sessionKey);
     if (record) {
-      elements.folderAccessButton.textContent = state.attachedFolderFiles.length
-        ? "Refresh Saved Folder"
-        : "Reconnect Saved Folder";
-      elements.folderAccessStatus.textContent = state.attachedFolderFiles.length
-        ? `Live folder access is attached for ${record.sourceLabel || "this backup"}. If anything looks stale, refresh it from here.`
-        : `Saved access is available for ${record.sourceLabel || "this backup"}. Click once to reconnect without browsing again.`;
+      if (state.attachedFolderFiles.length) {
+        elements.folderAccessButton.hidden = true;
+        elements.folderAccessStatus.hidden = true;
+        elements.folderAccessStatus.textContent = "";
+        return;
+      }
+
+      elements.folderAccessButton.hidden = false;
+      elements.folderAccessStatus.hidden = false;
+      elements.folderAccessButton.textContent = "Reconnect Saved Folder";
+      elements.folderAccessStatus.textContent = `Saved access is available for ${record.sourceLabel || "this backup"}. Click once if the browser needs permission again.`;
       return;
     }
 
-    elements.folderAccessButton.textContent = "Grant Folder Access";
-    elements.folderAccessStatus.textContent = "Grant directory access once and later reconnects can use a permission prompt instead of manual browsing.";
+    elements.folderAccessButton.hidden = true;
+    elements.folderAccessStatus.hidden = true;
+    elements.folderAccessStatus.textContent = "";
   }
 
   async function connectDirectoryHandle(handle: any): Promise<File[]> {

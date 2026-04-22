@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.53",
+  APP_VERSION: "0.5.54",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.54",
+      date: "April 21, 2026",
+      changes: [
+        "Hid the saved-folder refresh controls once live folder access is already attached.",
+        "Left the reconnect button available only when the browser has a saved handle but still needs a user permission click.",
+      ],
+    },
     {
       version: "0.5.53",
       date: "April 21, 2026",
