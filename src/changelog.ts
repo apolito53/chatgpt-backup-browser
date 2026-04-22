@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.45",
+  APP_VERSION: "0.5.46",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.46",
+      date: "April 21, 2026",
+      changes: [
+        "Changed the Whole backup folder versus Chat file source picker from two large tabs into a compact dropdown.",
+        "Kept the existing folder/file import panels synced to the new selector so the splash pane gets more breathing room.",
+      ],
+    },
     {
       version: "0.5.45",
       date: "April 21, 2026",

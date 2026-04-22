@@ -55,7 +55,7 @@
     const elements = {
         fileInput: query("#file-input"),
         folderInput: query("#folder-input"),
-        sourceTabButtons: Array.from(document.querySelectorAll("[data-source]")),
+        sourceModeSelect: query("#source-mode-select"),
         folderSourcePanel: query("#folder-source-panel"),
         fileSourcePanel: query("#file-source-panel"),
         folderAccessButton: query("#folder-access-button"),
@@ -177,11 +177,7 @@
     }
     function setSourceMode(mode) {
         state.sourceMode = mode;
-        for (const button of elements.sourceTabButtons) {
-            const isActive = button.dataset.source === mode;
-            button.classList.toggle("active", isActive);
-            button.setAttribute("aria-pressed", String(isActive));
-        }
+        elements.sourceModeSelect.value = mode;
         elements.folderSourcePanel.hidden = mode !== "folder";
         elements.fileSourcePanel.hidden = mode !== "file";
         saveUiState();

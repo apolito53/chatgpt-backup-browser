@@ -166,7 +166,7 @@ interface PagerToken {
 interface ElementsRegistry {
   fileInput: HTMLInputElement;
   folderInput: HTMLInputElement;
-  sourceTabButtons: HTMLButtonElement[];
+  sourceModeSelect: HTMLSelectElement;
   folderSourcePanel: HTMLElement;
   fileSourcePanel: HTMLElement;
   folderAccessButton: HTMLButtonElement;

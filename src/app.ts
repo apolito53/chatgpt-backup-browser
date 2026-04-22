@@ -917,6 +917,10 @@
     updateFolderDigestButton();
   });
 
+  elements.sourceModeSelect.addEventListener("change", (event) => {
+    setSourceMode((event.target as HTMLSelectElement).value === "file" ? "file" : "folder");
+  });
+
   elements.browserControlsToggle?.addEventListener("click", () => {
     setBrowserControlsCollapsed(!state.browserControlsCollapsed);
     saveUiState();
@@ -972,12 +976,6 @@
         }
       }
       setActiveView(button.dataset.view as ActiveView);
-    });
-  }
-
-  for (const button of elements.sourceTabButtons) {
-    button.addEventListener("click", () => {
-      setSourceMode(button.dataset.source as SourceMode);
     });
   }
 

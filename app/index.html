@@ -18,7 +18,7 @@
               and stop wrestling your archive like it insulted your family.
             </p>
             <div class="brand-actions">
-              <span id="app-version" class="version-pill">v0.5.45</span>
+              <span id="app-version" class="version-pill">v0.5.46</span>
               <button
                 id="open-changelog"
                 class="link-button"
@@ -29,10 +29,11 @@
           </div>
 
           <section class="panel splash-import-panel">
-            <div class="source-switch" role="tablist" aria-label="Import source">
-              <button class="source-tab active" type="button" data-source="folder" aria-pressed="true">Whole Backup Folder</button>
-              <button class="source-tab" type="button" data-source="file" aria-pressed="false">Chat / Conversation File</button>
-            </div>
+            <label class="field-label" for="source-mode-select">Import source</label>
+            <select id="source-mode-select" class="source-mode-select">
+              <option value="folder" selected>Whole backup folder</option>
+              <option value="file">Chat / conversation file</option>
+            </select>
 
             <div id="folder-source-panel" class="source-panel">
               <label class="upload folder-upload" for="folder-input">

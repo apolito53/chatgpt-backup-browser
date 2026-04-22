@@ -766,6 +766,9 @@
         saveUiState();
         updateFolderDigestButton();
     });
+    elements.sourceModeSelect.addEventListener("change", (event) => {
+        setSourceMode(event.target.value === "file" ? "file" : "folder");
+    });
     elements.browserControlsToggle?.addEventListener("click", () => {
         setBrowserControlsCollapsed(!state.browserControlsCollapsed);
         saveUiState();
@@ -812,11 +815,6 @@
                 }
             }
             setActiveView(button.dataset.view);
-        });
-    }
-    for (const button of elements.sourceTabButtons) {
-        button.addEventListener("click", () => {
-            setSourceMode(button.dataset.source);
         });
     }
     window.addEventListener("beforeunload", () => {

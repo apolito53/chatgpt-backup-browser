@@ -433,30 +433,8 @@ select {
   line-height: 1.45;
 }
 
-.source-switch {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+.source-mode-select {
   margin-bottom: 14px;
-}
-
-.source-tab {
-  border-radius: 14px;
-  border: 1px solid var(--line-strong);
-  background: var(--surface-strong);
-  color: var(--text);
-  padding: 12px 14px;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
-}
-
-.source-tab:hover,
-.source-tab.active {
-  transform: translateY(-1px);
-  border-color: var(--accent);
-  background: #fff1e1;
 }
 
 .source-panel + .source-panel {
@@ -1034,10 +1012,6 @@ select {
   width: 100%;
   text-align: left;
   padding: 18px;
-}
-
-.splash-import-panel .source-switch {
-  margin-bottom: 12px;
 }
 
 .splash-import-panel .upload {
