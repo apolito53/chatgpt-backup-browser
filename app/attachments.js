@@ -178,6 +178,25 @@
             imageById: cachedImageById,
         };
     }
+    function findImageForStoredAttachment(attachment, imageLookup, imageById, images, usedImageIds) {
+        const directImage = imageById.get(attachment.imageId);
+        if (directImage && !usedImageIds.has(directImage.id)) {
+            return directImage;
+        }
+        const candidates = attachment.candidate
+            ? [attachment.candidate]
+            : collectImageReferenceCandidates(attachment.reference, []);
+        for (const candidate of candidates) {
+            const matchingImage = findMatchingImageIds(candidate, imageLookup)
+                .map((imageId) => imageById.get(imageId))
+                .find((image) => Boolean(image && !usedImageIds.has(image.id)))
+                || images.find((image) => !usedImageIds.has(image.id) && matchesImageCandidate(image, candidate));
+            if (matchingImage) {
+                return matchingImage;
+            }
+        }
+        return null;
+    }
     function clearMessagePayload(message) {
         delete message.rawContent;
         delete message.rawMetadata;
@@ -190,13 +209,31 @@
         const attachmentKey = getMessageAttachmentKey(message);
         if (state.messageAssetMap instanceof Map && state.messageAssetMap.has(attachmentKey)) {
             const storedAttachments = state.messageAssetMap.get(attachmentKey) || [];
-            const { imageById } = getImageLookupContext();
-            return storedAttachments
-                .map((attachment) => ({
-                image: imageById.get(attachment.imageId),
-                reference: attachment.reference,
-            }))
-                .filter((attachment) => Boolean(attachment.image));
+            const { images, imageLookup, imageById } = getImageLookupContext();
+            const usedImageIds = new Set();
+            const resolved = [];
+            const remappedAttachments = [];
+            let changedAttachmentIds = false;
+            for (const attachment of storedAttachments) {
+                const image = findImageForStoredAttachment(attachment, imageLookup, imageById, images, usedImageIds);
+                if (!image) {
+                    continue;
+                }
+                usedImageIds.add(image.id);
+                resolved.push({
+                    image,
+                    reference: attachment.reference,
+                });
+                remappedAttachments.push({
+                    ...attachment,
+                    imageId: image.id,
+                });
+                changedAttachmentIds = changedAttachmentIds || attachment.imageId !== image.id;
+            }
+            if (changedAttachmentIds || remappedAttachments.length !== storedAttachments.length) {
+                state.messageAssetMap.set(attachmentKey, remappedAttachments);
+            }
+            return resolved;
         }
         const references = [];
         if (message.rawContent) {

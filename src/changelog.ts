@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.52",
+  APP_VERSION: "0.5.53",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.53",
+      date: "April 21, 2026",
+      changes: [
+        "Made image IDs stable across folder reconnects so Chrome and Edge can rehydrate previews even when file scan order changes.",
+        "Added a fallback remapper for older cached attachment maps that pointed at stale image IDs.",
+      ],
+    },
     {
       version: "0.5.52",
       date: "April 21, 2026",

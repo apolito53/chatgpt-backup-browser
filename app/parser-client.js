@@ -279,7 +279,7 @@ importScripts(${JSON.stringify(new URL("./parser-shared.js", window.location.hre
     }
     function buildImagesIndex(files) {
         const images = [];
-        files.forEach((file, index) => {
+        files.forEach((file) => {
             const extension = extensionForFile(file);
             if (!IMAGE_EXTENSIONS.has(extension)) {
                 return;
@@ -288,7 +288,7 @@ importScripts(${JSON.stringify(new URL("./parser-shared.js", window.location.hre
             state.objectUrls.push(objectUrl);
             const relativePath = file.webkitRelativePath || file.name;
             images.push({
-                id: `image-${index}-${file.name}`,
+                id: `image-${encodeURIComponent(relativePath)}-${file.size}-${file.lastModified || 0}`,
                 name: file.name,
                 relativePath,
                 size: file.size,
