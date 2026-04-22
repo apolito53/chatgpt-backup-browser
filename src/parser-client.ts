@@ -85,6 +85,7 @@
         const reconnected = await window.ChatBrowser.app?.reconnectCurrentFolderAccess({
           hydrateImages: false,
           promptIfNeeded: true,
+          openPickerIfMissing: false,
         });
         if (reconnected) {
           sourceFile = getSelectedConversationSourceFile();

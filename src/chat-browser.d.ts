@@ -374,7 +374,11 @@ interface ParserClientModule {
 }
 
 interface AppModule {
-  reconnectCurrentFolderAccess(options?: { hydrateImages?: boolean; promptIfNeeded?: boolean }): Promise<boolean>;
+  reconnectCurrentFolderAccess(options?: {
+    hydrateImages?: boolean;
+    promptIfNeeded?: boolean;
+    openPickerIfMissing?: boolean;
+  }): Promise<boolean>;
 }
 
 interface ConversationRenderModule {

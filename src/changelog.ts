@@ -4,8 +4,16 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.49",
+  APP_VERSION: "0.5.50",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.50",
+      date: "April 21, 2026",
+      changes: [
+        "Made raw-detail loading use saved folder access when available without dropping into the full folder picker.",
+        "Kept manual folder selection as a fallback only when no saved handle exists for that cached archive.",
+      ],
+    },
     {
       version: "0.5.49",
       date: "April 21, 2026",

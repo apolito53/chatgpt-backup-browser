@@ -191,17 +191,19 @@
         if (!browserSupportsDirectoryAccess()) {
             return false;
         }
-        const { hydrateImages = state.cacheMode === "folder" && state.parserMode !== "lightweight", promptIfNeeded = false } = options;
+        const { hydrateImages = state.cacheMode === "folder" && state.parserMode !== "lightweight", promptIfNeeded = false, openPickerIfMissing = promptIfNeeded, } = options;
         const sessionKey = state.currentSessionKey;
         if (!sessionKey) {
             if (promptIfNeeded) {
-                await chooseFolderWithDirectoryAccess();
+                if (openPickerIfMissing) {
+                    await chooseFolderWithDirectoryAccess();
+                }
             }
             return false;
         }
         const record = await loadFolderHandleRecord(sessionKey);
         if (!record?.handle) {
-            if (promptIfNeeded) {
+            if (promptIfNeeded && openPickerIfMissing) {
                 await chooseFolderWithDirectoryAccess();
             }
             return false;
@@ -228,7 +230,7 @@
         }
         catch (error) {
             console.warn("Saved folder reconnect failed:", error);
-            if (promptIfNeeded) {
+            if (promptIfNeeded && openPickerIfMissing) {
                 await chooseFolderWithDirectoryAccess();
             }
             return false;
