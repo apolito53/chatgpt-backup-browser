@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.48",
+        APP_VERSION: "0.5.49",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.49",
+                date: "April 21, 2026",
+                changes: [
+                    "Fixed Load Full Conversation Details so it can reconnect a saved folder handle on demand before reading raw JSON.",
+                    "Hid the raw JSON dropdown until raw conversation data is actually loaded.",
+                ],
+            },
             {
                 version: "0.5.48",
                 date: "April 21, 2026",

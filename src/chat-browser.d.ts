@@ -373,6 +373,10 @@ interface ParserClientModule {
   loadConversationDetails(conversationId: string): Promise<ConversationLoadResult | null>;
 }
 
+interface AppModule {
+  reconnectCurrentFolderAccess(options?: { hydrateImages?: boolean; promptIfNeeded?: boolean }): Promise<boolean>;
+}
+
 interface ConversationRenderModule {
   moveConversationListPage(direction: number): void;
   setConversationListPageSize(value: string): void;
@@ -412,6 +416,7 @@ interface ChatBrowserNamespace {
   attachments?: AttachmentsModule;
   parserShared?: ParserSharedModule;
   parserClient?: ParserClientModule;
+  app?: AppModule;
   conversationRender?: ConversationRenderModule;
   imageRender?: ImageRenderModule;
   render?: RenderModule;

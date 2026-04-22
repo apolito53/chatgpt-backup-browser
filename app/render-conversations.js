@@ -378,6 +378,7 @@
         if (!conversation) {
             elements.conversationView.hidden = true;
             elements.conversationDetailActions.hidden = true;
+            elements.conversationRawDetails.hidden = true;
             elements.conversationRawDetails.open = false;
             elements.conversationRawOutput.textContent = "No conversation selected.";
             elements.conversationModel.textContent = "";
@@ -391,13 +392,17 @@
         elements.conversationDates.textContent = `Created ${formatDate(conversation.createdAt)} | Updated ${formatDate(conversation.updatedAt)}`;
         elements.conversationModel.textContent = `Model ${formatConversationModel(conversation)}`;
         elements.conversationCount.textContent = `${visibleMessages.length} visible message${visibleMessages.length === 1 ? "" : "s"}`;
+        const needsDetails = conversationNeedsDetailHydration(conversation);
         updateConversationDetailActions(conversation);
         const rawConversation = state.rawConversationMap.get(conversation.id);
-        elements.conversationRawOutput.textContent = rawConversation
-            ? JSON.stringify(rawConversation, null, 2)
-            : canLoadConversationDetails(conversation.id)
-                ? "Raw conversation JSON is not loaded yet. Use Load Full Conversation Details to fetch it for this conversation."
-                : "Raw conversation JSON is unavailable for this session. Re-select the original backup source to load it.";
+        elements.conversationRawDetails.hidden = !rawConversation || needsDetails;
+        if (!rawConversation || needsDetails) {
+            elements.conversationRawDetails.open = false;
+            elements.conversationRawOutput.textContent = "";
+        }
+        else {
+            elements.conversationRawOutput.textContent = JSON.stringify(rawConversation, null, 2);
+        }
         if (!visibleMessages.length) {
             elements.conversationMessages.innerHTML = '<div class="empty-note">This conversation exists, but nothing matches the current role filter.</div>';
             updateConversationPager();

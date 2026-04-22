@@ -1074,6 +1074,10 @@
   void refreshRecentArchives();
   void restoreFromPickerOrCache();
 
+  window.ChatBrowser.app = {
+    reconnectCurrentFolderAccess,
+  };
+
   window.addEventListener("popstate", () => {
     if (state.pageType === "browser") {
       void restoreFromPickerOrCache();

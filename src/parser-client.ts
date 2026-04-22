@@ -43,6 +43,11 @@
       && (
         state.rawConversationMap.has(conversationId)
         || getSelectedConversationSourceFile()
+        || (
+          state.cacheMode === "folder"
+          && state.currentSessionKey
+          && typeof (window as any).showDirectoryPicker === "function"
+        )
       ),
     );
   }
@@ -75,7 +80,17 @@
     }
 
     const pendingLoad = (async () => {
-      const sourceFile = getSelectedConversationSourceFile();
+      let sourceFile = getSelectedConversationSourceFile();
+      if (!sourceFile && state.cacheMode === "folder" && state.currentSessionKey) {
+        const reconnected = await window.ChatBrowser.app?.reconnectCurrentFolderAccess({
+          hydrateImages: false,
+          promptIfNeeded: true,
+        });
+        if (reconnected) {
+          sourceFile = getSelectedConversationSourceFile();
+        }
+      }
+
       if (!sourceFile) {
         return null;
       }
