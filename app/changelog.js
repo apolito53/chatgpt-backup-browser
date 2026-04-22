@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.51",
+        APP_VERSION: "0.5.52",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.52",
+                date: "April 21, 2026",
+                changes: [
+                    "Made the folder digest button explicitly disabled until a folder is selected.",
+                    "Changed the digest button into a stronger call-to-action once it is ready to run.",
+                ],
+            },
             {
                 version: "0.5.51",
                 date: "April 21, 2026",

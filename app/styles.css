@@ -344,9 +344,30 @@ select {
   transition: transform 140ms ease, border-color 140ms ease;
 }
 
-.ghost-button:hover {
+.ghost-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: var(--accent);
+}
+
+.ghost-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+#digest-folder {
+  font-weight: 800;
+}
+
+#digest-folder.is-ready {
+  background: linear-gradient(135deg, #c96a41 0%, #9f4322 100%);
+  border-color: rgba(120, 48, 26, 0.62);
+  color: #fff8ef;
+  box-shadow: 0 14px 30px rgba(159, 67, 34, 0.2);
+}
+
+#digest-folder.is-ready:hover {
+  border-color: rgba(120, 48, 26, 0.82);
+  box-shadow: 0 18px 38px rgba(159, 67, 34, 0.26);
 }
 
 .folder-upload {

@@ -44,6 +44,10 @@
       || state.attachedFolderFiles.length,
     );
     elements.digestFolderButton.disabled = !hasFolderSelection;
+    elements.digestFolderButton.classList.toggle("is-ready", hasFolderSelection);
+    elements.digestFolderButton.textContent = hasFolderSelection
+      ? "Digest Selected Folder"
+      : "Select a Folder First";
   }
 
   function browserSupportsDirectoryAccess(): boolean {
