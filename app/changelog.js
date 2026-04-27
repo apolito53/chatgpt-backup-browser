@@ -3,8 +3,16 @@
 (() => {
     window.ChatBrowser = window.ChatBrowser || {};
     window.ChatBrowser.changelog = {
-        APP_VERSION: "0.5.60",
+        APP_VERSION: "0.5.61",
         CHANGELOG_ENTRIES: [
+            {
+                version: "0.5.61",
+                date: "April 27, 2026",
+                changes: [
+                    "Fixed the double-click launcher so another localhost project, like a Vite app on port 5173, cannot be mistaken for ChatGPT Backup Browser.",
+                    "Added a private server health check and bounded startup probing so the app opens the server instance it actually launched.",
+                ],
+            },
             {
                 version: "0.5.60",
                 date: "April 22, 2026",

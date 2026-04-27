@@ -9,6 +9,9 @@ const projectRoot = resolve(__dirname, "..");
 const host = "127.0.0.1";
 const requestedPort = Number.parseInt(process.env.CHATGPT_BROWSER_PORT || "4173", 10);
 const startPage = process.env.CHATGPT_BROWSER_PAGE || "app/index.html";
+const healthPath = "/__chatgpt_backup_browser_health";
+const appId = "chatgpt-backup-browser";
+const serverToken = process.env.CHATGPT_BROWSER_SERVER_TOKEN || "";
 
 const contentTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -44,6 +47,20 @@ function resolveRequestPath(requestUrl) {
 
 function handleRequest(request, response) {
   const parsed = new URL(request.url || "/", `http://${host}`);
+  if (parsed.pathname === healthPath) {
+    response.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    });
+    response.end(JSON.stringify({
+      app: appId,
+      projectRoot,
+      startPage,
+      token: serverToken,
+    }));
+    return;
+  }
+
   const redirectedPath = redirectPaths.get(parsed.pathname);
   if (redirectedPath) {
     response.writeHead(302, { Location: redirectedPath });

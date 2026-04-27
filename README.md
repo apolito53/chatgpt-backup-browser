@@ -29,6 +29,7 @@ It is meant to be simple to run, easy to browse, and useful for reading old conv
 5. Browse conversations, inspect images, and load raw JSON for specific conversations when needed.
 
 The start script builds the current browser assets, launches a small local server, and opens the app for you.
+It verifies that the tab it opens belongs to ChatGPT Backup Browser, so another localhost project already running on a nearby port will not hijack startup.
 
 ## Import Modes
 

@@ -8,6 +8,12 @@ LOCAL_NODE="$LOCAL_NODE_DIR/node"
 SERVER_SCRIPT="$PROJECT_ROOT/scripts/serve.mjs"
 DEFAULT_PORT="${CHATGPT_BROWSER_PORT:-4173}"
 START_PAGE="${CHATGPT_BROWSER_PAGE:-app/index.html}"
+HEALTH_PATH="__chatgpt_backup_browser_health"
+
+REQUESTED_PORT="$DEFAULT_PORT"
+if ! [[ "$REQUESTED_PORT" =~ ^[0-9]+$ ]] || [ "$REQUESTED_PORT" -lt 1 ] || [ "$REQUESTED_PORT" -gt 65535 ]; then
+  REQUESTED_PORT=4173
+fi
 
 test_build_required() {
   if [ ! -f "$BUILD_SCRIPT" ]; then
@@ -62,27 +68,39 @@ if [ ! -f "$LOCAL_NODE" ]; then
   ln -sf "$RESOLVED_NODE" "$LOCAL_NODE"
 fi
 
-"$LOCAL_NODE" "$SERVER_SCRIPT" &
+SERVER_TOKEN="$(date +%s)-$$-$RANDOM"
+CHATGPT_BROWSER_SERVER_TOKEN="$SERVER_TOKEN" "$LOCAL_NODE" "$SERVER_SCRIPT" &
 SERVER_PID=$!
 
-RESOLVED_PORT="$DEFAULT_PORT"
+RESOLVED_PORT="$REQUESTED_PORT"
 SERVER_READY=false
+MAX_PORT=$((REQUESTED_PORT + 50))
+if [ "$MAX_PORT" -gt 65535 ]; then
+  MAX_PORT=65535
+fi
 
-for attempt in {1..40}; do
+for attempt in {1..80}; do
   sleep 0.25
 
-  while IFS= read -r port; do
-    if curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$port/$START_PAGE" 2>/dev/null | grep -q "^[23]"; then
+  for port in $(seq "$REQUESTED_PORT" "$MAX_PORT"); do
+    HEALTH_BODY="$(curl -fsS --max-time 1 "http://127.0.0.1:$port/$HEALTH_PATH" 2>/dev/null || true)"
+    if printf '%s' "$HEALTH_BODY" | grep -q '"app":"chatgpt-backup-browser"' &&
+       printf '%s' "$HEALTH_BODY" | grep -q "\"token\":\"$SERVER_TOKEN\""; then
       RESOLVED_PORT="$port"
       SERVER_READY=true
       break
     fi
-  done < <(ss -tlnH 2>/dev/null | awk '$4 ~ /127\.0\.0\.1:/ {split($4, a, ":"); print a[2]}' | sort -n)
+  done
 
   if [ "$SERVER_READY" = true ]; then
     break
   fi
 done
+
+if [ "$SERVER_READY" != true ]; then
+  echo "ChatGPT Backup Browser started, but the launcher could not confirm its own local server. Another localhost app may be using port $REQUESTED_PORT. Close the other server or set CHATGPT_BROWSER_PORT to a free port, then try again." >&2
+  exit 1
+fi
 
 URL="http://127.0.0.1:$RESOLVED_PORT/$START_PAGE"
 echo "ChatGPT Backup Browser is starting at $URL"
