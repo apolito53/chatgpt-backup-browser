@@ -21,6 +21,7 @@ Add new feature ideas, spitballed follow-ups, and agreed next steps here as they
 
 ## Training Data Ideas
 
+- Implement the saved [Nova training dataset exporter plan](./NOVA_TRAINING_PLAN.md).
 - Export training-ready prompt/response pairs from selected conversations.
 - Export preference or ranking datasets from favored conversations and responses.
 - Build memory/profile summaries from long-term usage patterns.
