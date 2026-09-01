@@ -20,6 +20,16 @@ It is meant to be simple to run, easy to browse, and useful for reading old conv
 - See which model produced assistant turns when the export includes that metadata, without internal tool chatter cluttering the reader
 - Check a small in-app changelog instead of wondering what changed this time
 
+## Hosted Use
+
+The browser is available at [chatgpt-backup-browser.vercel.app](https://chatgpt-backup-browser.vercel.app/).
+
+Vercel serves only the HTML, CSS, and JavaScript application. The selected ChatGPT export is read, parsed, and cached by your browser; the current application does not upload archive contents to Vercel or another backend.
+
+Hosted browser storage is local to the current site, browser profile, and device. Opening the site on another computer does not synchronize an archive, and the hosted site cannot see a session previously cached under a localhost address. Import the export once for each browser environment where you want it available.
+
+Chrome and Edge provide the best whole-folder experience because they support saved directory handles. Other browsers can still use the file and folder inputs, but may require selecting the original folder again when restoring images or lazy-loaded details.
+
 ## Getting Started
 
 1. Double-click `START_BROWSER.vbs`.
@@ -40,10 +50,10 @@ It verifies that the tab it opens belongs to ChatGPT Backup Browser, so another 
 
 ## Notes
 
-- The app runs fully on your machine in the browser.
+- Archive processing and storage run locally inside your browser, whether the application shell is served from localhost or Vercel.
 - It does not need a backend or database server.
 - Single-file sessions can be restored from browser storage after refresh.
-- Folder sessions can restore cached metadata, but live image previews still require re-selecting the original folder because browsers do not persist those file handles for ordinary pages.
+- Chrome and Edge can save a folder handle in browser storage and reconnect it later, although the browser may require a permission click. Browsers without that directory-access support require re-selecting the original folder for live image previews.
 - The viewer reads the selected conversation branch from the export, which is usually the branch you actually care about.
 
 ## Project Roadmap
@@ -53,6 +63,7 @@ Planned features and longer-term ideas live in [docs/TODO.md](./docs/TODO.md).
 ## For Contributors
 
 Contributor workflow notes live in [docs/DEVELOPER_NOTES.md](./docs/DEVELOPER_NOTES.md).
+The hosted request and data flow are documented in [docs/HOSTING.md](./docs/HOSTING.md).
 
 There is also a PowerShell helper for inspecting large exports if you are working on parser or archive tooling changes:
 
