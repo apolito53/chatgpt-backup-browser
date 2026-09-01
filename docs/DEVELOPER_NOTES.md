@@ -5,9 +5,11 @@ This file is for project maintenance and contributor workflow notes, not normal 
 ## Build Workflow
 
 - TypeScript source files live in `src/`.
-- The browser still loads plain `.js` files from the project root.
+- The browser-facing app still loads generated plain `.js` files from `app/`.
 - Run `powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1` to rebuild the generated browser-facing `.js` files.
+- Run `bash scripts/build.sh` on Linux or in Vercel. The hosted build uses this script before publishing `app/`.
 - The project vendors TypeScript under `tools\typescript` because `npm` is not assumed to exist in this environment.
+- Deployment behavior and the browser data boundary are described in [HOSTING.md](./HOSTING.md).
 
 ## Documentation Hygiene
 

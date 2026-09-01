@@ -4,8 +4,17 @@
 window.ChatBrowser = window.ChatBrowser || {};
 
 window.ChatBrowser.changelog = {
-  APP_VERSION: "0.5.61",
+  APP_VERSION: "0.5.62",
   CHANGELOG_ENTRIES: [
+    {
+      version: "0.5.62",
+      date: "September 1, 2026",
+      changes: [
+        "Added source-controlled Vercel build and output settings so the hosted app opens at the site root instead of hiding under /app/.",
+        "Limited the hosted deployment to browser assets and added restrictive security and search-indexing headers for locally processed archive data.",
+        "Kept existing /app/ links working through temporary compatibility redirects while the canonical hosted URLs move to the site root.",
+      ],
+    },
     {
       version: "0.5.61",
       date: "April 27, 2026",
